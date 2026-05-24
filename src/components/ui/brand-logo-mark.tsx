@@ -13,12 +13,12 @@ type BrandLogoMarkProps = {
 
 const imageHeights: Record<NonNullable<BrandLogoMarkProps["variant"]>, string> = {
   default: "h-[2.7rem] sm:h-[3rem] md:h-[3.3rem] lg:h-[3.6rem]",
-  crest: "h-[5rem] sm:h-[5.75rem] md:h-[6.5rem] lg:h-[7.5rem]",
+  crest: "h-[5rem] sm:h-[5.75rem] md:h-[6.5rem] lg:h-[6.5rem]",
   large: "h-[4.2rem] sm:h-[4.8rem] md:h-[6rem] lg:h-[7.2rem]"
 };
 
 const imageMaxWidths: Partial<Record<NonNullable<BrandLogoMarkProps["variant"]>, string>> = {
-  crest: "max-w-[9.5rem] sm:max-w-[11rem] md:max-w-[13rem] lg:max-w-[14rem]"
+  crest: "max-w-[9.5rem] sm:max-w-[11rem] md:max-w-[12rem] lg:max-w-[12rem]"
 };
 
 export function BrandLogoMark({
@@ -40,7 +40,7 @@ export function BrandLogoMark({
         filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.35))",
         objectFit: "contain",
         objectPosition: "center center",
-        ...(showRedBackground ? { padding: "15px" } : {})
+        ...(showRedBackground ? { padding: "10px" } : {})
       }}
     />
   );

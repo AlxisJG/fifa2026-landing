@@ -2,8 +2,16 @@ export type DataSource = "live" | "demo";
 
 export type TickerItem = {
   id: string;
-  text: string;
+  homeCode: string;
+  awayCode: string;
+  homeLabel: string;
+  awayLabel: string;
+  homeScore?: number;
+  awayScore?: number;
+  detail: string;
   live?: boolean;
+  homeFlagUrl?: string;
+  awayFlagUrl?: string;
 };
 
 export type Fixture = {
@@ -16,12 +24,15 @@ export type Fixture = {
 };
 
 export type FeaturedMatch = {
-  home: string;
-  away: string;
+  homeCode: string;
+  awayCode: string;
+  homeName: string;
+  awayName: string;
+  groupLabel: string;
   venue: string;
-  stage: string;
-  kickoff: string;
-  sponsor: string;
+  kickoff?: string;
+  homeFlagUrl?: string;
+  awayFlagUrl?: string;
 };
 
 export type StandingsRow = {

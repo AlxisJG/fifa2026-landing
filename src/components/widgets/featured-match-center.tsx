@@ -1,50 +1,132 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { featuredMatch as initialMatch } from "@/data/worldcup-widgets";
 import { useMatchCenter } from "@/hooks/useFootballData";
+import type { FeaturedMatch } from "@/lib/football-api/types";
 import { scrollToSection } from "@/lib/scroll-to-section";
+import { getFlagCdnUrl } from "@/lib/team-flags";
+
+const FLAG_W = "w-[5.75rem] sm:w-[6.5rem]";
+const MATCH_CENTER_BG = "/recursos/MATCH%20CENTER.jpg";
+
+function FeaturedFlag({ code, flagUrl }: { code: string; flagUrl?: string }) {
+  const src = getFlagCdnUrl(code, 160) ?? flagUrl;
+
+  return (
+    <div
+      className={`${FLAG_W} h-[3.25rem] shrink-0 overflow-hidden border-2 border-white bg-white/5 sm:h-[3.75rem]`}
+      style={{ borderTopLeftRadius: "0.75rem" }}
+    >
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <span className="flex h-full w-full items-center justify-center text-sm font-bold text-white">{code}</span>
+      )}
+    </div>
+  );
+}
+
+function FeaturedMatchup({
+  homeCode,
+  awayCode,
+  homeName,
+  awayName,
+  homeFlagUrl,
+  awayFlagUrl
+}: Pick<FeaturedMatch, "homeCode" | "awayCode" | "homeName" | "awayName" | "homeFlagUrl" | "awayFlagUrl">) {
+  return (
+    <div className="grid grid-cols-[5.75rem_auto_5.75rem] items-end gap-x-5 gap-y-3 sm:grid-cols-[6.5rem_auto_6.5rem] sm:gap-x-8 sm:gap-y-3.5">
+      <FeaturedFlag code={homeCode} flagUrl={homeFlagUrl} />
+      <span className="pb-1 text-2xl font-black uppercase leading-none text-white sm:pb-1.5 sm:text-4xl">VS</span>
+      <FeaturedFlag code={awayCode} flagUrl={awayFlagUrl} />
+
+      <p className="text-center text-xs font-semibold uppercase leading-snug text-white sm:text-sm">{homeName}</p>
+      <span aria-hidden />
+      <p className="text-center text-xs font-semibold uppercase leading-snug text-white sm:text-sm">{awayName}</p>
+    </div>
+  );
+}
 
 export function FeaturedMatchCenter() {
   const { data, loading, source } = useMatchCenter(initialMatch);
+  const match: FeaturedMatch = data;
 
   return (
-    <section id="match-center" className="section-shell py-6 sm:py-8">
-      <motion.div whileHover={{ y: -4 }} className="glass-heavy rounded-3xl border border-sky-200/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(235,246,255,0.9))] p-5 sm:p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-xs uppercase tracking-[0.2em] text-blue-900">Featured Match Center (USA vs Mexico)</p>
-          <div className="flex items-center gap-2">
-            <span className="rounded-full border border-slate-300 bg-white px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-slate-700">{data.sponsor}</span>
-            <span className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${source === "live" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
-              {source === "live" ? "Live data" : "Demo data"}
-            </span>
-          </div>
+    <section id="match-center" className="theater-dark relative py-6 sm:py-8">
+      <div
+        className="pointer-events-none absolute inset-0 bg-[#0d3a6e] bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url("${MATCH_CENTER_BG}")` }}
+        aria-hidden
+      />
+
+      <div className="section-shell relative z-10">
+        <div className="mb-2 flex justify-end">
+          <span
+            className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${
+              source === "live" ? "bg-emerald-500/20 text-emerald-200" : "bg-white/10 text-white/70"
+            }`}
+          >
+            {source === "live" ? "Datos en vivo" : "Datos demo"}
+          </span>
         </div>
-        <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
-          <div>
-            {loading ? (
-              <div className="h-9 w-64 animate-pulse rounded bg-slate-200" />
-            ) : (
-              <h3 className="text-3xl font-bold tracking-[-0.02em] text-slate-900">
-                {data.home} <span className="text-slate-400">vs</span> {data.away}
-              </h3>
-            )}
-            <p className="mt-2 text-sm text-slate-700">{data.venue}</p>
-            <p className="text-sm text-blue-900">{data.stage}</p>
-            <p className="mt-1 text-sm font-semibold text-slate-800">Kickoff: {data.kickoff}</p>
+
+        <div className="mb-6 text-center sm:mb-8">
+          {loading ? (
+            <div className="mx-auto h-8 w-64 animate-pulse rounded bg-white/20 sm:h-9 sm:w-72" />
+          ) : (
+            <>
+              <p className="text-lg font-black uppercase tracking-[0.14em] text-white sm:text-xl sm:tracking-[0.18em] md:text-2xl">
+                {match.groupLabel}
+              </p>
+              <p className="mt-2 text-xs text-white/85 sm:text-sm">{match.venue}</p>
+            </>
+          )}
+        </div>
+
+        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-6">
+          <div className="hidden lg:block">
+            <p className="text-3xl font-black uppercase leading-[0.9] tracking-tight text-white xl:text-4xl">
+              Partido
+              <br />
+              Destacado
+            </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+
+          <div className="flex flex-col items-center gap-4">
+            <p className="text-center text-2xl font-black uppercase leading-none text-white lg:hidden">Partido Destacado</p>
+            {loading ? (
+              <div className="h-[4.5rem] w-64 animate-pulse rounded-lg bg-white/15" />
+            ) : (
+              <FeaturedMatchup
+                homeCode={match.homeCode}
+                awayCode={match.awayCode}
+                homeName={match.homeName}
+                awayName={match.awayName}
+                homeFlagUrl={match.homeFlagUrl}
+                awayFlagUrl={match.awayFlagUrl}
+              />
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-end">
             <button
               type="button"
               onClick={() => scrollToSection("live")}
-              className="rounded-full bg-[#22B7FF] px-5 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#061224]"
+              className="rounded-full bg-[#c8f542] px-6 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-black transition hover:brightness-105 sm:text-sm"
             >
-              Watch Live
+              Ver en vivo
             </button>
-            <button className="rounded-full border border-slate-300 bg-white px-5 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-800">Match Center</button>
+            <button
+              type="button"
+              onClick={() => scrollToSection("match-center")}
+              className="rounded-full bg-white px-6 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-black transition hover:bg-white/90 sm:text-sm"
+            >
+              Centro de partido
+            </button>
           </div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }

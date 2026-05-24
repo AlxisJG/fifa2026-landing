@@ -2,15 +2,17 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { AdSlotFrame } from "@/components/ads/ad-slot-frame";
 import { RectangleAdSlot } from "@/components/ads/rectangle-ad-slot";
 import { SectionTitle } from "@/components/ui/section-title";
 import { Reveal } from "@/components/ui/motion";
 import { rectanglePlacements } from "@/data/ad-placements";
+import { AD_SIZES } from "@/lib/ad-sizes";
 import { BRANDING } from "@/lib/branding";
 
 export function LiveStreamSection() {
   return (
-    <section id="live" className="section-shell py-16 sm:py-24">
+    <section id="live" className="section-shell pt-16 sm:pt-24">
       <SectionTitle
         kicker="Streaming"
         title="Juego en vivo"
@@ -71,23 +73,47 @@ export function LiveStreamSection() {
           </Reveal>
 
           <Reveal delay={0.08}>
-            <RectangleAdSlot placement={rectanglePlacements.liveStream} responsive className="mt-1" />
+            <div className="flex justify-center">
+              <AdSlotFrame
+                format="leaderboard"
+                id={rectanglePlacements.liveStreamPlayer.id}
+                title={rectanglePlacements.liveStreamPlayer.title}
+                placement={rectanglePlacements.liveStreamPlayer.placement}
+                activeSizeLabel={AD_SIZES.leaderboard.label}
+                className="mx-auto hidden md:block lg:block"
+              />
+              <AdSlotFrame
+                format="mobile-banner"
+                id={`${rectanglePlacements.liveStreamPlayer.id}-mobile`}
+                title={rectanglePlacements.liveStreamPlayer.title}
+                placement={rectanglePlacements.liveStreamPlayer.placement}
+                activeSizeLabel={AD_SIZES["mobile-banner"].label}
+                variant="matchday"
+                className="mx-auto md:hidden"
+              />
+            </div>
           </Reveal>
         </div>
 
-        <Reveal className="xl:col-span-4" delay={0.12}>
-          <aside className="glass-heavy flex h-full min-h-[250px] flex-col rounded-3xl border border-slate-300 bg-white/95 p-5 shadow-[0_20px_60px_rgba(2,6,23,0.12)] sm:min-h-[420px] sm:p-6 xl:min-h-0">
-            <h3 className="text-xl font-semibold tracking-[-0.02em] text-blue-900">Broadcast Center</h3>
-            <p className="mt-2 text-sm text-slate-700">Lineup, next feeds and real-time production notes.</p>
-            <div className="mt-5 flex-1 space-y-3">
-              {["Next: Spain vs France", "After: Argentina vs Brazil", "Pre-game show in 18m"].map((item) => (
-                <motion.div key={item} whileHover={{ x: 4 }} className="rounded-2xl border border-slate-300 bg-slate-50 p-3.5 text-sm text-slate-800">
-                  {item}
-                </motion.div>
-              ))}
-            </div>
-          </aside>
-        </Reveal>
+        <div className="flex flex-col gap-4 xl:col-span-4">
+          <Reveal delay={0.12}>
+            <aside className="glass-heavy flex min-h-[250px] flex-col rounded-3xl border border-slate-300 bg-white/95 p-5 shadow-[0_20px_60px_rgba(2,6,23,0.12)] sm:min-h-[420px] sm:p-6 xl:min-h-0">
+              <h3 className="text-xl font-semibold tracking-[-0.02em] text-blue-900">Broadcast Center</h3>
+              <p className="mt-2 text-sm text-slate-700">Lineup, next feeds and real-time production notes.</p>
+              <div className="mt-5 flex-1 space-y-3">
+                {["Next: Spain vs France", "After: Argentina vs Brazil", "Pre-game show in 18m"].map((item) => (
+                  <motion.div key={item} whileHover={{ x: 4 }} className="rounded-2xl border border-slate-300 bg-slate-50 p-3.5 text-sm text-slate-800">
+                    {item}
+                  </motion.div>
+                ))}
+              </div>
+            </aside>
+          </Reveal>
+
+          <Reveal delay={0.16}>
+            <RectangleAdSlot placement={rectanglePlacements.liveStream} className="mx-auto" />
+          </Reveal>
+        </div>
       </div>
     </section>
   );

@@ -22,10 +22,16 @@ export const rectanglePlacements = {
     placement: "Noticias destacadas"
   },
   liveStream: {
-    id: "rectangle-live",
+    id: "rectangle-live-broadcast",
     title: "Banner Rectángulo",
-    sizeLabel: "300×250 · 320×50 móvil",
-    placement: "Juego en vivo"
+    sizeLabel: "300×250",
+    placement: "Juego en vivo · Broadcast Center"
+  },
+  liveStreamPlayer: {
+    id: "leaderboard-live-player",
+    title: "Banner Leaderboard",
+    sizeLabel: "728×90",
+    placement: "Juego en vivo · reproductor"
   }
 } as const;
 

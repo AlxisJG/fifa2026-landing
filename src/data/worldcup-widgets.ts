@@ -1,17 +1,6 @@
-export type TickerItem = {
-  id: string;
-  text: string;
-  live?: boolean;
-};
+import type { FeaturedMatch, TickerItem } from "@/lib/football-api/types";
 
-export type MatchCenter = {
-  home: string;
-  away: string;
-  venue: string;
-  stage: string;
-  kickoff: string;
-  sponsor: string;
-};
+export type MatchCenter = FeaturedMatch;
 
 export type Fixture = {
   id: string;
@@ -23,19 +12,51 @@ export type Fixture = {
 };
 
 export const tickerItems: TickerItem[] = [
-  { id: "t1", text: "ARG 2 - 1 BRA • LIVE 68'", live: true },
-  { id: "t2", text: "USA vs MEX • Today 8:00 PM" },
-  { id: "t3", text: "ESP vs FRA • Tomorrow" },
-  { id: "t4", text: "DOM Coverage • Pio Deportes" }
+  {
+    id: "t1",
+    homeCode: "ARG",
+    awayCode: "BRA",
+    homeLabel: "ARG",
+    awayLabel: "BRA",
+    homeScore: 2,
+    awayScore: 1,
+    detail: "EN VIVO 68'",
+    live: true
+  },
+  {
+    id: "t2",
+    homeCode: "USA",
+    awayCode: "MEX",
+    homeLabel: "USA",
+    awayLabel: "MEX",
+    detail: "Hoy 8:00 PM"
+  },
+  {
+    id: "t3",
+    homeCode: "ESP",
+    awayCode: "FRA",
+    homeLabel: "ESP",
+    awayLabel: "FRA",
+    detail: "Mañana"
+  },
+  {
+    id: "t4",
+    homeCode: "POR",
+    awayCode: "GER",
+    homeLabel: "POR",
+    awayLabel: "GER",
+    detail: "Sáb 9:30 PM"
+  }
 ];
 
-export const featuredMatch: MatchCenter = {
-  home: "USA",
-  away: "Mexico",
-  venue: "SoFi Stadium",
-  stage: "Group Stage",
-  kickoff: "8:00 PM AST",
-  sponsor: "Match Center by Sponsor"
+export const featuredMatch: FeaturedMatch = {
+  homeCode: "CAN",
+  awayCode: "BIH",
+  homeName: "Canadá",
+  awayName: "Bosnia y Herzegovina",
+  groupLabel: "Grupo B — Fase de grupos",
+  venue: "Estadio BC Place, Vancouver",
+  kickoff: "8:00 PM AST"
 };
 
 export const fixtures: Fixture[] = [

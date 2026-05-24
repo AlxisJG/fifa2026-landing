@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
 import { BrandLogoMark } from "@/components/ui/brand-logo-mark";
+import { LiveNavButton } from "@/components/ui/live-nav-button";
 import { useAuth } from "@/hooks/use-auth";
 import { scrollToSection } from "@/lib/scroll-to-section";
 
@@ -13,7 +14,6 @@ type NavItem = {
 };
 
 const landingNavLeft: NavItem[] = [
-  { label: "En vivo", sectionId: "live" },
   { label: "Noticias", sectionId: "news" },
   { label: "Partidos", sectionId: "fixtures" },
   { label: "Match Center", sectionId: "match-center" }
@@ -63,7 +63,7 @@ export function TopNav() {
   return (
     <>
       <header
-        className="theater-dark fixed inset-x-0 top-0 z-40 overflow-visible border-b border-white/15 bg-[#08142c]/90 backdrop-blur-2xl"
+        className="theater-dark fixed inset-x-0 top-0 z-40 overflow-visible border-b border-white/15 bg-black/90 backdrop-blur-2xl"
         style={{ paddingTop: "max(env(safe-area-inset-top), 0px)" }}
       >
         <div className="absolute inset-x-0 top-0 h-0.5 bg-[#d71920]" />
@@ -83,6 +83,7 @@ export function TopNav() {
               </nav>
             ) : (
               <nav className="hidden items-center justify-start gap-3 md:flex lg:gap-4 xl:gap-5">
+                <LiveNavButton onClick={() => handleNavigate("live")} />
                 {landingNavLeft.map((item) => (
                   <NavAnchor key={item.sectionId} item={item} onNavigate={handleNavigate} />
                 ))}
@@ -90,7 +91,7 @@ export function TopNav() {
             )}
 
             <div className="relative h-full w-[10.5rem] shrink-0 justify-self-center sm:w-[12.5rem] md:w-[15rem]">
-              <div className="absolute left-1/2 z-50 -translate-x-1/2 -translate-y-1/2" style={{ top: "65px" }}>
+              <div className="absolute left-1/2 z-50 -translate-x-1/2 -translate-y-1/2" style={{ top: "55px" }}>
                 {loggedIn ? (
                   <BrandLogoMark variant="crest" />
                 ) : (
@@ -146,13 +147,13 @@ export function TopNav() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 md:hidden"
           >
-            <div className="absolute inset-0 bg-[#061024]/70 backdrop-blur-2xl" onClick={() => setMenuOpen(false)} />
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-2xl" onClick={() => setMenuOpen(false)} />
             <motion.div
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -20, opacity: 0 }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="theater-dark absolute inset-x-4 rounded-2xl border border-white/15 bg-[#07142cf5] p-5 shadow-glow"
+              className="theater-dark absolute inset-x-4 rounded-2xl border border-white/15 bg-black/95 p-5 shadow-glow"
               style={{ top: "max(calc(env(safe-area-inset-top) + 4.5rem), 4.75rem)" }}
             >
               <div className="mb-4 flex justify-center border-b border-white/10 pb-4">
@@ -168,6 +169,9 @@ export function TopNav() {
                 </button>
               </div>
               <div className="max-h-[60vh] space-y-2 overflow-y-auto">
+                {!loggedIn && (
+                  <LiveNavButton variant="menu" onClick={() => handleNavigate("live")} />
+                )}
                 {loggedIn
                   ? [...loggedInLeft, ...loggedInRight].map((item) => (
                       <Link

@@ -6,7 +6,6 @@ import { SponsorBar } from "@/components/sections/sponsor-bar";
 import { FixturesSection } from "@/components/sections/fixtures";
 import { GallerySection } from "@/components/sections/gallery";
 import { LiveStreamSection } from "@/components/sections/live-stream";
-import { SocialSection } from "@/components/sections/social";
 import { FooterSection } from "@/components/sections/footer";
 import { MatchSummariesSection } from "@/components/sections/match-summaries";
 import { AmbientBackground } from "@/components/ui/ambient-bg";
@@ -73,7 +72,6 @@ export default function Home() {
         placement={horizontalPlacements[5].placement}
         variant="matchday"
       />
-      <SocialSection />
       <FooterSection />
       <StickyMobileAd />
     </main>

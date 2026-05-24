@@ -1,8 +1,38 @@
 "use client";
 
+import { Archivo_Black } from "next/font/google";
 import { useEffect, useMemo, useState } from "react";
 
 const target = new Date("2026-06-11T20:00:00-04:00").getTime();
+
+const countdownFont = Archivo_Black({
+  subsets: ["latin"],
+  weight: "400"
+});
+
+const COUNTDOWN_BG = "/recursos/COUNTDOWN.jpg";
+
+const countdownUnits = [
+  { key: "days", label: "DÍAS" },
+  { key: "hours", label: "HORAS" },
+  { key: "minutes", label: "MIN." },
+  { key: "seconds", label: "SEG." }
+] as const;
+
+type CountdownParts = Record<(typeof countdownUnits)[number]["key"], number>;
+
+function CountdownBox({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="flex min-w-[5.5rem] flex-1 basis-[5.5rem] flex-col items-center justify-center rounded-[18px] bg-white px-4 py-5 sm:min-w-[6.5rem] sm:basis-[6.5rem] sm:px-5 sm:py-6 md:min-w-[7.5rem] md:basis-[7.5rem]">
+      <p className="text-[clamp(2.25rem,6vw,3.75rem)] font-normal leading-none tracking-tight text-black tabular-nums">
+        {String(value).padStart(2, "0")}
+      </p>
+      <p className="mt-2 text-[clamp(0.65rem,1.8vw,0.85rem)] font-normal uppercase leading-none tracking-[0.06em] text-black">
+        {label}
+      </p>
+    </div>
+  );
+}
 
 export function CountdownWidget() {
   const [now, setNow] = useState(Date.now());
@@ -12,7 +42,7 @@ export function CountdownWidget() {
     return () => window.clearInterval(i);
   }, []);
 
-  const parts = useMemo(() => {
+  const parts = useMemo((): CountdownParts => {
     const d = Math.max(target - now, 0);
     return {
       days: Math.floor(d / 86400000),
@@ -23,18 +53,24 @@ export function CountdownWidget() {
   }, [now]);
 
   return (
-    <section id="countdown" className="section-shell py-8 sm:py-10">
-      <div className="glass-heavy rounded-3xl border border-sky-200/70 p-5 sm:p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-xs uppercase tracking-[0.2em] text-blue-900">Road to FIFA World Cup 2026</p>
-          <span className="rounded-full border border-slate-300 bg-white px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-slate-700">Presented by Sponsor</span>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {Object.entries(parts).map(([k, v]) => (
-            <div key={k} className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
-              <p className="text-3xl font-bold text-slate-900">{String(v).padStart(2, "0")}</p>
-              <p className="mt-1 text-[10px] uppercase tracking-[0.2em] text-slate-600">{k}</p>
-            </div>
+    <section
+      id="countdown"
+      className={`theater-dark relative z-[1] mt-5 w-full ${countdownFont.className}`}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 bg-black bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url("${COUNTDOWN_BG}")` }}
+        aria-hidden
+      />
+
+      <div className="section-shell relative z-10 px-4 py-8 sm:py-10 md:py-12">
+        <h2 className="mb-6 text-center text-[clamp(1.35rem,3.5vw,2.5rem)] font-normal uppercase leading-[0.95] tracking-[0.02em] text-white sm:mb-8">
+          Road to FIFA World Cup 2026
+        </h2>
+
+        <div className="mx-auto flex max-w-4xl flex-wrap items-stretch justify-center gap-4 sm:gap-5">
+          {countdownUnits.map(({ key, label }) => (
+            <CountdownBox key={key} value={parts[key]} label={label} />
           ))}
         </div>
       </div>

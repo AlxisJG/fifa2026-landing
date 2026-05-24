@@ -82,23 +82,31 @@ function NewsCard({
   title,
   category,
   tall = false,
+  matchAdHeight = false,
   priority = false
 }: {
   image: string;
   title: string;
   category: string;
   tall?: boolean;
+  matchAdHeight?: boolean;
   priority?: boolean;
 }) {
   const safeTitle = stripHtml(title);
   const safeCategory = stripHtml(category);
+
+  const heightClass = tall
+    ? "h-[270px] sm:h-[360px]"
+    : matchAdHeight
+      ? "h-[250px]"
+      : "h-40 sm:h-44";
 
   return (
     <motion.article
       whileHover={{ y: -4 }}
       className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 shadow-[0_12px_36px_rgba(15,23,42,0.14)]"
     >
-      <div className={`relative w-full ${tall ? "h-[270px] sm:h-[360px]" : "h-40 sm:h-44"}`}>
+      <div className={`relative w-full ${heightClass}`}>
         <NewsCardImage src={image} alt={safeTitle} priority={priority} />
         <div
           className="pointer-events-none absolute inset-0"
@@ -114,7 +122,7 @@ function NewsCard({
             {safeCategory}
           </p>
           <h3
-            className={`mt-1 font-bold leading-tight ${tall ? "text-xl sm:text-2xl" : "text-sm sm:text-base"}`}
+            className={`mt-1 font-bold leading-tight ${tall ? "text-xl sm:text-2xl" : matchAdHeight ? "text-base sm:text-lg" : "text-sm sm:text-base"}`}
             style={{ color: "#ffffff", textShadow: "0 2px 12px rgba(0,0,0,0.65)" }}
           >
             {safeTitle}
@@ -170,11 +178,11 @@ export function FeaturedNewsSection() {
 
           {gridPosts.slice(3, 5).map((item, index) => (
             <Reveal key={item.id} delay={0.08 + index * 0.05} className="xl:col-span-4">
-              <NewsCard image={item.image} title={item.title} category={item.category} />
+              <NewsCard image={item.image} title={item.title} category={item.category} matchAdHeight />
             </Reveal>
           ))}
 
-          <Reveal delay={0.15} className="flex xl:col-span-4 xl:items-stretch xl:justify-center">
+          <Reveal delay={0.15} className="flex xl:col-span-4 xl:items-start xl:justify-center">
             <RectangleAdSlot placement={rectanglePlacements.featuredNews} className="self-center" />
           </Reveal>
         </div>

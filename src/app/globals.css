@@ -105,6 +105,20 @@ body {
   background-color: rgba(255, 255, 255, 0.85) !important;
 }
 
+.theater-dark.bg-black,
+.theater-dark.bg-black\/90,
+.theater-dark.bg-black\/95 {
+  background-color: #000000 !important;
+}
+
+.theater-dark.bg-black\/90 {
+  background-color: rgba(0, 0, 0, 0.9) !important;
+}
+
+.theater-dark.bg-black\/95 {
+  background-color: rgba(0, 0, 0, 0.95) !important;
+}
+
 .text-electric { color: #005fcc !important; }
 .text-gold { color: #ad7c00 !important; }
 
@@ -129,6 +143,49 @@ body {
 
 .theater-dark .hover\:text-white:hover {
   color: #fff !important;
+}
+
+.theater-dark .border-white\/25,
+.theater-dark .border-white\/20,
+.theater-dark .border-white\/15,
+.theater-dark .border-white\/12,
+.theater-dark .border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.theater-dark .bg-white\/5 {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.theater-dark .bg-white\/10,
+.theater-dark .bg-white\/\[0\.03\],
+.theater-dark .bg-white\/\[0\.06\] {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.theater-dark.bg-\[\#141414\] {
+  background-color: #141414 !important;
+}
+
+.theater-dark.bg-pioRed,
+.theater-dark .bg-pioRed {
+  background-color: #d71920 !important;
+}
+
+@keyframes live-dot-blink {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgb(215 25 32 / 0.55);
+  }
+  50% {
+    opacity: 0.35;
+    box-shadow: 0 0 0 4px rgb(215 25 32 / 0);
+  }
+}
+
+.live-dot-blink {
+  animation: live-dot-blink 1.15s ease-in-out infinite;
 }
 
 @keyframes drift {
