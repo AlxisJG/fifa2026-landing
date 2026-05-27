@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { MetaPixel } from "@/components/analytics/meta-pixel";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
+        <MetaPixel />
         <Providers>{children}</Providers>
       </body>
     </html>
