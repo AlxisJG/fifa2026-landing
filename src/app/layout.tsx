@@ -3,11 +3,29 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { MetaPixel } from "@/components/analytics/meta-pixel";
+import { JsonLd } from "@/components/seo/json-ld";
+import { HOME_SEO, GOOGLE_SITE_VERIFICATION, SITE_NAME, SITE_URL } from "@/lib/seo/site";
+import { buildSiteGraphSchema } from "@/lib/seo/json-ld";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Pio Deportes | FIFA World Cup 2026",
-  description: "Premium streaming landing page for FIFA World Cup 2026 in Dominican Republic",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: HOME_SEO.title,
+    template: `%s | ${SITE_NAME}`
+  },
+  description: HOME_SEO.description,
+  verification: {
+    google: GOOGLE_SITE_VERIFICATION
+  },
+  openGraph: {
+    type: "website",
+    locale: "es_DO",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: HOME_SEO.title,
+    description: HOME_SEO.description
+  },
   icons: {
     icon: [
       { url: "/ICON/FAV%20ICON%20LOGO%20PIO%20DEPORTES-06.png", sizes: "32x32", type: "image/png" },
@@ -26,6 +44,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
+        <JsonLd data={buildSiteGraphSchema()} />
         <GoogleAnalytics />
         <MetaPixel />
         <Providers>{children}</Providers>

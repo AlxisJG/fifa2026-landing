@@ -20,7 +20,9 @@ export function LiveMatchTicker() {
 
         <div className="px-4 py-3 sm:px-5 sm:py-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[10px] uppercase tracking-[0.2em] text-white/85">Marcador en vivo</span>
+            <h2 className="text-base font-semibold leading-tight tracking-[-0.01em] text-white sm:text-lg">
+              Resultados de Futbol en Vivo
+            </h2>
             <span
               className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] ${
                 source === "live" ? "bg-emerald-500/20 text-emerald-200" : "bg-white/10 text-white/70"

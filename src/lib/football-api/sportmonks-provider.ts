@@ -1,0 +1,133 @@
+import {
+  addDays,
+  fetchFixturesBetween,
+  fetchLivescores,
+  fetchScheduleFixtures,
+  fetchStandingsBySeason,
+  fetchTeamsBySeason,
+  fetchTopscorersBySeason
+} from "./sportmonks-client";
+import {
+  isSportmonksFixtureLive,
+  mapSportmonksFixtureToFeaturedMatch,
+  mapSportmonksFixtureToFixture,
+  mapSportmonksFixtureToTickerItem,
+  mapSportmonksStandings,
+  mapSportmonksTeams,
+  mapSportmonksTopscorers
+} from "./mappers";
+import type {
+  FootballProvider,
+  ProviderResponse,
+  FeaturedMatch,
+  Fixture,
+  SquadTeam,
+  StandingsData,
+  TickerItem,
+  TopscorersData
+} from "./types";
+import type { SportmonksFixture } from "./sportmonks-types";
+
+const FIXTURES_LIMIT = 24;
+
+function isProductionRuntime(): boolean {
+  return process.env.NODE_ENV === "production";
+}
+
+function fixtureHasPlaceholder(fixture: SportmonksFixture): boolean {
+  if (fixture.placeholder) return true;
+  return (fixture.participants ?? []).some((p) => p.placeholder);
+}
+
+/** In production, drop TBD / placeholder rows from SportMonks. */
+function filterProductionFixtures(fixtures: SportmonksFixture[]): SportmonksFixture[] {
+  if (!isProductionRuntime()) return fixtures;
+  return fixtures.filter((f) => !fixtureHasPlaceholder(f));
+}
+
+function uniqueFixturesById(fixtures: SportmonksFixture[]): SportmonksFixture[] {
+  const seen = new Set<number>();
+  return fixtures.filter((f) => {
+    if (seen.has(f.id)) return false;
+    seen.add(f.id);
+    return true;
+  });
+}
+
+async function buildTickerFixtures(): Promise<SportmonksFixture[]> {
+  const live = filterProductionFixtures(await fetchLivescores());
+  const merged = uniqueFixturesById(live);
+
+  if (merged.length >= 4) {
+    return merged.slice(0, 4);
+  }
+
+  const now = new Date();
+  const upcoming = filterProductionFixtures(await fetchFixturesBetween(now, addDays(now, 14), 8));
+  const nonLiveUpcoming = upcoming.filter((f) => !isSportmonksFixtureLive(f));
+
+  return uniqueFixturesById([...merged, ...nonLiveUpcoming]).slice(0, 4);
+}
+
+async function resolveFeaturedFixture(): Promise<SportmonksFixture | undefined> {
+  const live = filterProductionFixtures(await fetchLivescores());
+  if (live[0]) return live[0];
+
+  const fromSchedule = filterProductionFixtures(await fetchScheduleFixtures(12));
+  return fromSchedule[0];
+}
+
+export const sportmonksProvider: FootballProvider = {
+  async getTicker(): Promise<ProviderResponse<TickerItem[]>> {
+    const fixtures = await buildTickerFixtures();
+    const data = fixtures.map(mapSportmonksFixtureToTickerItem);
+    return { source: "live", data };
+  },
+
+  async getFixtures(): Promise<ProviderResponse<Fixture[]>> {
+    const fixtures = filterProductionFixtures(
+      await fetchScheduleFixtures(FIXTURES_LIMIT, {
+        includeAllDates: process.env.SPORTMONKS_INCLUDE_ALL_FIXTURES === "true"
+      })
+    );
+    let data = fixtures.map(mapSportmonksFixtureToFixture);
+    if (process.env.SPORTMONKS_PRIORITIZE_PLACEHOLDERS === "true") {
+      data = data.slice().sort((a, b) => Number(b.isPlaceholder) - Number(a.isPlaceholder));
+    }
+    return { source: "live", data };
+  },
+
+  async getStandings(): Promise<ProviderResponse<StandingsData>> {
+    const standings = await fetchStandingsBySeason();
+    let data = mapSportmonksStandings(standings);
+    if (isProductionRuntime()) {
+      data = {
+        groups: data.groups
+          .map((g) => ({ ...g, rows: g.rows.filter((r) => !r.isPlaceholder) }))
+          .filter((g) => g.rows.length > 0)
+      };
+    }
+    return { source: "live", data };
+  },
+
+  async getFeaturedMatch(): Promise<ProviderResponse<FeaturedMatch>> {
+    const match = await resolveFeaturedFixture();
+    if (!match) throw new Error("No featured match data from SportMonks.");
+    return { source: "live", data: mapSportmonksFixtureToFeaturedMatch(match) };
+  },
+
+  async getSquads(): Promise<ProviderResponse<SquadTeam[]>> {
+    const teams = await fetchTeamsBySeason();
+    let data = mapSportmonksTeams(teams);
+    if (isProductionRuntime()) {
+      data = data.filter((t) => !t.placeholder);
+    }
+    return { source: "live", data };
+  },
+
+  async getTopscorers(): Promise<ProviderResponse<TopscorersData>> {
+    const rows = await fetchTopscorersBySeason();
+    const data = mapSportmonksTopscorers(rows);
+    return { source: "live", data };
+  }
+};

@@ -1,4 +1,4 @@
-import type { FeaturedMatch, TickerItem } from "@/lib/football-api/types";
+import type { FeaturedMatch, StandingsData, TickerItem } from "@/lib/football-api/types";
 
 export type MatchCenter = FeaturedMatch;
 
@@ -66,13 +66,26 @@ export const fixtures: Fixture[] = [
   { id: "f4", home: "Portugal", away: "Germany", kickoffLabel: "Group Stage • 9:30 PM", stage: "Group Stage" }
 ];
 
-export const standings = {
-  group: "Group A",
-  rows: [
-    { team: "USA", pts: 6, gd: "+3" },
-    { team: "Mexico", pts: 4, gd: "+1" },
-    { team: "Canada", pts: 3, gd: "0" },
-    { team: "Panama", pts: 1, gd: "-4" }
+export const standings: StandingsData = {
+  groups: [
+    {
+      group: "Grupo A",
+      rows: [
+        { team: "USA", pts: 6, gd: "+3" },
+        { team: "Mexico", pts: 4, gd: "+1" },
+        { team: "Canada", pts: 3, gd: "0" },
+        { team: "Panama", pts: 1, gd: "-4" }
+      ]
+    },
+    {
+      group: "Grupo B",
+      rows: [
+        { team: "Brasil", pts: 7, gd: "+4" },
+        { team: "Croacia", pts: 4, gd: "+1" },
+        { team: "Japón", pts: 3, gd: "-1" },
+        { team: "Marruecos", pts: 1, gd: "-4" }
+      ]
+    }
   ]
 };
 
@@ -84,8 +97,6 @@ export const adInventoryNotes = [
   "300x50 Mobile Banner"
 ];
 
-// Future API replacements:
-// - tickerItems -> API-Football / Sportmonks live events endpoint
-// - featuredMatch + fixtures -> Statorium/FIFA fixtures endpoint
-// - standings -> group standings endpoint
+// Live data: SportMonks via src/lib/football-api/sportmonks-provider.ts (USE_REAL_FOOTBALL_DATA=true)
+// Demo fallback: datos estáticos de este archivo
 // Map incoming API data into this exact structure to keep UI components stable.

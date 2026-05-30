@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { BrandLogoMark } from "@/components/ui/brand-logo-mark";
 import { LiveNavButton } from "@/components/ui/live-nav-button";
 import { useAuth } from "@/hooks/use-auth";
+import { useFootballLiveSectionsVisible } from "@/contexts/football-live-sections-context";
 import { scrollToSection } from "@/lib/scroll-to-section";
 
 type NavItem = {
@@ -39,8 +40,15 @@ function NavAnchor({ item, onNavigate }: { item: NavItem; onNavigate: (id: strin
 
 export function TopNav() {
   const { user, loading } = useAuth();
+  const liveSectionsVisible = useFootballLiveSectionsVisible();
   const loggedIn = !loading && !!user;
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const navLeft = liveSectionsVisible
+    ? landingNavLeft
+    : landingNavLeft.filter((item) => item.sectionId !== "match-center");
+
+  const mobileLandingItems = [...navLeft, ...landingNavRight];
 
   useEffect(() => {
     document.body.classList.toggle("no-scroll", menuOpen);
@@ -58,8 +66,6 @@ export function TopNav() {
     { label: "Planes", href: "/planes" }
   ];
 
-  const mobileLandingItems = [...landingNavLeft, ...landingNavRight];
-
   return (
     <>
       <header
@@ -67,8 +73,20 @@ export function TopNav() {
         style={{ paddingTop: "max(env(safe-area-inset-top), 0px)" }}
       >
         <div className="absolute inset-x-0 top-0 h-0.5 bg-[#d71920]" />
-        <div className="section-shell h-[4.5rem] overflow-visible sm:h-[4.75rem]">
-          <div className="grid h-full grid-cols-[1fr_auto_1fr] items-center gap-2 overflow-visible">
+        <div className="section-shell h-[4.5rem] sm:h-[4.75rem]">
+          <div className="flex h-full items-center justify-between gap-3 md:grid md:grid-cols-[1fr_auto_1fr] md:gap-2">
+            <div className="flex min-w-0 shrink-0 items-center md:hidden">
+              {loggedIn ? (
+                <BrandLogoMark variant="nav" showRedBackground={false} />
+              ) : (
+                <BrandLogoMark
+                  variant="nav"
+                  showRedBackground={false}
+                  onClick={() => handleNavigate("hero")}
+                />
+              )}
+            </div>
+
             {loggedIn ? (
               <nav className="hidden items-center justify-start gap-4 md:flex lg:gap-5">
                 {loggedInLeft.map((item) => (
@@ -84,13 +102,13 @@ export function TopNav() {
             ) : (
               <nav className="hidden items-center justify-start gap-3 md:flex lg:gap-4 xl:gap-5">
                 <LiveNavButton onClick={() => handleNavigate("live")} />
-                {landingNavLeft.map((item) => (
+                {navLeft.map((item) => (
                   <NavAnchor key={item.sectionId} item={item} onNavigate={handleNavigate} />
                 ))}
               </nav>
             )}
 
-            <div className="relative h-full w-[10.5rem] shrink-0 justify-self-center sm:w-[12.5rem] md:w-[15rem]">
+            <div className="relative hidden h-full w-[10.5rem] shrink-0 justify-self-center sm:w-[12.5rem] md:block md:w-[15rem]">
               <div className="absolute left-1/2 z-50 -translate-x-1/2 -translate-y-1/2" style={{ top: "55px" }}>
                 {loggedIn ? (
                   <BrandLogoMark variant="crest" />
@@ -128,7 +146,7 @@ export function TopNav() {
 
             <button
               onClick={() => setMenuOpen((v) => !v)}
-              className="glass col-start-3 justify-self-end flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 md:hidden"
+              className="glass relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/20 md:hidden"
               aria-label="Abrir menú"
             >
               <motion.span animate={menuOpen ? { rotate: 45, y: 0 } : { rotate: 0, y: -5 }} className="absolute h-0.5 w-4 bg-white" />
@@ -156,8 +174,8 @@ export function TopNav() {
               className="theater-dark absolute inset-x-4 rounded-2xl border border-white/15 bg-black/95 p-5 shadow-glow"
               style={{ top: "max(calc(env(safe-area-inset-top) + 4.5rem), 4.75rem)" }}
             >
-              <div className="mb-4 flex justify-center border-b border-white/10 pb-4">
-                <BrandLogoMark onClick={() => handleNavigate("hero")} />
+              <div className="mb-4 flex justify-start border-b border-white/10 pb-4">
+                <BrandLogoMark variant="nav" showRedBackground={false} onClick={() => handleNavigate("hero")} />
               </div>
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-xs uppercase tracking-[0.22em] text-white/65">Menú</p>

@@ -14,7 +14,8 @@ export function LiveStreamSection() {
   return (
     <section id="live" className="section-shell pt-16 sm:pt-24">
       <SectionTitle
-        kicker="Streaming"
+        kicker="Transmisión"
+        as="h3"
         title="Juego en vivo"
         subtitle="Transmisión principal con panel lateral y banner rectángulo integrado."
       />
