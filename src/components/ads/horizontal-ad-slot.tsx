@@ -2,6 +2,7 @@
 
 import { AdSlotFrame } from "@/components/ads/ad-slot-frame";
 import { AD_SIZES } from "@/lib/ad-sizes";
+import { isAdsEnabled } from "@/lib/ads-gate";
 
 type HorizontalAdSlotProps = {
   id?: string;
@@ -16,6 +17,8 @@ export function HorizontalAdSlot({
   placement,
   variant = "default"
 }: HorizontalAdSlotProps) {
+  if (!isAdsEnabled()) return null;
+
   return (
     <section className="section-shell py-6 sm:py-8">
       <div className="flex flex-col items-center gap-3">

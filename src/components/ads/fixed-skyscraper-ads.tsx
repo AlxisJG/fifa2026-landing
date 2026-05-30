@@ -3,6 +3,7 @@
 import { AdSlotFrame } from "@/components/ads/ad-slot-frame";
 import { skyscraperPlacement } from "@/data/ad-placements";
 import { AD_SIZES } from "@/lib/ad-sizes";
+import { isAdsEnabled } from "@/lib/ads-gate";
 
 const SHELL_MAX = 1240;
 const AD_WIDTH = AD_SIZES.skyscraper.width;
@@ -15,6 +16,8 @@ function railOffset(variant: "left" | "right") {
 }
 
 export function FixedSkyscraperAds() {
+  if (!isAdsEnabled()) return null;
+
   const top = "calc(env(safe-area-inset-top, 0px) + 5.25rem)";
 
   return (

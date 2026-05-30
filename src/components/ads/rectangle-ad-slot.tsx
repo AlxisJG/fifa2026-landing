@@ -3,6 +3,7 @@
 import type { AdPlacement } from "@/data/ad-placements";
 import { AD_SIZES } from "@/lib/ad-sizes";
 import { AdSlotFrame } from "@/components/ads/ad-slot-frame";
+import { isAdsEnabled } from "@/lib/ads-gate";
 
 type RectangleAdSlotProps = {
   placement: AdPlacement;
@@ -12,6 +13,8 @@ type RectangleAdSlotProps = {
 };
 
 export function RectangleAdSlot({ placement, className = "", responsive = false }: RectangleAdSlotProps) {
+  if (!isAdsEnabled()) return null;
+
   if (responsive) {
     return (
       <div className={`w-full ${className}`}>

@@ -7,6 +7,7 @@ import { SectionTitle } from "@/components/ui/section-title";
 import { Reveal } from "@/components/ui/motion";
 import { news as fallbackNews } from "@/data/landing-content";
 import { rectanglePlacements } from "@/data/ad-placements";
+import { isAdsEnabled } from "@/lib/ads-gate";
 import { usePosts } from "@/hooks/usePosts";
 import type { PostItem } from "@/lib/posts-types";
 
@@ -134,6 +135,7 @@ function NewsCard({
 }
 
 export function FeaturedNewsSection() {
+  const adsEnabled = isAdsEnabled();
   const { posts: apiPosts, loading } = usePosts();
   const posts = apiPosts.length > 0 ? apiPosts : fallbackPosts;
   const gridPosts = posts.slice(0, 5);
@@ -178,13 +180,20 @@ export function FeaturedNewsSection() {
 
           {gridPosts.slice(3, 5).map((item, index) => (
             <Reveal key={item.id} delay={0.08 + index * 0.05} className="xl:col-span-4">
-              <NewsCard image={item.image} title={item.title} category={item.category} matchAdHeight />
+              <NewsCard
+                image={item.image}
+                title={item.title}
+                category={item.category}
+                matchAdHeight={adsEnabled}
+              />
             </Reveal>
           ))}
 
-          <Reveal delay={0.15} className="flex xl:col-span-4 xl:items-start xl:justify-center">
-            <RectangleAdSlot placement={rectanglePlacements.featuredNews} className="self-center" />
-          </Reveal>
+          {adsEnabled && (
+            <Reveal delay={0.15} className="flex xl:col-span-4 xl:items-start xl:justify-center">
+              <RectangleAdSlot placement={rectanglePlacements.featuredNews} className="self-center" />
+            </Reveal>
+          )}
         </div>
       )}
 

@@ -8,9 +8,12 @@ import { SectionTitle } from "@/components/ui/section-title";
 import { Reveal } from "@/components/ui/motion";
 import { rectanglePlacements } from "@/data/ad-placements";
 import { AD_SIZES } from "@/lib/ad-sizes";
+import { isAdsEnabled } from "@/lib/ads-gate";
 import { BRANDING } from "@/lib/branding";
 
 export function LiveStreamSection() {
+  const adsEnabled = isAdsEnabled();
+
   return (
     <section id="live" className="section-shell pt-16 sm:pt-24">
       <SectionTitle
@@ -73,27 +76,29 @@ export function LiveStreamSection() {
             </div>
           </Reveal>
 
-          <Reveal delay={0.08}>
-            <div className="flex justify-center">
-              <AdSlotFrame
-                format="leaderboard"
-                id={rectanglePlacements.liveStreamPlayer.id}
-                title={rectanglePlacements.liveStreamPlayer.title}
-                placement={rectanglePlacements.liveStreamPlayer.placement}
-                activeSizeLabel={AD_SIZES.leaderboard.label}
-                className="mx-auto hidden md:block lg:block"
-              />
-              <AdSlotFrame
-                format="mobile-banner"
-                id={`${rectanglePlacements.liveStreamPlayer.id}-mobile`}
-                title={rectanglePlacements.liveStreamPlayer.title}
-                placement={rectanglePlacements.liveStreamPlayer.placement}
-                activeSizeLabel={AD_SIZES["mobile-banner"].label}
-                variant="matchday"
-                className="mx-auto md:hidden"
-              />
-            </div>
-          </Reveal>
+          {adsEnabled && (
+            <Reveal delay={0.08}>
+              <div className="flex justify-center">
+                <AdSlotFrame
+                  format="leaderboard"
+                  id={rectanglePlacements.liveStreamPlayer.id}
+                  title={rectanglePlacements.liveStreamPlayer.title}
+                  placement={rectanglePlacements.liveStreamPlayer.placement}
+                  activeSizeLabel={AD_SIZES.leaderboard.label}
+                  className="mx-auto hidden md:block lg:block"
+                />
+                <AdSlotFrame
+                  format="mobile-banner"
+                  id={`${rectanglePlacements.liveStreamPlayer.id}-mobile`}
+                  title={rectanglePlacements.liveStreamPlayer.title}
+                  placement={rectanglePlacements.liveStreamPlayer.placement}
+                  activeSizeLabel={AD_SIZES["mobile-banner"].label}
+                  variant="matchday"
+                  className="mx-auto md:hidden"
+                />
+              </div>
+            </Reveal>
+          )}
         </div>
 
         <div className="flex flex-col gap-4 xl:col-span-4">
@@ -111,9 +116,11 @@ export function LiveStreamSection() {
             </aside>
           </Reveal>
 
-          <Reveal delay={0.16}>
-            <RectangleAdSlot placement={rectanglePlacements.liveStream} className="mx-auto" />
-          </Reveal>
+          {adsEnabled && (
+            <Reveal delay={0.16}>
+              <RectangleAdSlot placement={rectanglePlacements.liveStream} className="mx-auto" />
+            </Reveal>
+          )}
         </div>
       </div>
     </section>

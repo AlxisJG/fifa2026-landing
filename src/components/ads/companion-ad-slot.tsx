@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { isAdsEnabled } from "@/lib/ads-gate";
 
 type CompanionAdSlotProps = {
   title: string;
@@ -10,6 +11,8 @@ type CompanionAdSlotProps = {
 };
 
 export function CompanionAdSlot({ title, sizeLabel, placement, variant = "player" }: CompanionAdSlotProps) {
+  if (!isAdsEnabled()) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}

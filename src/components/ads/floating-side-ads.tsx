@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { isAdsEnabled } from "@/lib/ads-gate";
 
 type FloatingSideAdsProps = {
   title: string;
@@ -28,6 +29,8 @@ function SideUnit({ title, sizeLabel, placement, variant = "left" }: FloatingSid
 }
 
 export function FloatingSideAds() {
+  if (!isAdsEnabled()) return null;
+
   return (
     <>
       <div className="pointer-events-none fixed left-4 top-28 z-20 hidden 2xl:block">

@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { isAdsEnabled } from "@/lib/ads-gate";
 
 export function PopupAd() {
   const [open, setOpen] = useState(true);
@@ -12,6 +13,8 @@ export function PopupAd() {
     const id = window.setInterval(() => setTimer((v) => v - 1), 1000);
     return () => window.clearInterval(id);
   }, [open, timer]);
+
+  if (!isAdsEnabled()) return null;
 
   return (
     <AnimatePresence>

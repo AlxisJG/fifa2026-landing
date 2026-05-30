@@ -23,6 +23,7 @@ import { WorldCupStatsSection } from "@/components/sections/world-cup-stats";
 import { FootballLiveSectionsGate } from "@/components/football/football-live-sections-gate";
 import { HomepageJsonLd } from "@/components/seo/homepage-json-ld";
 import { horizontalPlacements } from "@/data/ad-placements";
+import { isAdsEnabled } from "@/lib/ads-gate";
 import { getPosts } from "@/lib/posts";
 import type { Metadata } from "next";
 import { HOME_SEO, SITE_URL } from "@/lib/seo/site";
@@ -43,11 +44,12 @@ export const metadata: Metadata = {
 export default async function Home() {
   const posts = await getPosts();
   const manualLiveSectionsEnabled = isFootballLiveSectionsManuallyEnabled();
+  const adsEnabled = isAdsEnabled();
 
   return (
     <FootballLiveSectionsProvider manualEnabled={manualLiveSectionsEnabled}>
       <HomepageJsonLd posts={posts} />
-      <main className="relative overflow-x-hidden pb-20 md:pb-0">
+      <main className={`relative overflow-x-hidden ${adsEnabled ? "pb-20 md:pb-0" : ""}`}>
         <AmbientBackground />
         <TopNav />
         <FixedSkyscraperAds />

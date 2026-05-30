@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import type { AdPlacement } from "@/data/ad-placements";
 import { AD_SIZES } from "@/lib/ad-sizes";
 import { AdSlotFrame } from "@/components/ads/ad-slot-frame";
+import { isAdsEnabled } from "@/lib/ads-gate";
 
 type SideRailAdProps = {
   placement: AdPlacement;
@@ -12,6 +13,8 @@ type SideRailAdProps = {
 };
 
 export function SideRailAd({ placement, variant = "left", className = "" }: SideRailAdProps) {
+  if (!isAdsEnabled()) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, x: variant === "left" ? -16 : 16 }}

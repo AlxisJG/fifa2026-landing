@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import type { AdFormat } from "@/lib/ad-sizes";
 import { AD_SIZES } from "@/lib/ad-sizes";
+import { isAdsEnabled } from "@/lib/ads-gate";
 
 type AdSlotFrameProps = {
   format: AdFormat;
@@ -30,6 +31,8 @@ export function AdSlotFrame({
   variant = "default",
   className = ""
 }: AdSlotFrameProps) {
+  if (!isAdsEnabled()) return null;
+
   const spec = AD_SIZES[format];
   const sizeLabel = activeSizeLabel ?? spec.label;
 

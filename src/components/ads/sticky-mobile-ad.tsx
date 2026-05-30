@@ -4,11 +4,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { AdSlotFrame } from "@/components/ads/ad-slot-frame";
 import { AD_SIZES } from "@/lib/ad-sizes";
+import { isAdsEnabled } from "@/lib/ads-gate";
 
 export function StickyMobileAd() {
   const [visible, setVisible] = useState(true);
 
-  if (!visible) return null;
+  if (!isAdsEnabled() || !visible) return null;
 
   return (
     <AnimatePresence>
