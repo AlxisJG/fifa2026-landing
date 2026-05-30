@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { fixtures as initialFixtures } from "@/data/worldcup-widgets";
+import { getFixturesSeed } from "@/lib/football-widget-seeds";
 import { useFixtures } from "@/hooks/useFootballData";
 import { SectionTitle } from "@/components/ui/section-title";
 
@@ -9,11 +9,10 @@ const tabs = ["Today", "Tomorrow", "Group Stage", "Knockout"] as const;
 
 export function FixturesWidget() {
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>("Today");
-  const { data, loading, source } = useFixtures(initialFixtures);
+  const { data, loading, source } = useFixtures(getFixturesSeed());
 
   const filtered = useMemo(() => {
-    const pool = data.length ? data : initialFixtures;
-    return pool.filter((f) => (activeTab === "Knockout" ? f.stage === "Knockout" : f.stage === activeTab));
+    return data.filter((f) => (activeTab === "Knockout" ? f.stage === "Knockout" : f.stage === activeTab));
   }, [activeTab, data]);
 
   return (

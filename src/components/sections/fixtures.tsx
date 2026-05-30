@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { fixtures as initialFixtures } from "@/data/worldcup-widgets";
+import { FootballDataEmpty } from "@/components/football/football-data-empty";
 import { useFixtures } from "@/hooks/useFootballData";
 import { FIXTURE_STAGE_LABELS } from "@/lib/football-api/formatters";
+import { getFixturesSeed } from "@/lib/football-widget-seeds";
 import type { Fixture } from "@/lib/football-api/types";
 import { SectionTitle } from "@/components/ui/section-title";
 import { Reveal } from "@/components/ui/motion";
@@ -13,16 +14,19 @@ const tabs = ["Today", "Tomorrow", "Group Stage", "Knockout"] as const;
 
 export function FixturesSection() {
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>("Group Stage");
-  const { data, loading, source } = useFixtures(initialFixtures);
+  const { data, loading, source } = useFixtures(getFixturesSeed());
 
-  const filtered = useMemo(() => {
-    const pool = data.length ? data : initialFixtures;
-    return pool.filter((f) =>
-      activeTab === "Knockout" ? f.stage === "Knockout" : f.stage === activeTab
-    );
-  }, [activeTab, data]);
+  const filtered = useMemo(
+    () =>
+      data.filter((f) =>
+        activeTab === "Knockout" ? f.stage === "Knockout" : f.stage === activeTab
+      ),
+    [activeTab, data]
+  );
 
-  const display = filtered.length ? filtered : data.slice(0, 6);
+  const display = filtered.length > 0 ? filtered : data.slice(0, 6);
+  const hasData = data.length > 0;
+  const showSourceBadge = hasData && !loading;
 
   return (
     <section id="fixtures" className="section-shell py-14 sm:py-20">
@@ -30,13 +34,15 @@ export function FixturesSection() {
         <SectionTitle
           kicker="Mundial 2026"
           title="Calendario FIFA World Cup"
-          subtitle="Partidos del Mundial desde SportMonks: fase de grupos y eliminatorias."
+          subtitle="Partidos del Mundial FIFA World Cup 2026."
         />
-        <span
-          className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${source === "live" ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-white/50"}`}
-        >
-          {source === "live" ? "Datos en vivo" : "Demo"}
-        </span>
+        {showSourceBadge && (
+          <span
+            className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${source === "live" ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-white/50"}`}
+          >
+            {source === "live" ? "Datos en vivo" : "Demo"}
+          </span>
+        )}
       </div>
 
       <div className="mb-6 flex flex-wrap gap-2">
@@ -56,19 +62,25 @@ export function FixturesSection() {
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        {(loading ? Array.from({ length: 6 }).map((_, i) => ({ id: `sk-${i}` })) : display).map(
-          (m, index) => (
-            <Reveal key={"id" in m ? m.id : `sk-${index}`} delay={index * 0.05}>
-              {loading ? (
-                <div className="glass-heavy h-48 animate-pulse rounded-3xl" />
-              ) : (
-                <FixtureCard fixture={m as Fixture} />
-              )}
+      {loading ? (
+        <div className="grid gap-4 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="glass-heavy h-48 animate-pulse rounded-3xl" />
+          ))}
+        </div>
+      ) : !hasData ? (
+        <FootballDataEmpty message="El calendario del Mundial estará disponible próximamente." />
+      ) : display.length === 0 ? (
+        <FootballDataEmpty message="No hay partidos en esta categoría por ahora." />
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-3">
+          {display.map((m, index) => (
+            <Reveal key={m.id} delay={index * 0.05}>
+              <FixtureCard fixture={m} />
             </Reveal>
-          )
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

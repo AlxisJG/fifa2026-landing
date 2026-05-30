@@ -65,7 +65,7 @@ function useFootballRoute<T>(url: string, initialData: T, options?: FetchOptions
     return () => {
       active = false;
     };
-  }, [url, enabled, initialData]);
+  }, [url, enabled]);
 
   return state;
 }

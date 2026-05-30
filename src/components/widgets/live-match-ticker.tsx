@@ -1,12 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { tickerItems as initialTicker } from "@/data/worldcup-widgets";
+import { getTickerSeed } from "@/lib/football-widget-seeds";
 import { useTicker } from "@/hooks/useFootballData";
 import { TickerMatchChip } from "@/components/widgets/ticker-match-chip";
 
 export function LiveMatchTicker() {
-  const { data, loading, source } = useTicker(initialTicker);
+  const { data, loading, source } = useTicker(getTickerSeed());
 
   return (
     <section className="section-shell py-4 sm:py-5">

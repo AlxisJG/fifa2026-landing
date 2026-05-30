@@ -1,6 +1,6 @@
 "use client";
 
-import { tickerItems as initialTicker } from "@/data/worldcup-widgets";
+import { getTickerSeed } from "@/lib/football-widget-seeds";
 import { useFootballLiveSectionsVisible } from "@/contexts/football-live-sections-context";
 import { useTicker } from "@/hooks/useFootballData";
 
@@ -18,7 +18,7 @@ export function LiveNavButton({
   className = ""
 }: LiveNavButtonProps) {
   const liveSectionsVisible = useFootballLiveSectionsVisible();
-  const { data } = useTicker(initialTicker, { enabled: liveSectionsVisible });
+  const { data } = useTicker(getTickerSeed(), { enabled: liveSectionsVisible });
   const isLive = liveSectionsVisible && data.some((item) => item.live);
 
   if (!liveSectionsVisible) return null;

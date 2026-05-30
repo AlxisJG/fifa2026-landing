@@ -1,21 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import { FootballDataEmpty } from "@/components/football/football-data-empty";
 import { SectionTitle } from "@/components/ui/section-title";
 import { Reveal } from "@/components/ui/motion";
 import { useSquads, useTopscorers } from "@/hooks/useFootballData";
+import { getSquadsSeed, getTopscorersSeed } from "@/lib/football-widget-seeds";
 import type { TopscorersData } from "@/lib/football-api/types";
 
-const emptyTopscorers: TopscorersData = { goals: [], assists: [], cards: [] };
-
 export function WorldCupStatsSection() {
-  const { data: squads, loading: squadsLoading, source } = useSquads([]);
-  const { data: topscorers, loading: topsLoading } = useTopscorers(emptyTopscorers);
+  const { data: squads, loading: squadsLoading, source } = useSquads(getSquadsSeed());
+  const { data: topscorers, loading: topsLoading, source: topsSource } = useTopscorers(
+    getTopscorersSeed()
+  );
   const [expandedTeam, setExpandedTeam] = useState<number | null>(null);
 
   const hasSquads = squads.length > 0;
   const hasTopscorers =
     topscorers.goals.length > 0 || topscorers.assists.length > 0 || topscorers.cards.length > 0;
+  const hasAnyData = hasSquads || hasTopscorers;
+  const isLoading = squadsLoading || topsLoading;
+  const showSourceBadge = hasAnyData && !isLoading;
+  const liveSource = source === "live" || topsSource === "live";
 
   return (
     <section id="world-cup-stats" className="section-shell py-12 sm:py-16">
@@ -23,13 +29,15 @@ export function WorldCupStatsSection() {
         <SectionTitle
           kicker="Mundial 2026"
           title="Plantillas y goleadores"
-          subtitle="Equipos participantes y máximos goleadores según SportMonks."
+          subtitle="Equipos participantes y máximos goleadores del Mundial FIFA 2026."
         />
-        <span
-          className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${source === "live" ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-white/50"}`}
-        >
-          {source === "live" ? "Live" : "Demo"}
-        </span>
+        {showSourceBadge && (
+          <span
+            className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${liveSource ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-white/50"}`}
+          >
+            {liveSource ? "Datos en vivo" : "Demo"}
+          </span>
+        )}
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
@@ -39,7 +47,11 @@ export function WorldCupStatsSection() {
               Selecciones
             </h3>
             {squadsLoading ? (
-              <p className="text-sm text-white/50">Cargando plantillas...</p>
+              <div className="space-y-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-10 animate-pulse rounded-xl bg-white/10" />
+                ))}
+              </div>
             ) : hasSquads ? (
               <ul className="max-h-80 space-y-2 overflow-y-auto">
                 {squads.slice(0, 12).map((team) => (
@@ -70,9 +82,7 @@ export function WorldCupStatsSection() {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-white/50">
-                Activa USE_REAL_FOOTBALL_DATA para ver plantillas del Mundial.
-              </p>
+              <FootballDataEmpty message="Las plantillas de selecciones estarán disponibles próximamente." />
             )}
           </div>
         </Reveal>
@@ -82,15 +92,38 @@ export function WorldCupStatsSection() {
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
               Goleadores
             </h3>
-            {topscorersLoading(topscorers, topsLoading) ? (
-              <p className="text-sm text-white/50">Cargando estadísticas...</p>
+            {topsLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-8 animate-pulse rounded-lg bg-white/10" />
+                ))}
+              </div>
             ) : hasTopscorers ? (
-              <TopscorerList title="Goles" entries={topscorers.goals} />
+              <>
+                {topscorers.goals.length > 0 && (
+                  <TopscorerList title="Goles" entries={topscorers.goals} />
+                )}
+                {topscorers.assists.length > 0 && (
+                  <TopscorerList
+                    title="Asistencias"
+                    entries={topscorers.assists}
+                    className={topscorers.goals.length > 0 ? "mt-6" : undefined}
+                  />
+                )}
+                {topscorers.cards.length > 0 && (
+                  <TopscorerList
+                    title="Tarjetas"
+                    entries={topscorers.cards}
+                    className={
+                      topscorers.goals.length > 0 || topscorers.assists.length > 0
+                        ? "mt-6"
+                        : undefined
+                    }
+                  />
+                )}
+              </>
             ) : (
-              <p className="text-sm text-white/50">Sin datos de goleadores en modo demo.</p>
-            )}
-            {topscorers.assists.length > 0 && (
-              <TopscorerList title="Asistencias" entries={topscorers.assists} className="mt-6" />
+              <FootballDataEmpty message="Las estadísticas de goleadores estarán disponibles próximamente." />
             )}
           </div>
         </Reveal>
@@ -99,14 +132,10 @@ export function WorldCupStatsSection() {
   );
 }
 
-function topscorersLoading(data: TopscorersData, loading: boolean) {
-  return loading && !data.goals.length;
-}
-
 function TopscorerList({
   title,
   entries,
-  className = ""
+  className
 }: {
   title: string;
   entries: TopscorersData["goals"];
@@ -117,7 +146,10 @@ function TopscorerList({
       <p className="mb-2 text-[10px] uppercase tracking-[0.18em] text-white/45">{title}</p>
       <ol className="space-y-2">
         {entries.slice(0, 5).map((e, i) => (
-          <li key={`${title}-${e.playerName}-${i}`} className="flex justify-between text-sm text-white/80">
+          <li
+            key={`${title}-${e.playerName}-${i}`}
+            className="flex justify-between text-sm text-white/80"
+          >
             <span>
               {i + 1}. {e.playerName}
               {e.teamName && <span className="text-white/40"> ({e.teamName})</span>}

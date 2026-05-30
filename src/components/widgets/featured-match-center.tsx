@@ -1,6 +1,6 @@
 "use client";
 
-import { featuredMatch as initialMatch } from "@/data/worldcup-widgets";
+import { getFeaturedMatchSeed } from "@/lib/football-widget-seeds";
 import { useMatchCenter } from "@/hooks/useFootballData";
 import type { FeaturedMatch } from "@/lib/football-api/types";
 import { scrollToSection } from "@/lib/scroll-to-section";
@@ -49,7 +49,7 @@ function FeaturedMatchup({
 }
 
 export function FeaturedMatchCenter() {
-  const { data, loading, source } = useMatchCenter(initialMatch);
+  const { data, loading, source } = useMatchCenter(getFeaturedMatchSeed());
   const match: FeaturedMatch = data;
 
   return (
