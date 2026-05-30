@@ -3,7 +3,7 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://fifa.piodep
 export const SITE_NAME = "PIO Deportes RD";
 
 export const GOOGLE_SITE_VERIFICATION =
-  process.env.GOOGLE_SITE_VERIFICATION ?? "M9VWifSCw5fnQs1WVgeR0q7uIvAp-YdqTEloESyzOco";
+  process.env.GOOGLE_SITE_VERIFICATION ?? "7sAuRPcvupNqrIvNYcL-Bph8S19y7Tm_k_zU8umGkxA";
 
 export const HOME_SEO = {
   title: "Mundial FIFA 2026 en República Dominicana | Pio Deportes",
