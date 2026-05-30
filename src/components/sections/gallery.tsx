@@ -14,6 +14,7 @@ export function GallerySection() {
     <section id="gallery" className="section-shell py-14 sm:py-20">
       <SectionTitle
         kicker="Multimedia"
+        as="h3"
         title="Galería inmersiva FIFA 2026"
         subtitle="Tres paneles destacados en desktop con lightbox para exploración inmersiva."
       />

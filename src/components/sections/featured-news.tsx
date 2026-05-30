@@ -141,9 +141,9 @@ export function FeaturedNewsSection() {
   return (
     <section id="news" className="section-shell py-12 sm:py-16">
       <SectionTitle
-        kicker="Editorial"
-        title="Noticias destacadas"
-        subtitle="Historia principal, tarjetas secundarias y zona de anuncio integrada."
+        kicker="Noticias"
+        title="Noticias de FIFA"
+        subtitle="Cobertura del Mundial FIFA 2026, noticias FIFA y lo más relevante del futbol internacional."
       />
 
       {loading ? (

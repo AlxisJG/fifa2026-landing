@@ -6,18 +6,20 @@ const NAV_ACCENT_RED = "#d71920";
 type BrandLogoMarkProps = {
   onClick?: () => void;
   className?: string;
-  variant?: "default" | "crest" | "large";
+  variant?: "default" | "crest" | "large" | "nav";
   /** Cuando es false, muestra solo la imagen (mismo tamaño según variant). */
   showRedBackground?: boolean;
 };
 
 const imageHeights: Record<NonNullable<BrandLogoMarkProps["variant"]>, string> = {
   default: "h-[2.7rem] sm:h-[3rem] md:h-[3.3rem] lg:h-[3.6rem]",
+  nav: "h-10 sm:h-11",
   crest: "h-[5rem] sm:h-[5.75rem] md:h-[6.5rem] lg:h-[6.5rem]",
   large: "h-[4.2rem] sm:h-[4.8rem] md:h-[6rem] lg:h-[7.2rem]"
 };
 
 const imageMaxWidths: Partial<Record<NonNullable<BrandLogoMarkProps["variant"]>, string>> = {
+  nav: "max-w-[10.5rem] sm:max-w-[11.5rem]",
   crest: "max-w-[9.5rem] sm:max-w-[11rem] md:max-w-[12rem] lg:max-w-[12rem]"
 };
 

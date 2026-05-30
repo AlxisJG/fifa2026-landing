@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "media.api-sports.io"
+        hostname: "cdn.sportmonks.com"
       }
     ]
   }

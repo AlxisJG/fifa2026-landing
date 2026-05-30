@@ -1,30 +1,43 @@
 export type FootballDataMode = "live" | "demo";
 
-const DEFAULT_HOST = "v3.football.api-sports.io";
-const DEFAULT_SEASON = "2026";
+/** FIFA World Cup — SportMonks league id (docs WC 2026 guide). */
+export const SPORTMONKS_WC_LEAGUE_ID = 732;
 
-export function getFootballApiConfig() {
+/** Example season id from SportMonks WC 2026 guide; set SPORTMONKS_SEASON_ID in env. */
+export const SPORTMONKS_WC_SEASON_ID_EXAMPLE = "26618";
+
+const DEFAULT_BASE_URL = "https://api.sportmonks.com/v3/football";
+
+export function getSportmonksConfig() {
   return {
-    host: process.env.API_FOOTBALL_HOST ?? DEFAULT_HOST,
-    key: process.env.API_FOOTBALL_KEY,
-    leagueId: process.env.API_FOOTBALL_WORLD_CUP_LEAGUE_ID,
-    season: process.env.API_FOOTBALL_SEASON ?? DEFAULT_SEASON
+    baseUrl: process.env.SPORTMONKS_BASE_URL ?? DEFAULT_BASE_URL,
+    token: process.env.SPORTMONKS_API_TOKEN,
+    seasonId: process.env.SPORTMONKS_SEASON_ID
   };
 }
 
-/** Variables requeridas para activar API-Football en producción. */
+/** @deprecated Use getSportmonksConfig */
+export function getFootballApiConfig() {
+  const c = getSportmonksConfig();
+  return {
+    host: c.baseUrl.replace(/^https?:\/\//, ""),
+    key: c.token,
+    leagueId: c.seasonId,
+    season: c.seasonId
+  };
+}
+
+/** Variables requeridas para activar SportMonks en producción. */
 export function getMissingFootballEnvVars(): string[] {
-  const { key, leagueId } = getFootballApiConfig();
+  const { token, seasonId } = getSportmonksConfig();
   const missing: string[] = [];
-  if (!key) missing.push("API_FOOTBALL_KEY");
-  if (!leagueId) missing.push("API_FOOTBALL_WORLD_CUP_LEAGUE_ID");
+  if (!token) missing.push("SPORTMONKS_API_TOKEN");
+  if (!seasonId) missing.push("SPORTMONKS_SEASON_ID");
   return missing;
 }
 
 /**
- * Activa datos reales cuando USE_REAL_FOOTBALL_DATA=true y existen key + league id.
- * USE_REAL_FOOTBALL_DATA es server-only (cambiable en runtime sin rebuild).
- * NEXT_PUBLIC_USE_REAL_FOOTBALL_DATA se mantiene como alias legacy.
+ * Activa datos reales cuando USE_REAL_FOOTBALL_DATA=true y existen token + season id.
  */
 export function isLiveFootballDataEnabled(): boolean {
   const flag = process.env.USE_REAL_FOOTBALL_DATA ?? process.env.NEXT_PUBLIC_USE_REAL_FOOTBALL_DATA;
@@ -36,19 +49,25 @@ export function getFootballDataMode(): FootballDataMode {
 }
 
 export function getFootballDataStatus() {
-  const config = getFootballApiConfig();
+  const config = getSportmonksConfig();
   const missing = getMissingFootballEnvVars();
   const mode = getFootballDataMode();
   const toggle =
     process.env.USE_REAL_FOOTBALL_DATA ?? process.env.NEXT_PUBLIC_USE_REAL_FOOTBALL_DATA ?? "false";
 
   return {
+    provider: "sportmonks" as const,
     mode,
     toggle,
     configured: missing.length === 0,
     missing,
-    leagueId: config.leagueId ? "set" : "missing",
-    season: config.season,
-    host: config.host
+    seasonId: config.seasonId ? "set" : "missing",
+    seasonIdExample: SPORTMONKS_WC_SEASON_ID_EXAMPLE,
+    leagueId: SPORTMONKS_WC_LEAGUE_ID,
+    baseUrl: config.baseUrl,
+    docsUrl:
+      "https://docs.sportmonks.com/v3/world-cup-2026/how-to-build-your-world-cup-application",
+    placeholderDocs:
+      "placeholder es un campo en fixture/participant (TBD), no un query param. Ver GET /api/football/status con mode=live."
   };
 }

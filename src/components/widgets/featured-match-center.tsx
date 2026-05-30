@@ -79,6 +79,11 @@ export function FeaturedMatchCenter() {
               <p className="text-lg font-black uppercase tracking-[0.14em] text-white sm:text-xl sm:tracking-[0.18em] md:text-2xl">
                 {match.groupLabel}
               </p>
+              {match.isPlaceholder && (
+                <span className="mt-2 inline-block rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-amber-200">
+                  Por definir
+                </span>
+              )}
               <p className="mt-2 text-xs text-white/85 sm:text-sm">{match.venue}</p>
             </>
           )}

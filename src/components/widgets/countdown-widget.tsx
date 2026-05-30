@@ -2,8 +2,9 @@
 
 import { Archivo_Black } from "next/font/google";
 import { useEffect, useMemo, useState } from "react";
+import { WORLD_CUP_KICKOFF_MS } from "@/lib/world-cup-kickoff";
 
-const target = new Date("2026-06-11T20:00:00-04:00").getTime();
+const target = WORLD_CUP_KICKOFF_MS;
 
 const countdownFont = Archivo_Black({
   subsets: ["latin"],
@@ -64,9 +65,9 @@ export function CountdownWidget() {
       />
 
       <div className="section-shell relative z-10 px-4 py-8 sm:py-10 md:py-12">
-        <h2 className="mb-6 text-center text-[clamp(1.35rem,3.5vw,2.5rem)] font-normal uppercase leading-[0.95] tracking-[0.02em] text-white sm:mb-8">
+        <h3 className="mb-6 text-center text-[clamp(1.35rem,3.5vw,2.5rem)] font-normal uppercase leading-[0.95] tracking-[0.02em] text-white sm:mb-8">
           Road to FIFA World Cup 2026
-        </h2>
+        </h3>
 
         <div className="mx-auto flex max-w-4xl flex-wrap items-stretch justify-center gap-4 sm:gap-5">
           {countdownUnits.map(({ key, label }) => (

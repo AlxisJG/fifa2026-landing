@@ -13,7 +13,8 @@ export function MatchSummariesSection() {
   return (
     <section id="summaries" className="section-shell py-14 sm:py-20">
       <SectionTitle
-        kicker="Highlights"
+        kicker="Destacados"
+        as="h3"
         title="Resúmenes de los partidos"
         subtitle="Lo mejor de cada encuentro en formato corto para retención y compartir."
       />
