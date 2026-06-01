@@ -28,7 +28,7 @@ import type {
 } from "./types";
 import type { SportmonksFixture } from "./sportmonks-types";
 
-const FIXTURES_LIMIT = 24;
+const FIXTURES_LIMIT = 100;
 
 function isProductionRuntime(): boolean {
   return process.env.NODE_ENV === "production";
@@ -86,9 +86,7 @@ export const sportmonksProvider: FootballProvider = {
 
   async getFixtures(): Promise<ProviderResponse<Fixture[]>> {
     const fixtures = filterProductionFixtures(
-      await fetchScheduleFixtures(FIXTURES_LIMIT, {
-        includeAllDates: process.env.SPORTMONKS_INCLUDE_ALL_FIXTURES === "true"
-      })
+      await fetchScheduleFixtures(FIXTURES_LIMIT, { includeAllDates: true })
     );
     let data = fixtures.map(mapSportmonksFixtureToFixture);
     if (process.env.SPORTMONKS_PRIORITIZE_PLACEHOLDERS === "true") {
@@ -118,10 +116,7 @@ export const sportmonksProvider: FootballProvider = {
 
   async getSquads(): Promise<ProviderResponse<SquadTeam[]>> {
     const teams = await fetchTeamsBySeason();
-    let data = mapSportmonksTeams(teams);
-    if (isProductionRuntime()) {
-      data = data.filter((t) => !t.placeholder);
-    }
+    const data = mapSportmonksTeams(teams);
     return { source: "live", data };
   },
 

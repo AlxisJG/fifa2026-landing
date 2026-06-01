@@ -8,7 +8,7 @@ import { useSquads, useTopscorers } from "@/hooks/useFootballData";
 import { getSquadsSeed, getTopscorersSeed } from "@/lib/football-widget-seeds";
 import type { TopscorersData } from "@/lib/football-api/types";
 
-export function WorldCupStatsSection() {
+export function WorldCupStatsSection({ showHeader = true }: { showHeader?: boolean }) {
   const { data: squads, loading: squadsLoading, source } = useSquads(getSquadsSeed());
   const { data: topscorers, loading: topsLoading, source: topsSource } = useTopscorers(
     getTopscorersSeed()
@@ -26,11 +26,15 @@ export function WorldCupStatsSection() {
   return (
     <section id="world-cup-stats" className="section-shell py-12 sm:py-16">
       <div className="mb-6 flex items-center justify-between">
-        <SectionTitle
-          kicker="Mundial 2026"
-          title="Plantillas y goleadores"
-          subtitle="Equipos participantes y máximos goleadores del Mundial FIFA 2026."
-        />
+        {showHeader ? (
+          <SectionTitle
+            kicker="Mundial 2026"
+            title="Plantillas y goleadores"
+            subtitle="Equipos participantes y máximos goleadores del Mundial FIFA 2026."
+          />
+        ) : (
+          <p className="text-[11px] uppercase tracking-[0.22em] text-white/55">Selecciones y goleadores</p>
+        )}
         {showSourceBadge && (
           <span
             className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${liveSource ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-white/50"}`}

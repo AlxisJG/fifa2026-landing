@@ -80,9 +80,8 @@ export function SuscribeteMarketing() {
               <motion.div
                 key={b.title}
                 initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08, duration: 0.5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + i * 0.08, duration: 0.5 }}
                 className="group glass rounded-2xl border border-white/15 p-5 transition hover:border-electric/30"
               >
                 <span className="text-3xl">{b.icon}</span>

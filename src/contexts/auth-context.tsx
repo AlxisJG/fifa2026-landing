@@ -3,6 +3,15 @@
 import { createContext, useCallback, useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/auth-api";
+import {
+  clearStoredPlan,
+  createFreePlan,
+  createPaidPlan,
+  getStoredPlan,
+  setStoredPlan
+} from "@/lib/plan-storage";
+import { getPaidPlanProductId } from "@/lib/plan-config";
+import { isSubscriptionFunnelEnabled } from "@/lib/subscription-funnel-gate";
 import type { AuthUser, LoginCredentials, RegisterCredentials } from "@/lib/auth-types";
 
 type AuthContextType = {
@@ -15,6 +24,30 @@ type AuthContextType = {
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
+
+async function resolvePlanAfterLogin(): Promise<void> {
+  const existing = getStoredPlan();
+  if (existing) return;
+
+  const token = localStorage.getItem("fifapp_token");
+  if (!token) return;
+
+  try {
+    const productId = getPaidPlanProductId();
+    const res = await fetch(`/api/access/${productId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const json = await res.json();
+    if (json?.data?.has_access) {
+      setStoredPlan(createPaidPlan("Plan Premium", productId));
+      return;
+    }
+  } catch {
+    /* fall through to free */
+  }
+
+  setStoredPlan(createFreePlan());
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -32,12 +65,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await authApi.getProfile();
       if (res.success) {
         setUser(res.data as AuthUser);
+        await resolvePlanAfterLogin();
       } else {
         localStorage.removeItem("fifapp_token");
+        clearStoredPlan();
         setUser(null);
       }
     } catch {
       localStorage.removeItem("fifapp_token");
+      clearStoredPlan();
       setUser(null);
     } finally {
       setLoading(false);
@@ -53,7 +89,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (res.success && res.data.token) {
       localStorage.setItem("fifapp_token", res.data.token);
       setUser(res.data as AuthUser);
-      router.push("/perfil");
+      await resolvePlanAfterLogin();
+      router.push(isSubscriptionFunnelEnabled() ? "/transmision" : "/");
     }
   };
 
@@ -61,15 +98,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await authApi.register(data);
     if (res.success && res.data.token) {
       localStorage.setItem("fifapp_token", res.data.token);
+      setStoredPlan(createFreePlan());
       setUser(res.data as AuthUser);
-      router.push("/planes");
+      router.push(isSubscriptionFunnelEnabled() ? "/transmision" : "/");
     }
   };
 
   const logout = () => {
     localStorage.removeItem("fifapp_token");
+    clearStoredPlan();
     setUser(null);
-    router.push("/iniciar-sesion");
+    router.push(isSubscriptionFunnelEnabled() ? "/suscribete" : "/");
   };
 
   const refreshProfile = async () => {

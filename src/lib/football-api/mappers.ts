@@ -1,6 +1,7 @@
 import type {
   FeaturedMatch,
   Fixture,
+  SquadPlayer,
   SquadTeam,
   StandingsData,
   StandingsGroup,
@@ -10,15 +11,18 @@ import type {
 } from "./types";
 import {
   formatKickoffEs,
+  formatMatchdayEs,
+  formatPlayerPositionEs,
   formatRoundLabelEs,
   formatStandingsGroupEs,
   formatVenueEs,
-  resolveFixtureStage
+  stageFromLeagueRound
 } from "./formatters";
 import type {
   SportmonksFixture,
   SportmonksParticipant,
   SportmonksScore,
+  SportmonksSquadEntry,
   SportmonksStanding,
   SportmonksTeam,
   SportmonksTopscorer
@@ -89,7 +93,14 @@ function getGoalsForParticipant(fixture: SportmonksFixture, participantId?: numb
 
 function getRoundLabel(fixture: SportmonksFixture): string {
   const parts = [fixture.group?.name, fixture.stage?.name, fixture.round?.name].filter(Boolean);
-  return parts[0] ?? fixture.name ?? "";
+  return parts.join(" — ") || fixture.name || "";
+}
+
+function formatMatchLabel(details?: string): string | undefined {
+  if (!details?.trim()) return undefined;
+  const match = details.trim().match(/match\s*(\d+)/i);
+  if (match) return `Partido ${match[1]}`;
+  return details.trim();
 }
 
 function getElapsedMinutes(fixture: SportmonksFixture): number | undefined {
@@ -129,19 +140,33 @@ export function mapSportmonksFixtureToTickerItem(fixture: SportmonksFixture): Ti
 export function mapSportmonksFixtureToFixture(fixture: SportmonksFixture): Fixture {
   const { home, away } = getHomeAwayParticipants(fixture);
   const date = new Date(fixture.starting_at ?? Date.now());
-  const roundLabel = getRoundLabel(fixture);
+  const roundLabelRaw = getRoundLabel(fixture);
   const isPlaceholder = Boolean(fixture.placeholder);
+  const homeScore = getGoalsForParticipant(fixture, home?.id);
+  const awayScore = getGoalsForParticipant(fixture, away?.id);
+  const hasScore = homeScore != null && awayScore != null;
 
   return {
     id: String(fixture.id),
     home: participantDisplayName(home, "Local"),
     away: participantDisplayName(away, "Visitante"),
     kickoffLabel: formatKickoffEs(fixture.starting_at ?? date.toISOString()),
-    stage: resolveFixtureStage(roundLabel, date),
+    startsAt: fixture.starting_at ?? date.toISOString(),
+    phase: stageFromLeagueRound(roundLabelRaw, fixture.stage?.name),
     live: isSportmonksFixtureLive(fixture),
     isPlaceholder,
     homePlaceholder: home?.placeholder,
-    awayPlaceholder: away?.placeholder
+    awayPlaceholder: away?.placeholder,
+    groupLabel: fixture.group?.name ? formatStandingsGroupEs(fixture.group.name) : undefined,
+    roundLabel: fixture.round?.name ? formatMatchdayEs(fixture.round.name) : undefined,
+    venue: formatVenueEs(
+      fixture.venue ? { name: fixture.venue.name, city: fixture.venue.city } : null
+    ),
+    matchLabel: formatMatchLabel(fixture.details),
+    homeFlagUrl: teamFlagUrl(home),
+    awayFlagUrl: teamFlagUrl(away),
+    homeScore: hasScore ? homeScore : undefined,
+    awayScore: hasScore ? awayScore : undefined
   };
 }
 
@@ -175,17 +200,30 @@ function getStandingValue(details: SportmonksStanding["details"], code: string):
 }
 
 function mapStandingRow(row: SportmonksStanding) {
-  const gd =
+  const participant = row.participant;
+  const gdNum =
     getStandingValue(row.details, "OVERALL_GOAL_DIFFERENCE") ??
     getStandingValue(row.details, "GOAL_DIFFERENCE") ??
     0;
   const pts = row.points ?? getStandingValue(row.details, "OVERALL_POINTS") ?? 0;
 
   return {
-    team: row.participant?.name ?? "Equipo",
+    position: row.position ?? 0,
+    team: participant?.name ?? "Equipo",
+    shortCode: participant?.short_code?.trim().toUpperCase(),
+    flagUrl: teamFlagUrl(participant),
+    played: getStandingValue(row.details, "OVERALL_MATCHES") ?? 0,
+    won: getStandingValue(row.details, "OVERALL_WINS") ?? 0,
+    drawn: getStandingValue(row.details, "OVERALL_DRAWS") ?? 0,
+    lost:
+      getStandingValue(row.details, "OVERALL_LOST") ??
+      getStandingValue(row.details, "OVERALL_LOSSES") ??
+      0,
+    gf: getStandingValue(row.details, "OVERALL_SCORED") ?? 0,
+    ga: getStandingValue(row.details, "OVERALL_CONCEDED") ?? 0,
     pts,
-    gd: `${gd > 0 ? "+" : ""}${gd}`,
-    isPlaceholder: row.participant?.placeholder
+    gd: `${gdNum > 0 ? "+" : ""}${gdNum}`,
+    isPlaceholder: participant?.placeholder
   };
 }
 
@@ -252,21 +290,38 @@ export function mapSportmonksTopscorers(rows: SportmonksTopscorer[]): Topscorers
   };
 }
 
+function teamImageUrl(imagePath?: string): string | undefined {
+  if (!imagePath) return undefined;
+  if (imagePath.startsWith("http")) return imagePath;
+  if (imagePath.includes("team_placeholder")) return undefined;
+  return `https://cdn.sportmonks.com${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+}
+
+/** Team list for squads tab — players loaded per team via /squads/teams/{id}. */
 export function mapSportmonksTeams(teams: SportmonksTeam[]): SquadTeam[] {
-  return teams.slice(0, 32).map((team) => ({
-    id: team.id,
-    name: team.name ?? "Equipo",
-    shortCode: team.short_code ?? undefined,
-    flagUrl: team.image_path?.startsWith("http")
-      ? team.image_path
-      : team.image_path
-        ? `https://cdn.sportmonks.com${team.image_path.startsWith("/") ? team.image_path : `/${team.image_path}`}`
-        : undefined,
-    placeholder: team.placeholder,
-    players: (team.players ?? []).slice(0, 26).map((p) => ({
-      id: p.id,
-      name: p.display_name ?? p.name ?? "Jugador",
-      position: p.position_id != null ? String(p.position_id) : undefined
-    }))
-  }));
+  return teams
+    .filter((team) => !team.placeholder)
+    .slice()
+    .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""))
+    .map((team) => ({
+      id: team.id,
+      name: team.name ?? "Equipo",
+      shortCode: team.short_code ?? undefined,
+      flagUrl: teamImageUrl(team.image_path),
+      placeholder: false,
+      players: []
+    }));
+}
+
+export function mapSportmonksSquadPlayers(entries: SportmonksSquadEntry[]): SquadPlayer[] {
+  return entries
+    .filter((entry) => entry.player?.id)
+    .slice()
+    .sort((a, b) => (a.jersey_number ?? 999) - (b.jersey_number ?? 999))
+    .map((entry) => ({
+      id: entry.player!.id,
+      name: entry.player!.display_name?.trim() || entry.player!.name?.trim() || "Jugador",
+      position: formatPlayerPositionEs(entry.position),
+      jerseyNumber: entry.jersey_number ?? undefined
+    }));
 }

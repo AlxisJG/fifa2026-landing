@@ -2,10 +2,12 @@ import { getSportmonksConfig, isLiveFootballDataEnabled } from "./config";
 import type {
   SportmonksFixture,
   SportmonksListResponse,
-  SportmonksSchedule,
+  SportmonksScheduleStage,
+  SportmonksSquadEntry,
   SportmonksStanding,
   SportmonksTeam,
-  SportmonksTopscorer
+  SportmonksTopscorer,
+  SportmonksVenue
 } from "./sportmonks-types";
 
 export const FIXTURE_INCLUDES = "participants;scores;state;venue;round;stage;group";
@@ -16,6 +18,7 @@ export const STANDINGS_INCLUDES = "participant;details.type;group";
  */
 export const SCHEDULE_INCLUDES = undefined;
 export const TOPSCORERS_INCLUDES = "type;player;participant";
+export const SQUAD_INCLUDES = "player;position";
 
 /** Next.js fetch revalidate (seconds) per endpoint class. */
 export const CACHE_REVALIDATE = {
@@ -128,18 +131,97 @@ export async function fetchStandingsBySeason(): Promise<SportmonksStanding[]> {
   return json.data ?? [];
 }
 
-/** Flatten fixtures from GET /schedules/seasons/{id} (WC 2026 guide). */
-export function flattenScheduleFixtures(schedules: SportmonksSchedule[]): SportmonksFixture[] {
-  const out: SportmonksFixture[] = [];
-  for (const schedule of schedules) {
-    for (const round of schedule.rounds ?? []) {
-      if (round.fixtures?.length) out.push(...round.fixtures);
-    }
-    for (const stage of schedule.stages ?? []) {
-      if (stage.fixtures?.length) out.push(...stage.fixtures);
+export function buildGroupNameMap(standings: SportmonksStanding[]): Map<number, string> {
+  const map = new Map<number, string>();
+  for (const row of standings) {
+    if (row.group_id && row.group?.name) {
+      map.set(row.group_id, row.group.name);
     }
   }
-  return out.sort((a, b) => new Date(a.starting_at ?? 0).getTime() - new Date(b.starting_at ?? 0).getTime());
+  return map;
+}
+
+export async function fetchVenuesBySeason(): Promise<Map<number, SportmonksVenue>> {
+  const seasonId = getSeasonId();
+  const json = await sportmonksFetch<SportmonksListResponse<SportmonksVenue>>(
+    `/venues/seasons/${seasonId}`,
+    { revalidate: CACHE_REVALIDATE.teams }
+  );
+  const map = new Map<number, SportmonksVenue>();
+  for (const venue of json.data ?? []) {
+    if (venue.id) map.set(venue.id, venue);
+  }
+  return map;
+}
+
+function enrichScheduleFixture(
+  fixture: SportmonksFixture,
+  context: {
+    stage?: SportmonksScheduleStage;
+    roundName?: string;
+    roundId?: number;
+    groupNamesById?: Map<number, string>;
+    venuesById?: Map<number, SportmonksVenue>;
+  }
+): SportmonksFixture {
+  const groupId = fixture.group_id;
+  const groupName = groupId ? context.groupNamesById?.get(groupId) : undefined;
+  const venue = fixture.venue_id ? context.venuesById?.get(fixture.venue_id) : undefined;
+
+  return {
+    ...fixture,
+    stage: fixture.stage ?? (context.stage?.name ? { name: context.stage.name } : undefined),
+    round:
+      fixture.round ??
+      (context.roundName
+        ? { id: context.roundId, name: context.roundName, stage_id: context.stage?.id }
+        : undefined),
+    group:
+      fixture.group ??
+      (groupId && groupName ? { id: groupId, name: groupName, stage_id: context.stage?.id } : undefined),
+    venue: fixture.venue ?? venue
+  };
+}
+
+/** Flatten fixtures from GET /schedules/seasons/{id} (stages → rounds → fixtures). */
+export function flattenScheduleFixtures(
+  stages: SportmonksScheduleStage[],
+  options?: {
+    groupNamesById?: Map<number, string>;
+    venuesById?: Map<number, SportmonksVenue>;
+  }
+): SportmonksFixture[] {
+  const out: SportmonksFixture[] = [];
+
+  for (const stage of stages) {
+    for (const round of stage.rounds ?? []) {
+      for (const fixture of round.fixtures ?? []) {
+        out.push(
+          enrichScheduleFixture(fixture, {
+            stage,
+            roundName: round.name,
+            roundId: round.id,
+            groupNamesById: options?.groupNamesById,
+            venuesById: options?.venuesById
+          })
+        );
+      }
+    }
+
+    for (const fixture of stage.fixtures ?? []) {
+      out.push(
+        enrichScheduleFixture(fixture, {
+          stage,
+          groupNamesById: options?.groupNamesById,
+          venuesById: options?.venuesById
+        })
+      );
+    }
+  }
+
+  return out.sort(
+    (a, b) => new Date(a.starting_at ?? 0).getTime() - new Date(b.starting_at ?? 0).getTime()
+  );
 }
 
 export async function fetchScheduleFixtures(
@@ -148,14 +230,21 @@ export async function fetchScheduleFixtures(
 ): Promise<SportmonksFixture[]> {
   const seasonId = getSeasonId();
   try {
-    const json = await sportmonksFetch<SportmonksListResponse<SportmonksSchedule>>(
-      `/schedules/seasons/${seasonId}`,
-      {
-        ...(SCHEDULE_INCLUDES ? { include: SCHEDULE_INCLUDES } : {}),
-        revalidate: CACHE_REVALIDATE.schedule
-      }
-    );
-    const flat = flattenScheduleFixtures(json.data ?? []);
+    const [json, standings, venuesById] = await Promise.all([
+      sportmonksFetch<SportmonksListResponse<SportmonksScheduleStage>>(
+        `/schedules/seasons/${seasonId}`,
+        {
+          ...(SCHEDULE_INCLUDES ? { include: SCHEDULE_INCLUDES } : {}),
+          revalidate: CACHE_REVALIDATE.schedule
+        }
+      ),
+      fetchStandingsBySeason(),
+      fetchVenuesBySeason()
+    ]);
+
+    const groupNamesById = buildGroupNameMap(standings);
+    const flat = flattenScheduleFixtures(json.data ?? [], { groupNamesById, venuesById });
+
     if (flat.length > 0) {
       const pool = options?.includeAllDates
         ? flat
@@ -176,7 +265,15 @@ export async function fetchTeamsBySeason(): Promise<SportmonksTeam[]> {
   const seasonId = getSeasonId();
   const json = await sportmonksFetch<SportmonksListResponse<SportmonksTeam>>(
     `/teams/seasons/${seasonId}`,
-    { include: "players", revalidate: CACHE_REVALIDATE.teams }
+    { revalidate: CACHE_REVALIDATE.teams }
+  );
+  return json.data ?? [];
+}
+
+export async function fetchSquadByTeamId(teamId: number): Promise<SportmonksSquadEntry[]> {
+  const json = await sportmonksFetch<SportmonksListResponse<SportmonksSquadEntry>>(
+    `/squads/teams/${teamId}`,
+    { include: SQUAD_INCLUDES, revalidate: CACHE_REVALIDATE.teams }
   );
   return json.data ?? [];
 }

@@ -1,13 +1,28 @@
 "use client";
 
+import Link from "next/link";
 import { getFeaturedMatchSeed } from "@/lib/football-widget-seeds";
 import { useMatchCenter } from "@/hooks/useFootballData";
+import { useLiveNavigation } from "@/hooks/use-live-navigation";
 import type { FeaturedMatch } from "@/lib/football-api/types";
 import { scrollToSection } from "@/lib/scroll-to-section";
 import { getFlagCdnUrl } from "@/lib/team-flags";
+import { PAGE_SEO } from "@/lib/seo/pages";
 
 const FLAG_W = "w-[5.75rem] sm:w-[6.5rem]";
 const MATCH_CENTER_BG = "/recursos/MATCH%20CENTER.jpg";
+
+const ctaClass =
+  "rounded-full px-6 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-black transition sm:text-sm";
+
+type FeaturedMatchCenterProps = {
+  /** Home uses live nav + calendario; transmisión scrolls to secciones en la misma página. */
+  ctaMode?: "transmision" | "marketing";
+};
+
+function hasFeaturedMatch(match: FeaturedMatch) {
+  return Boolean(match.homeCode?.trim() && match.awayCode?.trim());
+}
 
 function FeaturedFlag({ code, flagUrl }: { code: string; flagUrl?: string }) {
   const src = getFlagCdnUrl(code, 160) ?? flagUrl;
@@ -48,9 +63,56 @@ function FeaturedMatchup({
   );
 }
 
-export function FeaturedMatchCenter() {
+function MatchCenterActions({ ctaMode }: { ctaMode: "transmision" | "marketing" }) {
+  const navigateLive = useLiveNavigation();
+
+  if (ctaMode === "marketing") {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={navigateLive}
+          className={`${ctaClass} bg-[#c8f542] hover:brightness-105`}
+        >
+          Ver en vivo
+        </button>
+        <Link
+          href={PAGE_SEO.partidos.path}
+          className={`${ctaClass} bg-white hover:bg-white/90`}
+        >
+          Calendario completo
+        </Link>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => scrollToSection("live")}
+        className={`${ctaClass} bg-[#c8f542] hover:brightness-105`}
+      >
+        Ver en vivo
+      </button>
+      <button
+        type="button"
+        onClick={() => scrollToSection("match-center")}
+        className={`${ctaClass} bg-white hover:bg-white/90`}
+      >
+        Centro de partido
+      </button>
+    </>
+  );
+}
+
+export function FeaturedMatchCenter({ ctaMode = "transmision" }: FeaturedMatchCenterProps) {
   const { data, loading, source } = useMatchCenter(getFeaturedMatchSeed());
   const match: FeaturedMatch = data;
+
+  if (!loading && !hasFeaturedMatch(match)) {
+    return null;
+  }
 
   return (
     <section id="match-center" className="theater-dark relative py-6 sm:py-8">
@@ -73,7 +135,10 @@ export function FeaturedMatchCenter() {
 
         <div className="mb-6 text-center sm:mb-8">
           {loading ? (
-            <div className="mx-auto h-8 w-64 animate-pulse rounded bg-white/20 sm:h-9 sm:w-72" />
+            <div className="mx-auto space-y-2">
+              <div className="mx-auto h-8 w-64 animate-pulse rounded bg-white/20 sm:h-9 sm:w-72" />
+              <div className="mx-auto h-4 w-40 animate-pulse rounded bg-white/15" />
+            </div>
           ) : (
             <>
               <p className="text-lg font-black uppercase tracking-[0.14em] text-white sm:text-xl sm:tracking-[0.18em] md:text-2xl">
@@ -83,6 +148,11 @@ export function FeaturedMatchCenter() {
                 <span className="mt-2 inline-block rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-amber-200">
                   Por definir
                 </span>
+              )}
+              {match.kickoff && (
+                <p className="mt-2 text-sm font-bold uppercase tracking-[0.12em] text-[#c8f542] sm:text-base">
+                  {match.kickoff}
+                </p>
               )}
               <p className="mt-2 text-xs text-white/85 sm:text-sm">{match.venue}</p>
             </>
@@ -115,20 +185,7 @@ export function FeaturedMatchCenter() {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-end">
-            <button
-              type="button"
-              onClick={() => scrollToSection("live")}
-              className="rounded-full bg-[#c8f542] px-6 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-black transition hover:brightness-105 sm:text-sm"
-            >
-              Ver en vivo
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection("match-center")}
-              className="rounded-full bg-white px-6 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-black transition hover:bg-white/90 sm:text-sm"
-            >
-              Centro de partido
-            </button>
+            <MatchCenterActions ctaMode={ctaMode} />
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import type { Fixture } from "./types";
+import type { FixturePhase } from "./types";
 
 const LOCALE = "es-DO";
 
@@ -45,25 +45,63 @@ export function formatVenueEs(venue?: { name?: string; city?: string } | null): 
   return venue.name;
 }
 
-export function stageFromLeagueRound(round?: string): Fixture["stage"] {
-  if (!round) return "Group Stage";
-  const r = round.toLowerCase();
-  if (r.includes("group")) return "Group Stage";
-  if (r.includes("round") || r.includes("quarter") || r.includes("semi") || r.includes("final")) {
+export function formatMatchdayEs(roundName?: string): string {
+  if (!roundName?.trim()) return "";
+  const trimmed = roundName.trim();
+  if (/^\d+$/.test(trimmed)) return `Jornada ${trimmed}`;
+  return trimmed.replace(/round/gi, "Jornada");
+}
+
+export function stageFromLeagueRound(round?: string, stageName?: string): FixturePhase {
+  const combined = `${stageName ?? ""} ${round ?? ""}`.toLowerCase();
+  if (combined.includes("group")) return "Group Stage";
+  if (
+    combined.includes("round of") ||
+    combined.includes("quarter") ||
+    combined.includes("semi") ||
+    (combined.includes("final") && !combined.includes("group"))
+  ) {
     return "Knockout";
   }
+  if (!round && !stageName) return "Group Stage";
   return "Group Stage";
 }
 
-export function resolveFixtureStage(round: string | undefined, date: Date, now = new Date()): Fixture["stage"] {
-  let stage: Fixture["stage"] = stageFromLeagueRound(round);
-  const diffHrs = (date.getTime() - now.getTime()) / 3600000;
-  if (diffHrs >= 0 && diffHrs < 24) stage = "Today";
-  else if (diffHrs >= 24 && diffHrs < 48) stage = "Tomorrow";
-  return stage;
+export function formatPlayerPositionEs(position?: {
+  name?: string;
+  code?: string;
+  developer_name?: string;
+}): string | undefined {
+  if (!position) return undefined;
+
+  const dev = position.developer_name?.toUpperCase() ?? "";
+  const code = position.code?.toLowerCase() ?? "";
+  const name = position.name?.toLowerCase() ?? "";
+
+  if (dev.includes("GOALKEEPER") || code.includes("goalkeeper") || name.includes("goalkeeper")) {
+    return "Portero";
+  }
+  if (dev.includes("DEFENDER") || code.includes("defender") || name.includes("defender")) {
+    return "Defensa";
+  }
+  if (dev.includes("MIDFIELD") || code.includes("midfield") || name.includes("midfield")) {
+    return "Mediocampista";
+  }
+  if (
+    dev.includes("ATTACK") ||
+    dev.includes("FORWARD") ||
+    code.includes("attacker") ||
+    code.includes("forward") ||
+    name.includes("attack") ||
+    name.includes("forward")
+  ) {
+    return "Delantero";
+  }
+
+  return position.name?.trim() || undefined;
 }
 
-export const FIXTURE_STAGE_LABELS: Record<Fixture["stage"], string> = {
+export const FIXTURE_STAGE_LABELS: Record<FixturePhase | "Today" | "Tomorrow", string> = {
   Today: "Hoy",
   Tomorrow: "Mañana",
   "Group Stage": "Fase de grupos",

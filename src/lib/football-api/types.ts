@@ -14,17 +14,30 @@ export type TickerItem = {
   awayFlagUrl?: string;
 };
 
+export type FixturePhase = "Group Stage" | "Knockout";
+
 export type Fixture = {
   id: string;
   home: string;
   away: string;
   kickoffLabel: string;
-  stage: "Today" | "Tomorrow" | "Group Stage" | "Knockout";
+  /** ISO kickoff time for calendar-day filters (Hoy / Mañana). */
+  startsAt: string;
+  /** Competition phase — fase de grupos o eliminatorias. */
+  phase: FixturePhase;
   live?: boolean;
   /** SportMonks fixture.placeholder — knockout TBD */
   isPlaceholder?: boolean;
   homePlaceholder?: boolean;
   awayPlaceholder?: boolean;
+  groupLabel?: string;
+  roundLabel?: string;
+  venue?: string;
+  matchLabel?: string;
+  homeFlagUrl?: string;
+  awayFlagUrl?: string;
+  homeScore?: number;
+  awayScore?: number;
 };
 
 export type FeaturedMatch = {
@@ -41,7 +54,16 @@ export type FeaturedMatch = {
 };
 
 export type StandingsRow = {
+  position: number;
   team: string;
+  shortCode?: string;
+  flagUrl?: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  gf: number;
+  ga: number;
   pts: number;
   gd: string;
   isPlaceholder?: boolean;
@@ -59,7 +81,9 @@ export type StandingsData = {
 export type SquadPlayer = {
   id: number;
   name: string;
+  /** Posición en español (Portero, Defensa, …). */
   position?: string;
+  jerseyNumber?: number;
 };
 
 export type SquadTeam = {

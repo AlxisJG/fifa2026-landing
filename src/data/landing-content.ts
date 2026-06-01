@@ -72,10 +72,80 @@ export const news = [
   }
 ];
 
+/** Fallback cuando WordPress no está disponible o la categoría no tiene imágenes. */
 export const gallery = [
-  "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1517747614396-d21a78b850e8?auto=format&fit=crop&w=1200&q=80"
+  {
+    src: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1200&h=800&q=80",
+    alt: "Partido de fútbol bajo luces del estadio",
+    width: 1200,
+    height: 800
+  },
+  {
+    src: "https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?auto=format&fit=crop&w=1200&h=1800&q=80",
+    alt: "Aficionados celebrando un gol en las gradas",
+    width: 1200,
+    height: 1800
+  },
+  {
+    src: "https://images.unsplash.com/photo-1517747614396-d21a78b850e8?auto=format&fit=crop&w=1200&h=1200&q=80",
+    alt: "Balón de fútbol en el césped del campo",
+    width: 1200,
+    height: 1200
+  },
+  {
+    src: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&h=900&q=80",
+    alt: "Jugador regateando con el balón en el partido",
+    width: 1200,
+    height: 900
+  },
+  {
+    src: "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=1200&h=1600&q=80",
+    alt: "Vista aérea de un estadio lleno de público",
+    width: 1200,
+    height: 1600
+  },
+  {
+    src: "https://images.unsplash.com/photo-1459865264687-595d652de67e?auto=format&fit=crop&w=1200&h=750&q=80",
+    alt: "Afición con banderas en un partido internacional",
+    width: 1200,
+    height: 750
+  },
+  {
+    src: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1200&h=1500&q=80",
+    alt: "Celebración de equipo tras marcar un gol",
+    width: 1200,
+    height: 1500
+  },
+  {
+    src: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1200&h=800&q=80",
+    alt: "Atleta corriendo en pista dentro del estadio",
+    width: 1200,
+    height: 800
+  },
+  {
+    src: "https://images.unsplash.com/photo-1518604666860-9ed391f76460?auto=format&fit=crop&w=1200&h=1200&q=80",
+    alt: "Cameraman cubriendo un evento deportivo",
+    width: 1200,
+    height: 1200
+  },
+  {
+    src: "https://images.unsplash.com/photo-1529900748604-07564a03e7a9?auto=format&fit=crop&w=1200&h=1700&q=80",
+    alt: "Grada con aficionados vestidos de colores",
+    width: 1200,
+    height: 1700
+  },
+  {
+    src: "https://images.unsplash.com/photo-1551958219-acbc608c2177?auto=format&fit=crop&w=1200&h=900&q=80",
+    alt: "Jugadores disputando el balón en el centro del campo",
+    width: 1200,
+    height: 900
+  },
+  {
+    src: "https://images.unsplash.com/photo-1489944440615-453fc83eb32a?auto=format&fit=crop&w=1200&h=1400&q=80",
+    alt: "Estadio iluminado antes del inicio del partido",
+    width: 1200,
+    height: 1400
+  }
 ];
 
 export type MatchSummary = {

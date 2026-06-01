@@ -1,15 +1,26 @@
-import type { FeaturedMatch, StandingsData, TickerItem } from "@/lib/football-api/types";
+import type { FeaturedMatch, Fixture, StandingsData, TickerItem } from "@/lib/football-api/types";
 
 export type MatchCenter = FeaturedMatch;
 
-export type Fixture = {
-  id: string;
-  home: string;
-  away: string;
-  kickoffLabel: string;
-  stage: "Today" | "Tomorrow" | "Group Stage" | "Knockout";
-  live?: boolean;
-};
+function todayAt(hours: number, minutes = 0): string {
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return date.toISOString();
+}
+
+function tomorrowAt(hours: number, minutes = 0): string {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  date.setHours(hours, minutes, 0, 0);
+  return date.toISOString();
+}
+
+function futureGroupStageAt(daysFromNow: number, hours: number, minutes = 0): string {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  date.setHours(hours, minutes, 0, 0);
+  return date.toISOString();
+}
 
 export const tickerItems: TickerItem[] = [
   {
@@ -60,10 +71,39 @@ export const featuredMatch: FeaturedMatch = {
 };
 
 export const fixtures: Fixture[] = [
-  { id: "f1", home: "Argentina", away: "Brazil", kickoffLabel: "Today • 6:00 PM", stage: "Today", live: true },
-  { id: "f2", home: "USA", away: "Mexico", kickoffLabel: "Today • 8:00 PM", stage: "Today" },
-  { id: "f3", home: "Spain", away: "France", kickoffLabel: "Tomorrow • 7:00 PM", stage: "Tomorrow" },
-  { id: "f4", home: "Portugal", away: "Germany", kickoffLabel: "Group Stage • 9:30 PM", stage: "Group Stage" }
+  {
+    id: "f1",
+    home: "Argentina",
+    away: "Brazil",
+    kickoffLabel: "Today • 6:00 PM",
+    startsAt: todayAt(18),
+    phase: "Group Stage",
+    live: true
+  },
+  {
+    id: "f2",
+    home: "USA",
+    away: "Mexico",
+    kickoffLabel: "Today • 8:00 PM",
+    startsAt: todayAt(20),
+    phase: "Group Stage"
+  },
+  {
+    id: "f3",
+    home: "Spain",
+    away: "France",
+    kickoffLabel: "Tomorrow • 7:00 PM",
+    startsAt: tomorrowAt(19),
+    phase: "Group Stage"
+  },
+  {
+    id: "f4",
+    home: "Portugal",
+    away: "Germany",
+    kickoffLabel: "Group Stage • 9:30 PM",
+    startsAt: futureGroupStageAt(5, 21, 30),
+    phase: "Group Stage"
+  }
 ];
 
 export const standings: StandingsData = {
@@ -71,19 +111,19 @@ export const standings: StandingsData = {
     {
       group: "Grupo A",
       rows: [
-        { team: "USA", pts: 6, gd: "+3" },
-        { team: "Mexico", pts: 4, gd: "+1" },
-        { team: "Canada", pts: 3, gd: "0" },
-        { team: "Panama", pts: 1, gd: "-4" }
+        { position: 1, team: "USA", shortCode: "USA", played: 2, won: 2, drawn: 0, lost: 0, gf: 5, ga: 2, pts: 6, gd: "+3" },
+        { position: 2, team: "Mexico", shortCode: "MEX", played: 2, won: 1, drawn: 1, lost: 0, gf: 3, ga: 2, pts: 4, gd: "+1" },
+        { position: 3, team: "Canada", shortCode: "CAN", played: 2, won: 1, drawn: 0, lost: 1, gf: 2, ga: 2, pts: 3, gd: "0" },
+        { position: 4, team: "Panama", shortCode: "PAN", played: 2, won: 0, drawn: 1, lost: 1, gf: 1, ga: 5, pts: 1, gd: "-4" }
       ]
     },
     {
       group: "Grupo B",
       rows: [
-        { team: "Brasil", pts: 7, gd: "+4" },
-        { team: "Croacia", pts: 4, gd: "+1" },
-        { team: "Japón", pts: 3, gd: "-1" },
-        { team: "Marruecos", pts: 1, gd: "-4" }
+        { position: 1, team: "Brasil", shortCode: "BRA", played: 2, won: 2, drawn: 1, lost: 0, gf: 6, ga: 2, pts: 7, gd: "+4" },
+        { position: 2, team: "Croacia", shortCode: "CRO", played: 2, won: 1, drawn: 1, lost: 0, gf: 4, ga: 3, pts: 4, gd: "+1" },
+        { position: 3, team: "Japón", shortCode: "JPN", played: 2, won: 1, drawn: 0, lost: 1, gf: 3, ga: 4, pts: 3, gd: "-1" },
+        { position: 4, team: "Marruecos", shortCode: "MAR", played: 2, won: 0, drawn: 1, lost: 1, gf: 2, ga: 6, pts: 1, gd: "-4" }
       ]
     }
   ]

@@ -1,6 +1,6 @@
 import { flattenScheduleFixtures, getSeasonId, sportmonksFetch } from "./sportmonks-client";
 import { isLiveFootballDataEnabled } from "./config";
-import type { SportmonksFixture, SportmonksListResponse, SportmonksSchedule } from "./sportmonks-types";
+import type { SportmonksFixture, SportmonksListResponse, SportmonksScheduleStage } from "./sportmonks-types";
 
 export type SportmonksInspectSummary = {
   scheduleFixtureCount: number;
@@ -38,7 +38,7 @@ export async function inspectSportmonksPlaceholders(): Promise<SportmonksInspect
 
   try {
     const seasonId = getSeasonId();
-    const json = await sportmonksFetch<SportmonksListResponse<SportmonksSchedule>>(
+    const json = await sportmonksFetch<SportmonksListResponse<SportmonksScheduleStage>>(
       `/schedules/seasons/${seasonId}`,
       { revalidate: 0 }
     );

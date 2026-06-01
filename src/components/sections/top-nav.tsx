@@ -2,69 +2,26 @@
 
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { BrandLogoMark } from "@/components/ui/brand-logo-mark";
 import { LiveNavButton } from "@/components/ui/live-nav-button";
 import { useAuth } from "@/hooks/use-auth";
-import { useFootballLiveSectionsVisible } from "@/contexts/football-live-sections-context";
-import { scrollToSection } from "@/lib/scroll-to-section";
-
-type NavItem = {
-  label: string;
-  sectionId: string;
-};
-
-const landingNavLeft: NavItem[] = [
-  { label: "Noticias", sectionId: "news" },
-  { label: "Partidos", sectionId: "fixtures" },
-  { label: "Match Center", sectionId: "match-center" }
-];
-
-const landingNavRight: NavItem[] = [
-  { label: "Posiciones", sectionId: "standings" },
-  { label: "Highlights", sectionId: "summaries" },
-  { label: "Galería", sectionId: "gallery" }
-];
-
-function NavAnchor({ item, onNavigate }: { item: NavItem; onNavigate: (id: string) => void }) {
-  return (
-    <button
-      type="button"
-      onClick={() => onNavigate(item.sectionId)}
-      className="whitespace-nowrap text-[10px] uppercase tracking-[0.18em] text-white/70 transition hover:text-white sm:text-[11px] sm:tracking-[0.2em]"
-    >
-      {item.label}
-    </button>
-  );
-}
+import { NAV_PAGES } from "@/lib/seo/pages";
+import { isSubscriptionFunnelEnabled } from "@/lib/subscription-funnel-gate";
 
 export function TopNav() {
   const { user, loading } = useAuth();
-  const liveSectionsVisible = useFootballLiveSectionsVisible();
   const loggedIn = !loading && !!user;
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const navLeft = liveSectionsVisible
-    ? landingNavLeft
-    : landingNavLeft.filter((item) => item.sectionId !== "match-center");
-
-  const mobileLandingItems = [...navLeft, ...landingNavRight];
 
   useEffect(() => {
     document.body.classList.toggle("no-scroll", menuOpen);
     return () => document.body.classList.remove("no-scroll");
   }, [menuOpen]);
 
-  const handleNavigate = useCallback((sectionId: string) => {
-    setMenuOpen(false);
-    window.requestAnimationFrame(() => scrollToSection(sectionId));
-  }, []);
-
-  const loggedInLeft = [{ label: "Transmisión", href: "/transmision" }];
-  const loggedInRight = [
-    { label: "Perfil", href: "/perfil" },
-    { label: "Planes", href: "/planes" }
-  ];
+  const funnelEnabled = isSubscriptionFunnelEnabled();
+  const navLeft = NAV_PAGES.slice(0, 3);
+  const navRight = NAV_PAGES.slice(3);
 
   return (
     <>
@@ -76,73 +33,66 @@ export function TopNav() {
         <div className="section-shell h-[4.5rem] sm:h-[4.75rem]">
           <div className="flex h-full items-center justify-between gap-3 md:grid md:grid-cols-[1fr_auto_1fr] md:gap-2">
             <div className="flex min-w-0 shrink-0 items-center md:hidden">
-              {loggedIn ? (
+              <Link href="/">
                 <BrandLogoMark variant="nav" showRedBackground={false} />
-              ) : (
-                <BrandLogoMark
-                  variant="nav"
-                  showRedBackground={false}
-                  onClick={() => handleNavigate("hero")}
-                />
-              )}
+              </Link>
             </div>
 
-            {loggedIn ? (
-              <nav className="hidden items-center justify-start gap-4 md:flex lg:gap-5">
-                {loggedInLeft.map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="text-[10px] uppercase tracking-[0.18em] text-white/70 transition hover:text-white sm:text-[11px] sm:tracking-[0.2em]"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
-            ) : (
-              <nav className="hidden items-center justify-start gap-3 md:flex lg:gap-4 xl:gap-5">
-                <LiveNavButton onClick={() => handleNavigate("live")} />
-                {navLeft.map((item) => (
-                  <NavAnchor key={item.sectionId} item={item} onNavigate={handleNavigate} />
-                ))}
-              </nav>
-            )}
+            <nav className="hidden items-center justify-start gap-3 md:flex lg:gap-4 xl:gap-5">
+              <LiveNavButton />
+              {navLeft.map((item) => (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  className="whitespace-nowrap text-[10px] uppercase tracking-[0.18em] text-white/70 transition hover:text-white sm:text-[11px] sm:tracking-[0.2em]"
+                >
+                  {item.navLabel}
+                </Link>
+              ))}
+            </nav>
 
             <div className="relative hidden h-full w-[10.5rem] shrink-0 justify-self-center sm:w-[12.5rem] md:block md:w-[15rem]">
               <div className="absolute left-1/2 z-50 -translate-x-1/2 -translate-y-1/2" style={{ top: "55px" }}>
-                {loggedIn ? (
+                <Link href="/">
                   <BrandLogoMark variant="crest" />
-                ) : (
-                  <BrandLogoMark variant="crest" onClick={() => handleNavigate("hero")} />
-                )}
+                </Link>
               </div>
             </div>
 
-            {loggedIn ? (
-              <nav className="hidden items-center justify-end gap-4 md:flex lg:gap-5">
-                {loggedInRight.map((item) => (
+            <nav className="hidden items-center justify-end gap-3 md:flex lg:gap-4 xl:gap-5">
+              {navRight.map((item) => (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  className="whitespace-nowrap text-[10px] uppercase tracking-[0.18em] text-white/70 transition hover:text-white sm:text-[11px] sm:tracking-[0.2em]"
+                >
+                  {item.navLabel}
+                </Link>
+              ))}
+              {loggedIn ? (
+                <>
                   <Link
-                    key={item.label}
-                    href={item.href}
+                    href="/perfil"
                     className="text-[10px] uppercase tracking-[0.18em] text-white/70 transition hover:text-white sm:text-[11px] sm:tracking-[0.2em]"
                   >
-                    {item.label}
+                    Perfil
                   </Link>
-                ))}
-              </nav>
-            ) : (
-              <nav className="hidden items-center justify-end gap-3 md:flex lg:gap-4 xl:gap-5">
-                {landingNavRight.map((item) => (
-                  <NavAnchor key={item.sectionId} item={item} onNavigate={handleNavigate} />
-                ))}
+                  <Link
+                    href="/planes"
+                    className="text-[10px] uppercase tracking-[0.18em] text-white/70 transition hover:text-white sm:text-[11px] sm:tracking-[0.2em]"
+                  >
+                    Planes
+                  </Link>
+                </>
+              ) : funnelEnabled ? (
                 <Link
                   href="/suscribete"
                   className="ml-1 shrink-0 rounded-full bg-electric px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-midnight transition hover:brightness-110 sm:text-[11px]"
                 >
                   Suscríbete
                 </Link>
-              </nav>
-            )}
+              ) : null}
+            </nav>
 
             <button
               onClick={() => setMenuOpen((v) => !v)}
@@ -175,7 +125,9 @@ export function TopNav() {
               style={{ top: "max(calc(env(safe-area-inset-top) + 4.5rem), 4.75rem)" }}
             >
               <div className="mb-4 flex justify-start border-b border-white/10 pb-4">
-                <BrandLogoMark variant="nav" showRedBackground={false} onClick={() => handleNavigate("hero")} />
+                <Link href="/" onClick={() => setMenuOpen(false)}>
+                  <BrandLogoMark variant="nav" showRedBackground={false} />
+                </Link>
               </div>
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-xs uppercase tracking-[0.22em] text-white/65">Menú</p>
@@ -187,43 +139,42 @@ export function TopNav() {
                 </button>
               </div>
               <div className="max-h-[60vh] space-y-2 overflow-y-auto">
-                {!loggedIn && (
-                  <LiveNavButton variant="menu" onClick={() => handleNavigate("live")} />
-                )}
-                {loggedIn
-                  ? [...loggedInLeft, ...loggedInRight].map((item) => (
-                      <Link
-                        key={item.label}
-                        href={item.href}
-                        onClick={() => setMenuOpen(false)}
-                        className="block rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-white/90 transition hover:border-electric/45 hover:bg-white/[0.06]"
-                      >
-                        {item.label}
-                      </Link>
-                    ))
-                  : mobileLandingItems.map((item, index) => (
-                      <motion.button
-                        key={item.sectionId}
-                        type="button"
-                        initial={{ opacity: 0, x: -12 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.04, duration: 0.3 }}
-                        onClick={() => handleNavigate(item.sectionId)}
-                        className="block w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left text-sm font-medium text-white/90 transition hover:border-electric/45 hover:bg-white/[0.06]"
-                      >
-                        {item.label}
-                      </motion.button>
-                    ))}
+                <LiveNavButton variant="menu" onClick={() => setMenuOpen(false)} />
+                {NAV_PAGES.map((item, index) => (
+                  <motion.div
+                    key={item.path}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.04, duration: 0.3 }}
+                  >
+                    <Link
+                      href={item.path}
+                      onClick={() => setMenuOpen(false)}
+                      className="block rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-white/90 transition hover:border-electric/45 hover:bg-white/[0.06]"
+                    >
+                      {item.navLabel}
+                    </Link>
+                  </motion.div>
+                ))}
+                {loggedIn ? (
+                  <>
+                    <Link href="/perfil" onClick={() => setMenuOpen(false)} className="block rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-white/90">
+                      Perfil
+                    </Link>
+                    <Link href="/planes" onClick={() => setMenuOpen(false)} className="block rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-white/90">
+                      Planes
+                    </Link>
+                  </>
+                ) : funnelEnabled ? (
+                  <Link
+                    href="/suscribete"
+                    onClick={() => setMenuOpen(false)}
+                    className="mt-2 block rounded-full bg-electric py-3 text-center text-sm font-semibold text-midnight"
+                  >
+                    Suscríbete
+                  </Link>
+                ) : null}
               </div>
-              {!loggedIn && (
-                <Link
-                  href="#"
-                  onClick={() => setMenuOpen(false)}
-                  className="mt-4 block rounded-full bg-electric py-3 text-center text-sm font-semibold text-midnight"
-                >
-                  Suscríbete
-                </Link>
-              )}
             </motion.div>
           </motion.div>
         )}

@@ -1,11 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { getTickerSeed } from "@/lib/football-widget-seeds";
-import { useFootballLiveSectionsVisible } from "@/contexts/football-live-sections-context";
 import { useTicker } from "@/hooks/useFootballData";
+import { useLiveNavigation } from "@/hooks/use-live-navigation";
+import { isSubscriptionFunnelEnabled } from "@/lib/subscription-funnel-gate";
 
 type LiveNavButtonProps = {
-  onClick: () => void;
+  onClick?: () => void;
   variant?: "nav" | "menu" | "hero";
   label?: string;
   className?: string;
@@ -17,11 +19,22 @@ export function LiveNavButton({
   label = "En vivo",
   className = ""
 }: LiveNavButtonProps) {
-  const liveSectionsVisible = useFootballLiveSectionsVisible();
-  const { data } = useTicker(getTickerSeed(), { enabled: liveSectionsVisible });
-  const isLive = liveSectionsVisible && data.some((item) => item.live);
+  const funnelEnabled = isSubscriptionFunnelEnabled();
+  const navigateLive = useLiveNavigation();
+  const { data } = useTicker(getTickerSeed(), { enabled: funnelEnabled });
+  const isLive = data.some((item) => item.live);
 
-  if (!liveSectionsVisible) return null;
+  if (!funnelEnabled) {
+    return null;
+  }
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+      return;
+    }
+    navigateLive();
+  };
 
   const base =
     "inline-flex items-center gap-2 rounded-full bg-white font-semibold uppercase tracking-[0.16em] text-black shadow-[0_8px_24px_rgba(15,23,42,0.12)] transition hover:bg-white/90 hover:shadow-[0_10px_28px_rgba(15,23,42,0.16)]";
@@ -34,7 +47,7 @@ export function LiveNavButton({
         : "w-full justify-center px-4 py-3 text-sm";
 
   return (
-    <button type="button" onClick={onClick} className={`${base} ${sizing} ${className}`.trim()}>
+    <button type="button" onClick={handleClick} className={`${base} ${sizing} ${className}`.trim()}>
       <span
         className={`h-2 w-2 shrink-0 rounded-full ${isLive ? "live-dot-blink bg-[#d71920]" : "bg-neutral-400"}`}
         aria-hidden

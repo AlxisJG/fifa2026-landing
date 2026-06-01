@@ -7,15 +7,17 @@ type RevealProps = {
   children: ReactNode;
   delay?: number;
   className?: string;
+  /** Anima solo cuando el contenido está listo (p. ej. fetch terminado). */
+  ready?: boolean;
 };
 
-export function Reveal({ children, delay = 0, className }: RevealProps) {
+/** Entrada suave al montar o cuando `ready` pasa a true — sin scroll ni blur. */
+export function Reveal({ children, delay = 0, className, ready = true }: RevealProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 28, filter: "blur(6px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+      transition={{ duration: 0.35, delay: ready ? delay : 0, ease: "easeOut" }}
       className={className}
     >
       {children}

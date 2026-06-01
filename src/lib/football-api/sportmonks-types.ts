@@ -155,23 +155,44 @@ export type SportmonksStanding = {
   group?: SportmonksGroup;
 };
 
-export type SportmonksScheduleStage = {
+/** Round node inside GET /schedules/seasons/{id} → data[].rounds[] */
+export type SportmonksScheduleRound = {
   id?: number;
+  sport_id?: number;
+  league_id?: number;
+  season_id?: number;
+  stage_id?: number;
   name?: string;
+  finished?: boolean;
+  is_current?: boolean;
+  starting_at?: string;
+  ending_at?: string;
   fixtures?: SportmonksFixture[];
 };
 
-export type SportmonksSchedule = {
+/**
+ * Top-level item in GET /schedules/seasons/{id} response (`data[]`).
+ * Each entry is a competition stage (Group Stage, Round of 16, …) with nested rounds.
+ */
+export type SportmonksScheduleStage = {
   id?: number;
-  name?: string;
+  sport_id?: number;
+  league_id?: number;
   season_id?: number;
-  rounds?: Array<{
-    id?: number;
-    name?: string;
-    fixtures?: SportmonksFixture[];
-  }>;
-  stages?: SportmonksScheduleStage[];
+  type_id?: number;
+  name?: string;
+  sort_order?: number;
+  finished?: boolean;
+  is_current?: boolean;
+  starting_at?: string;
+  ending_at?: string;
+  rounds?: SportmonksScheduleRound[];
+  /** Some seasons expose fixtures directly on the stage. */
+  fixtures?: SportmonksFixture[];
 };
+
+/** @deprecated Schedule season endpoint returns stages in `data`, not this wrapper shape. */
+export type SportmonksSchedule = SportmonksScheduleStage;
 
 export type SportmonksPlayer = {
   id: number;
@@ -179,6 +200,24 @@ export type SportmonksPlayer = {
   display_name?: string;
   position_id?: number;
   image_path?: string;
+};
+
+export type SportmonksPosition = {
+  id?: number;
+  name?: string;
+  code?: string;
+  developer_name?: string;
+};
+
+export type SportmonksSquadEntry = {
+  id: number;
+  player_id?: number;
+  team_id?: number;
+  position_id?: number;
+  jersey_number?: number;
+  captain?: boolean;
+  player?: SportmonksPlayer;
+  position?: SportmonksPosition;
 };
 
 export type SportmonksTeam = {

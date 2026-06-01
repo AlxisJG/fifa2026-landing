@@ -1,7 +1,9 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 type HeroActionButtonProps = {
-  onClick: () => void;
+  onClick?: () => void;
+  href?: string;
   icon: ReactNode;
   iconTone?: "sky" | "red";
   children: ReactNode;
@@ -13,19 +15,19 @@ const iconToneClass = {
   red: "bg-[#d71920]/12 text-[#d71920] group-hover:bg-[#d71920]/20"
 };
 
+const buttonClass =
+  "group inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-slate-200/90 bg-gradient-to-b from-white to-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-800 shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition hover:border-electric/45 hover:from-white hover:to-white hover:shadow-[0_10px_28px_rgba(70,210,255,0.18)] sm:min-h-12 sm:gap-2.5 sm:px-4 sm:text-sm md:w-auto md:shrink-0";
+
 export function HeroActionButton({
   onClick,
+  href,
   icon,
   iconTone = "sky",
   children,
   className = ""
 }: HeroActionButtonProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`group inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-slate-200/90 bg-gradient-to-b from-white to-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-800 shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition hover:border-electric/45 hover:from-white hover:to-white hover:shadow-[0_10px_28px_rgba(70,210,255,0.18)] sm:min-h-12 sm:gap-2.5 sm:px-4 sm:text-sm md:w-auto md:shrink-0 ${className}`}
-    >
+  const content = (
+    <>
       <span
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition sm:h-9 sm:w-9 ${iconToneClass[iconTone]}`}
         aria-hidden
@@ -33,6 +35,20 @@ export function HeroActionButton({
         {icon}
       </span>
       <span className="truncate leading-tight">{children}</span>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className={`${buttonClass} ${className}`}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button type="button" onClick={onClick} className={`${buttonClass} ${className}`}>
+      {content}
     </button>
   );
 }

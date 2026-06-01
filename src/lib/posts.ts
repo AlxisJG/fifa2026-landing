@@ -1,6 +1,14 @@
 import { news as fallbackNews } from "@/data/landing-content";
 import type { PostItem } from "@/lib/posts-types";
 
+function sortPostsByDate(posts: PostItem[]): PostItem[] {
+  return [...posts].sort((a, b) => {
+    const dateA = a.date ? new Date(a.date).getTime() : 0;
+    const dateB = b.date ? new Date(b.date).getTime() : 0;
+    return dateB - dateA;
+  });
+}
+
 const staticPosts: PostItem[] = fallbackNews.map((item, index) => ({
   id: `fallback-${index}`,
   title: item.title,
@@ -61,7 +69,7 @@ export async function getPosts(): Promise<PostItem[]> {
     }
 
     const wpPosts = raw.map((item) => wpToPost(item as Record<string, unknown>)).filter(Boolean) as PostItem[];
-    return wpPosts.length > 0 ? wpPosts : staticPosts;
+    return wpPosts.length > 0 ? sortPostsByDate(wpPosts) : staticPosts;
   } catch {
     return staticPosts;
   }
