@@ -6,7 +6,7 @@ import { LatestNewsSection } from "@/components/sections/latest-news-section";
 import { CountdownWidget } from "@/components/widgets/countdown-widget";
 import { FeaturedMatchCenter } from "@/components/widgets/featured-match-center";
 import { MarketingPageMain } from "@/components/layout/page-intro";
-import { FixedSkyscraperAds } from "@/components/ads/fixed-skyscraper-ads";
+import { PageContentAds } from "@/components/layout/page-content-ads";
 import { StickyMobileAd } from "@/components/ads/sticky-mobile-ad";
 import { isAdsEnabled } from "@/lib/ads-gate";
 import type { Metadata } from "next";
@@ -28,15 +28,16 @@ export default function HomePage() {
 
   return (
     <>
-      <FixedSkyscraperAds />
       <PopupAd />
       <MarketingPageMain>
         <Hero />
-        <SeoIntroSection />
-        <CountdownWidget />
-        <LatestNewsSection />
-        <FeaturedMatchCenter ctaMode="marketing" />
-        <SponsorBar />
+        <PageContentAds page="home">
+          <SeoIntroSection />
+          <CountdownWidget />
+          <LatestNewsSection />
+          <FeaturedMatchCenter ctaMode="marketing" />
+          <SponsorBar />
+        </PageContentAds>
       </MarketingPageMain>
       {adsEnabled && <StickyMobileAd />}
     </>

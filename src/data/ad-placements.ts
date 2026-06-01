@@ -21,6 +21,12 @@ export const rectanglePlacements = {
     sizeLabel: "300×250",
     placement: "Noticias destacadas"
   },
+  newsListing: {
+    id: "rectangle-news-listing",
+    title: "Banner Rectángulo",
+    sizeLabel: "300×250",
+    placement: "Listado de noticias · fila central"
+  },
   liveStream: {
     id: "rectangle-live-broadcast",
     title: "Banner Rectángulo",

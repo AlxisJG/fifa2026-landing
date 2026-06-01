@@ -1,19 +1,50 @@
 import type { Fixture, FixturePhase } from "./types";
 import { FIXTURE_STAGE_LABELS } from "./formatters";
+import { DOMINICAN_TIMEZONE, LOCALE_RD } from "@/lib/datetime-rd";
 import { isWorldCupFirstMatchDayReached } from "@/lib/world-cup-kickoff";
 
 export const FIXTURE_TABS = ["Today", "Tomorrow", "Group Stage", "Knockout"] as const;
 export type FixtureTab = (typeof FIXTURE_TABS)[number];
 
-const CALENDAR_TIMEZONE = "America/Santo_Domingo";
-
-function toCalendarKey(date: Date, timeZone = CALENDAR_TIMEZONE): string {
+function toCalendarKey(date: Date, timeZone = DOMINICAN_TIMEZONE): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit"
   }).format(date);
+}
+
+export function getFixtureDateKey(startsAt: string): string {
+  return toCalendarKey(new Date(startsAt));
+}
+
+export function formatFixtureDateLabel(dateKey: string): string {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  return new Intl.DateTimeFormat(LOCALE_RD, {
+    timeZone: DOMINICAN_TIMEZONE,
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  }).format(date);
+}
+
+export function getFixtureDateOptions(fixtures: Fixture[]): string[] {
+  const keys = new Set(fixtures.map((fixture) => getFixtureDateKey(fixture.startsAt)));
+  return [...keys].sort();
+}
+
+export function filterFixturesByDate(fixtures: Fixture[], dateKey: string | null): Fixture[] {
+  if (!dateKey) return fixtures;
+  return fixtures.filter((fixture) => getFixtureDateKey(fixture.startsAt) === dateKey);
+}
+
+export function sortFixturesByKickoff(fixtures: Fixture[]): Fixture[] {
+  return [...fixtures].sort(
+    (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
+  );
 }
 
 export function isFixtureToday(startsAt: string, now = new Date()): boolean {

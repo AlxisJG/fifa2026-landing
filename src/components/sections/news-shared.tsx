@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { news as fallbackNews } from "@/data/landing-content";
 import { usePosts } from "@/hooks/usePosts";
 import type { PostItem } from "@/lib/posts-types";
+import { formatDateRd } from "@/lib/datetime-rd";
 
 export const DEFAULT_NEWS_IMAGE = fallbackNews[0].image;
 
@@ -81,6 +82,7 @@ type NewsCardProps = {
   image: string;
   title: string;
   category: string;
+  url?: string;
   date?: string;
   tall?: boolean;
   uniform?: boolean;
@@ -92,6 +94,7 @@ export function NewsCard({
   image,
   title,
   category,
+  url,
   date,
   tall = false,
   uniform = false,
@@ -109,11 +112,8 @@ export function NewsCard({
         ? "h-[250px]"
         : "h-40 sm:h-44";
 
-  return (
-    <motion.article
-      whileHover={{ y: -4 }}
-      className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 shadow-[0_12px_36px_rgba(15,23,42,0.14)]"
-    >
+  const card = (
+    <>
       <div className={`relative w-full ${heightClass}`}>
         <NewsCardImage src={image} alt={safeTitle} priority={priority} />
         <div
@@ -138,11 +138,35 @@ export function NewsCard({
           </h3>
           {date && uniform && (
             <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-white/70">
-              {new Date(date).toLocaleDateString("es-DO", { day: "numeric", month: "short", year: "numeric" })}
+              {formatDateRd(date)}
             </p>
           )}
         </div>
       </div>
+    </>
+  );
+
+  const shellClass =
+    "group relative block overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 shadow-[0_12px_36px_rgba(15,23,42,0.14)] transition-shadow hover:shadow-[0_16px_44px_rgba(15,23,42,0.2)]";
+
+  if (url) {
+    return (
+      <motion.a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        whileHover={{ y: -4 }}
+        className={shellClass}
+        aria-label={`Leer noticia: ${safeTitle}`}
+      >
+        {card}
+      </motion.a>
+    );
+  }
+
+  return (
+    <motion.article whileHover={{ y: -4 }} className={shellClass}>
+      {card}
     </motion.article>
   );
 }

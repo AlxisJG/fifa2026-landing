@@ -88,7 +88,8 @@ export function buildArticleSchema(post: PostItem, index: number) {
     headline: post.title,
     author: buildPublisherReference(),
     publisher: buildPublisherReference(),
-    mainEntityOfPage: SITE_URL,
+    mainEntityOfPage: post.url ?? SITE_URL,
+    ...(post.url ? { url: post.url } : {}),
     inLanguage: "es-DO",
     isPartOf: {
       "@id": WEBSITE_ID

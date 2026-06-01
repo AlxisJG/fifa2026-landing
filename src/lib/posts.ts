@@ -27,10 +27,13 @@ function wpToPost(raw: Record<string, unknown>): PostItem | null {
   const categories = raw.categories as Array<{ name?: string }> | undefined;
   const embedded = raw._embedded as { "wp:featuredmedia"?: Array<{ source_url?: string }> } | undefined;
 
+  const link = (raw.link as string | undefined)?.trim();
+
   return {
     id: String(raw.id ?? title.slice(0, 20)),
     title,
     category: categories?.[0]?.name ?? (raw.category as string | undefined) ?? "Noticias",
+    url: link || undefined,
     image:
       (raw.image as string | undefined) ??
       (raw.featured_image as string | undefined) ??

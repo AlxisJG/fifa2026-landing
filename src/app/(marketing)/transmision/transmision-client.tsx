@@ -9,6 +9,7 @@ import { usePlan } from "@/hooks/use-plan";
 import { BRANDING } from "@/lib/branding";
 import { hasStreamAccess, planShowsAds } from "@/lib/plan-storage";
 import { MarketingPageMain } from "@/components/layout/page-intro";
+import { PageContentAds } from "@/components/layout/page-content-ads";
 import { TransmisionLiveBlock } from "@/components/sections/live-blocks";
 import { HorizontalAdSlot } from "@/components/ads/horizontal-ad-slot";
 import { isAdsEnabled } from "@/lib/ads-gate";
@@ -49,6 +50,7 @@ export default function TransmisionPage() {
 
   return (
     <MarketingPageMain>
+      <PageContentAds page="transmision">
       <section className="section-shell py-8 sm:py-10">
         <TransmisionLiveBlock />
 
@@ -119,6 +121,7 @@ export default function TransmisionPage() {
           </motion.div>
         </div>
       </section>
+      </PageContentAds>
     </MarketingPageMain>
   );
 }

@@ -123,7 +123,7 @@ export function GallerySection() {
 
   return (
     <section id="gallery" className="section-shell pb-16 sm:pb-20">
-      <Reveal>
+      <Reveal ready={!loading}>
         {loading ? (
           <GallerySkeleton />
         ) : items.length === 0 ? (

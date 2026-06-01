@@ -11,15 +11,23 @@ type RevealProps = {
   ready?: boolean;
 };
 
+const EASE_OUT = [0.22, 1, 0.36, 1] as const;
+
+/** Props de Framer para fade-in al montar (sin whileInView / scroll). */
+export function fadeInMotionProps(delay = 0, offsetY = 10, offsetX = 0) {
+  return {
+    initial: { opacity: 0, y: offsetY, x: offsetX },
+    animate: { opacity: 1, y: 0, x: 0 },
+    transition: { duration: 0.35, delay, ease: EASE_OUT }
+  };
+}
+
 /** Entrada suave al montar o cuando `ready` pasa a true — sin scroll ni blur. */
 export function Reveal({ children, delay = 0, className, ready = true }: RevealProps) {
+  const motionProps = fadeInMotionProps(ready ? delay : 0);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-      transition={{ duration: 0.35, delay: ready ? delay : 0, ease: "easeOut" }}
-      className={className}
-    >
+    <motion.div {...motionProps} animate={ready ? motionProps.animate : motionProps.initial} className={className}>
       {children}
     </motion.div>
   );

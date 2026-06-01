@@ -30,11 +30,10 @@ export function MatchSummariesSection() {
       ) : items.length === 0 ? (
         <p className="text-sm text-slate-600">No hay highlights disponibles por el momento.</p>
       ) : (
-        <>
+        <Reveal ready={!loading}>
           <div className="grid gap-4 lg:grid-cols-3">
-            {topRow.map((item, index) => (
-              <Reveal key={item.id} delay={index * 0.05}>
-                <motion.article whileHover={{ y: -6 }} className="group glass-heavy overflow-hidden rounded-3xl">
+            {topRow.map((item) => (
+                <motion.article key={item.id} whileHover={{ y: -6 }} className="group glass-heavy overflow-hidden rounded-3xl">
                   <div className="relative aspect-square">
                     <Image
                       src={item.image}
@@ -54,13 +53,11 @@ export function MatchSummariesSection() {
                     </div>
                   </div>
                 </motion.article>
-              </Reveal>
             ))}
           </div>
 
           {featured && (
-            <Reveal delay={0.12} className="mt-4">
-              <motion.article whileHover={{ y: -4 }} className="group glass-heavy overflow-hidden rounded-3xl">
+            <motion.article whileHover={{ y: -4 }} className="group glass-heavy mt-4 overflow-hidden rounded-3xl">
                 <div className="relative flex min-h-[180px] flex-col sm:min-h-[200px] sm:flex-row">
                   <div className="relative h-48 w-full sm:h-auto sm:w-2/5">
                     <Image
@@ -80,9 +77,8 @@ export function MatchSummariesSection() {
                   </div>
                 </div>
               </motion.article>
-            </Reveal>
           )}
-        </>
+        </Reveal>
       )}
     </section>
   );
