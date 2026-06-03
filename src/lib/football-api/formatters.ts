@@ -1,16 +1,9 @@
+import { formatKickoffRd } from "@/lib/datetime-rd";
 import type { FixturePhase } from "./types";
 
-const LOCALE = "es-DO";
-
+/** Hora de partido en horario de República Dominicana. */
 export function formatKickoffEs(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleString(LOCALE, {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "numeric",
-    minute: "2-digit"
-  });
+  return formatKickoffRd(dateStr);
 }
 
 export function formatRoundLabelEs(round?: string): string {

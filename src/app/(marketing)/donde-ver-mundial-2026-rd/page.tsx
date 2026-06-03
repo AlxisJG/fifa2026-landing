@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MarketingPageMain, PageIntro } from "@/components/layout/page-intro";
+import { PageContentAds } from "@/components/layout/page-content-ads";
 import { buildPageMetadata, PAGE_SEO } from "@/lib/seo/pages";
 import { isSubscriptionFunnelEnabled } from "@/lib/subscription-funnel-gate";
 
@@ -10,6 +11,7 @@ export default function DondeVerMundialPage() {
   return (
     <MarketingPageMain>
       <PageIntro config={PAGE_SEO.dondeVerMundial} kicker="Transmisión" />
+      <PageContentAds page="dondeVerMundial">
       <section className="section-shell pb-14">
         <div className="max-w-3xl space-y-4 text-sm leading-relaxed text-slate-600 sm:text-base">
           <p>
@@ -34,6 +36,7 @@ export default function DondeVerMundialPage() {
           </div>
         </div>
       </section>
+      </PageContentAds>
     </MarketingPageMain>
   );
 }

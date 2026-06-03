@@ -1,15 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { FootballDataEmpty } from "@/components/football/football-data-empty";
 import { useFixtures } from "@/hooks/useFootballData";
 import {
   countFixturesByTab,
+  filterFixturesByDate,
   filterFixturesByTab,
+  formatFixtureDateLabel,
   getDefaultFixtureTab,
+  getFixtureDateOptions,
   getFixtureDisplayStageLabel,
   getVisibleFixtureTabs,
+  sortFixturesByKickoff,
   type FixtureTab
 } from "@/lib/football-api/fixture-filters";
 import { FIXTURE_STAGE_LABELS } from "@/lib/football-api/formatters";
@@ -18,15 +23,25 @@ import { useWorldCupNow } from "@/hooks/useWorldCupNow";
 import type { Fixture } from "@/lib/football-api/types";
 import { SectionTitle } from "@/components/ui/section-title";
 import { Reveal } from "@/components/ui/motion";
+import { ListPagination } from "@/components/ui/list-pagination";
+
+export const FIXTURES_PER_PAGE = 9;
 
 export function FixturesSection() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<FixtureTab>("Group Stage");
   const [hasInitializedTab, setHasInitializedTab] = useState(false);
   const now = useWorldCupNow();
   const { data, loading, source } = useFixtures(getFixturesSeed());
 
+  const selectedDate = searchParams.get("fecha");
+  const rawPage = Number.parseInt(searchParams.get("page") ?? "1", 10);
+  const currentPage = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+
   const tabCounts = useMemo(() => countFixturesByTab(data), [data]);
   const visibleTabs = useMemo(() => getVisibleFixtureTabs(tabCounts, now), [tabCounts, now]);
+  const dateOptions = useMemo(() => getFixtureDateOptions(data), [data]);
 
   useEffect(() => {
     if (loading || hasInitializedTab) return;
@@ -39,9 +54,44 @@ export function FixturesSection() {
     setActiveTab(getDefaultFixtureTab(tabCounts, now));
   }, [activeTab, loading, tabCounts, now, visibleTabs]);
 
-  const filtered = useMemo(() => filterFixturesByTab(data, activeTab), [activeTab, data]);
+  const filtered = useMemo(() => {
+    const byTab = filterFixturesByTab(data, activeTab);
+    const byDate = filterFixturesByDate(byTab, selectedDate);
+    return sortFixturesByKickoff(byDate);
+  }, [activeTab, data, selectedDate]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / FIXTURES_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageFixtures = useMemo(() => {
+    const start = (safePage - 1) * FIXTURES_PER_PAGE;
+    return filtered.slice(start, start + FIXTURES_PER_PAGE);
+  }, [filtered, safePage]);
+
+  const paginationQueryPrefix = useMemo(() => {
+    const params = new URLSearchParams();
+    if (selectedDate) params.set("fecha", selectedDate);
+    const query = params.toString();
+    return query ? `?${query}&` : "?";
+  }, [selectedDate]);
+
   const hasData = data.length > 0;
   const showSourceBadge = hasData && !loading;
+
+  const updateQuery = (nextDate: string | null, nextPage = 1) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (nextDate) {
+      params.set("fecha", nextDate);
+    } else {
+      params.delete("fecha");
+    }
+    if (nextPage > 1) {
+      params.set("page", String(nextPage));
+    } else {
+      params.delete("page");
+    }
+    const query = params.toString();
+    router.push(query ? `?${query}` : "?", { scroll: false });
+  };
 
   return (
     <section id="fixtures" className="section-shell py-14 sm:py-20">
@@ -60,6 +110,31 @@ export function FixturesSection() {
         )}
       </div>
 
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <label className="flex min-w-[min(100%,16rem)] flex-col gap-1.5">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/55">Filtrar por fecha</span>
+          <select
+            value={selectedDate ?? ""}
+            onChange={(event) => updateQuery(event.target.value || null, 1)}
+            className="rounded-2xl border border-white/20 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition focus:border-electric/50 focus:ring-2 focus:ring-electric/25"
+          >
+            <option value="" className="bg-slate-900 text-white">
+              Todas las fechas
+            </option>
+            {dateOptions.map((dateKey) => (
+              <option key={dateKey} value={dateKey} className="bg-slate-900 text-white">
+                {formatFixtureDateLabel(dateKey)}
+              </option>
+            ))}
+          </select>
+        </label>
+        {selectedDate && (
+          <p className="text-xs text-white/50 sm:self-end">
+            {filtered.length} partido{filtered.length === 1 ? "" : "s"} en {formatFixtureDateLabel(selectedDate)}
+          </p>
+        )}
+      </div>
+
       <div className="mb-6 flex flex-wrap gap-2">
         {visibleTabs.map((tab) => {
           const isActive = activeTab === tab;
@@ -68,7 +143,10 @@ export function FixturesSection() {
             <button
               key={tab}
               type="button"
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                updateQuery(selectedDate, 1);
+              }}
               className={`rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.16em] transition ${
                 isActive
                   ? "bg-electric text-midnight"
@@ -83,22 +161,35 @@ export function FixturesSection() {
 
       {loading ? (
         <div className="grid gap-4 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
+          {Array.from({ length: FIXTURES_PER_PAGE }).map((_, i) => (
             <div key={i} className="glass-heavy h-48 animate-pulse rounded-3xl" />
           ))}
         </div>
       ) : !hasData ? (
         <FootballDataEmpty message="El calendario del Mundial estará disponible próximamente." />
       ) : filtered.length === 0 ? (
-        <FootballDataEmpty message="No hay partidos en esta categoría por ahora." />
+        <FootballDataEmpty
+          message={
+            selectedDate
+              ? `No hay partidos para ${formatFixtureDateLabel(selectedDate)} en esta categoría.`
+              : "No hay partidos en esta categoría por ahora."
+          }
+        />
       ) : (
-        <Reveal key={`fixtures-${activeTab}`}>
-          <div className="grid gap-4 lg:grid-cols-3">
-            {filtered.map((m) => (
-              <FixtureCard key={m.id} fixture={m} />
-            ))}
-          </div>
-        </Reveal>
+        <>
+          <Reveal key={`fixtures-${activeTab}-${selectedDate ?? "all"}-${safePage}`}>
+            <div className="grid gap-4 lg:grid-cols-3">
+              {pageFixtures.map((fixture) => (
+                <FixtureCard key={fixture.id} fixture={fixture} />
+              ))}
+            </div>
+          </Reveal>
+          <ListPagination
+            currentPage={safePage}
+            totalPages={totalPages}
+            queryPrefix={paginationQueryPrefix}
+          />
+        </>
       )}
     </section>
   );
@@ -145,7 +236,7 @@ function FixtureCard({ fixture }: { fixture: Fixture }) {
           score={fixture.awayScore}
         />
       </div>
-      <div className="mt-8 border-t border-white/10 pt-4 space-y-1">
+      <div className="mt-8 space-y-1 border-t border-white/10 pt-4">
         <p className="text-sm text-white/72">{fixture.kickoffLabel}</p>
         {fixture.venue && fixture.venue !== "Por confirmar" && (
           <p className="text-xs text-white/45">{fixture.venue}</p>

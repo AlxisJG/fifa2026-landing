@@ -31,7 +31,7 @@ export function FixedSkyscraperAds() {
             format="skyscraper"
             id={`${skyscraperPlacement.id}-left`}
             title={skyscraperPlacement.title}
-            placement="Hero · izquierda"
+            placement="Lateral · izquierda"
             activeSizeLabel={AD_SIZES.skyscraper.label}
           />
         </div>
@@ -45,7 +45,7 @@ export function FixedSkyscraperAds() {
             format="skyscraper"
             id={`${skyscraperPlacement.id}-right`}
             title={skyscraperPlacement.title}
-            placement="Hero · derecha"
+            placement="Lateral · derecha"
             activeSizeLabel={AD_SIZES.skyscraper.label}
           />
         </div>

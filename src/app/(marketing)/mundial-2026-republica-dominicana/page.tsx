@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MarketingPageMain, PageIntro } from "@/components/layout/page-intro";
+import { PageContentAds } from "@/components/layout/page-content-ads";
 import { buildPageMetadata, PAGE_SEO } from "@/lib/seo/pages";
 
 export const metadata = buildPageMetadata("mundial2026Rd");
@@ -8,6 +9,7 @@ export default function Mundial2026RdPage() {
   return (
     <MarketingPageMain>
       <PageIntro config={PAGE_SEO.mundial2026Rd} kicker="Mundial 2026" />
+      <PageContentAds page="mundial2026Rd">
       <section className="section-shell pb-14">
         <div className="max-w-3xl space-y-4 text-sm leading-relaxed text-slate-600 sm:text-base">
           <p>
@@ -24,6 +26,7 @@ export default function Mundial2026RdPage() {
           </div>
         </div>
       </section>
+      </PageContentAds>
     </MarketingPageMain>
   );
 }

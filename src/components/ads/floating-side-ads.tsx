@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { fadeInMotionProps } from "@/components/ui/motion";
 import { isAdsEnabled } from "@/lib/ads-gate";
 
 type FloatingSideAdsProps = {
@@ -13,10 +14,7 @@ type FloatingSideAdsProps = {
 function SideUnit({ title, sizeLabel, placement, variant = "left" }: FloatingSideAdsProps) {
   return (
     <motion.aside
-      initial={{ opacity: 0, x: variant === "left" ? -16 : 16 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.45 }}
+      {...fadeInMotionProps(0, 0, variant === "left" ? -12 : 12)}
       className="glass-heavy relative w-[160px] min-h-[600px] rounded-2xl border border-slate-300/80 p-4"
     >
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#d71920] via-[#0ea5e9] to-[#d4a017]" />

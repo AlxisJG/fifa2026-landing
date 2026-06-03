@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { fadeInMotionProps } from "@/components/ui/motion";
 import { sponsors } from "@/data/landing-content";
 import { SectionTitle } from "@/components/ui/section-title";
 
@@ -13,10 +14,7 @@ export function SponsorGrid() {
           <motion.a
             key={`${s.name}-${s.tier}`}
             href="#"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ delay: index * 0.04, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            {...fadeInMotionProps(index * 0.04, 12)}
             whileHover={{ y: -6, scale: 1.01 }}
             className="glass-heavy group relative block min-h-[154px] w-full overflow-hidden rounded-3xl p-6 sm:min-h-[168px] sm:p-7"
           >

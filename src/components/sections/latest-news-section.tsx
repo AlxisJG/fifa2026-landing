@@ -33,47 +33,55 @@ export function LatestNewsSection() {
           </div>
         </div>
       ) : (
+        <Reveal ready={!loading}>
         <div className="grid gap-4 xl:grid-cols-12">
           {gridPosts[0] && (
-            <Reveal className="xl:col-span-7">
+            <div className="xl:col-span-7">
               <NewsCard
                 image={gridPosts[0].image}
                 title={gridPosts[0].title}
                 category={gridPosts[0].category}
+                url={gridPosts[0].url}
                 tall
                 priority
               />
-            </Reveal>
+            </div>
           )}
 
           <div className="flex flex-col gap-4 xl:col-span-5">
-            {gridPosts.slice(1, 3).map((item, index) => (
-              <Reveal key={item.id} delay={index * 0.05}>
-                <NewsCard image={item.image} title={item.title} category={item.category} />
-              </Reveal>
+            {gridPosts.slice(1, 3).map((item) => (
+              <NewsCard
+                key={item.id}
+                image={item.image}
+                title={item.title}
+                category={item.category}
+                url={item.url}
+              />
             ))}
           </div>
 
-          {gridPosts.slice(3, 5).map((item, index) => (
-            <Reveal key={item.id} delay={0.08 + index * 0.05} className="xl:col-span-4">
+          {gridPosts.slice(3, 5).map((item) => (
+            <div key={item.id} className="xl:col-span-4">
               <NewsCard
                 image={item.image}
                 title={item.title}
                 category={item.category}
+                url={item.url}
                 matchAdHeight={adsEnabled}
               />
-            </Reveal>
+            </div>
           ))}
 
           {adsEnabled && (
-            <Reveal delay={0.15} className="flex xl:col-span-4 xl:items-start xl:justify-center">
+            <div className="flex xl:col-span-4 xl:items-start xl:justify-center">
               <RectangleAdSlot placement={rectanglePlacements.featuredNews} className="self-center" />
-            </Reveal>
+            </div>
           )}
         </div>
+        </Reveal>
       )}
 
-      <Reveal className="mt-8 text-center">
+      <Reveal ready={!loading} className="mt-8 text-center">
         <Link
           href={PAGE_SEO.noticias.path}
           className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 hover:shadow-md"

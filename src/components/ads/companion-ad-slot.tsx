@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { fadeInMotionProps } from "@/components/ui/motion";
 import { isAdsEnabled } from "@/lib/ads-gate";
 
 type CompanionAdSlotProps = {
@@ -15,10 +16,7 @@ export function CompanionAdSlot({ title, sizeLabel, placement, variant = "player
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.45 }}
+      {...fadeInMotionProps(0, 12)}
       className="glass relative overflow-hidden rounded-2xl border border-white/20 p-4"
     >
       <div className={`absolute inset-0 ${variant === "player" ? "bg-gradient-to-br from-electric/15 via-transparent to-gold/10" : "bg-gradient-to-r from-white/10 to-transparent"}`} />

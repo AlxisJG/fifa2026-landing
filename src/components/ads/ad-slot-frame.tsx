@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { fadeInMotionProps } from "@/components/ui/motion";
 import type { AdFormat } from "@/lib/ad-sizes";
 import { AD_SIZES } from "@/lib/ad-sizes";
 import { isAdsEnabled } from "@/lib/ads-gate";
@@ -38,10 +39,7 @@ export function AdSlotFrame({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.45 }}
+      {...fadeInMotionProps(0, 12)}
       data-ad-slot={id}
       data-ad-format={format}
       data-ad-width={spec.width}

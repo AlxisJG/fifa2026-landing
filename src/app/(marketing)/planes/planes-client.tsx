@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useProducts } from "@/hooks/useProducts";
 import { Reveal } from "@/components/ui/motion";
 import { MarketingPageMain } from "@/components/layout/page-intro";
+import { PageContentAds } from "@/components/layout/page-content-ads";
 import { createPaidPlan, setStoredPlan } from "@/lib/plan-storage";
 import { isSubscriptionFunnelEnabled } from "@/lib/subscription-funnel-gate";
 
@@ -69,6 +70,7 @@ export default function PlanesPage() {
 
   return (
     <MarketingPageMain>
+      <PageContentAds page="planes">
       <section className="section-shell py-16">
         <Reveal>
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-electric/30 bg-electric/10 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-electric">
@@ -123,6 +125,7 @@ export default function PlanesPage() {
           )}
         </div>
       </section>
+      </PageContentAds>
     </MarketingPageMain>
   );
 }
