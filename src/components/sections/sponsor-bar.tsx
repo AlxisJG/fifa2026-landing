@@ -3,8 +3,11 @@
 import { motion } from "framer-motion";
 import { Reveal } from "@/components/ui/motion";
 import { sponsors } from "@/data/landing-content";
+import { isSponsorLogosEnabled } from "@/lib/sponsors-gate";
 
 export function SponsorBar() {
+  if (!isSponsorLogosEnabled()) return null;
+
   return (
     <section id="sponsors" className="section-shell py-12 sm:py-16">
       <Reveal>

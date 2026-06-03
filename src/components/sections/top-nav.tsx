@@ -6,8 +6,22 @@ import { useEffect, useState } from "react";
 import { BrandLogoMark } from "@/components/ui/brand-logo-mark";
 import { LiveNavButton } from "@/components/ui/live-nav-button";
 import { useAuth } from "@/hooks/use-auth";
-import { NAV_PAGES } from "@/lib/seo/pages";
+import { NAV_PAGES, type PageSeoKey } from "@/lib/seo/pages";
 import { isSubscriptionFunnelEnabled } from "@/lib/subscription-funnel-gate";
+
+const navLinkClass =
+  "whitespace-nowrap text-[10px] uppercase tracking-[0.18em] text-white/70 transition hover:text-white sm:text-[11px] sm:tracking-[0.2em]";
+
+const mobileNavLinkClass =
+  "block rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-white/90 transition hover:border-electric/45 hover:bg-white/[0.06]";
+
+const NAV_LEFT_KEYS: PageSeoKey[] = ["partidos", "posiciones"];
+const NAV_RIGHT_KEYS: PageSeoKey[] = ["noticias", "highlights", "galeria"];
+const MOBILE_NAV_KEYS: PageSeoKey[] = ["partidos", "posiciones", "noticias", "highlights", "galeria"];
+
+function navPagesByKeys(keys: PageSeoKey[]) {
+  return keys.map((key) => NAV_PAGES.find((page) => page.key === key)).filter((page) => page != null);
+}
 
 export function TopNav() {
   const { user, loading } = useAuth();
@@ -20,8 +34,9 @@ export function TopNav() {
   }, [menuOpen]);
 
   const funnelEnabled = isSubscriptionFunnelEnabled();
-  const navLeft = NAV_PAGES.slice(0, 3);
-  const navRight = NAV_PAGES.slice(3);
+  const navLeft = navPagesByKeys(NAV_LEFT_KEYS);
+  const navRight = navPagesByKeys(NAV_RIGHT_KEYS);
+  const mobileNavPages = navPagesByKeys(MOBILE_NAV_KEYS);
 
   return (
     <>
@@ -39,13 +54,12 @@ export function TopNav() {
             </div>
 
             <nav className="hidden items-center justify-start gap-3 md:flex lg:gap-4 xl:gap-5">
+              <Link href="/" className={navLinkClass}>
+                Portada
+              </Link>
               <LiveNavButton />
               {navLeft.map((item) => (
-                <Link
-                  key={item.path}
-                  href={item.path}
-                  className="whitespace-nowrap text-[10px] uppercase tracking-[0.18em] text-white/70 transition hover:text-white sm:text-[11px] sm:tracking-[0.2em]"
-                >
+                <Link key={item.path} href={item.path} className={navLinkClass}>
                   {item.navLabel}
                 </Link>
               ))}
@@ -61,26 +75,16 @@ export function TopNav() {
 
             <nav className="hidden items-center justify-end gap-3 md:flex lg:gap-4 xl:gap-5">
               {navRight.map((item) => (
-                <Link
-                  key={item.path}
-                  href={item.path}
-                  className="whitespace-nowrap text-[10px] uppercase tracking-[0.18em] text-white/70 transition hover:text-white sm:text-[11px] sm:tracking-[0.2em]"
-                >
+                <Link key={item.path} href={item.path} className={navLinkClass}>
                   {item.navLabel}
                 </Link>
               ))}
               {loggedIn ? (
                 <>
-                  <Link
-                    href="/perfil"
-                    className="text-[10px] uppercase tracking-[0.18em] text-white/70 transition hover:text-white sm:text-[11px] sm:tracking-[0.2em]"
-                  >
+                  <Link href="/perfil" className={navLinkClass}>
                     Perfil
                   </Link>
-                  <Link
-                    href="/planes"
-                    className="text-[10px] uppercase tracking-[0.18em] text-white/70 transition hover:text-white sm:text-[11px] sm:tracking-[0.2em]"
-                  >
+                  <Link href="/planes" className={navLinkClass}>
                     Planes
                   </Link>
                 </>
@@ -140,28 +144,27 @@ export function TopNav() {
               </div>
               <div className="max-h-[60vh] space-y-2 overflow-y-auto">
                 <LiveNavButton variant="menu" onClick={() => setMenuOpen(false)} />
-                {NAV_PAGES.map((item, index) => (
+                <Link href="/" onClick={() => setMenuOpen(false)} className={mobileNavLinkClass}>
+                  Portada
+                </Link>
+                {mobileNavPages.map((item, index) => (
                   <motion.div
                     key={item.path}
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.04, duration: 0.3 }}
+                    transition={{ delay: (index + 1) * 0.04, duration: 0.3 }}
                   >
-                    <Link
-                      href={item.path}
-                      onClick={() => setMenuOpen(false)}
-                      className="block rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-white/90 transition hover:border-electric/45 hover:bg-white/[0.06]"
-                    >
+                    <Link href={item.path} onClick={() => setMenuOpen(false)} className={mobileNavLinkClass}>
                       {item.navLabel}
                     </Link>
                   </motion.div>
                 ))}
                 {loggedIn ? (
                   <>
-                    <Link href="/perfil" onClick={() => setMenuOpen(false)} className="block rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-white/90">
+                    <Link href="/perfil" onClick={() => setMenuOpen(false)} className={mobileNavLinkClass}>
                       Perfil
                     </Link>
-                    <Link href="/planes" onClick={() => setMenuOpen(false)} className="block rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-white/90">
+                    <Link href="/planes" onClick={() => setMenuOpen(false)} className={mobileNavLinkClass}>
                       Planes
                     </Link>
                   </>
