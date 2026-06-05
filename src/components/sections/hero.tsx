@@ -37,7 +37,7 @@ export function Hero() {
                 className="text-[clamp(1rem,3.5vw,2rem)] font-black uppercase leading-[1.05] tracking-[0.14em] text-white sm:tracking-[0.18em]"
                 style={{ textShadow: heroCopyShadow }}
               >
-                TRES PAISES. UNA PASION
+                TRES PAISES. UNA PASIÓN
               </p>
               <p
                 className="text-[clamp(1rem,3.4vw,1.85rem)] font-black uppercase leading-none tracking-[0.2em] text-white sm:tracking-[0.26em]"

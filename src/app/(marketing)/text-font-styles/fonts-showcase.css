@@ -1,0 +1,36 @@
+/* Solo para /text-font-styles — catálogo visual de FWC26 */
+
+@font-face { font-family: "FWC26 Normal Thin"; src: url("/recursos/web-font/FWC26-NormalThin.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Normal Light"; src: url("/recursos/web-font/FWC26-NormalLight.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Normal Regular"; src: url("/recursos/web-font/FWC26-NormalRegular.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Normal Medium"; src: url("/recursos/web-font/FWC26-NormalMedium.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Normal Bold"; src: url("/recursos/web-font/FWC26-NormalBold.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Normal Black"; src: url("/recursos/web-font/FWC26-NormalBlack.woff2") format("woff2"); font-display: swap; }
+
+@font-face { font-family: "FWC26 Condensed Thin"; src: url("/recursos/web-font/FWC26-CondensedThin.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Condensed Light"; src: url("/recursos/web-font/FWC26-CondensedLight.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Condensed Regular"; src: url("/recursos/web-font/FWC26-CondensedRegular.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Condensed Medium"; src: url("/recursos/web-font/FWC26-CondensedMedium.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Condensed Bold"; src: url("/recursos/web-font/FWC26-CondensedBold.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Condensed Black"; src: url("/recursos/web-font/FWC26-CondensedBlack.woff2") format("woff2"); font-display: swap; }
+
+@font-face { font-family: "FWC26 Expanded Thin"; src: url("/recursos/web-font/FWC26-ExpandedThin.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Expanded Light"; src: url("/recursos/web-font/FWC26-ExpandedLight.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Expanded Regular"; src: url("/recursos/web-font/FWC26-ExpandedRegular.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Expanded Medium"; src: url("/recursos/web-font/FWC26-ExpandedMedium.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Expanded Bold"; src: url("/recursos/web-font/FWC26-ExpandedBold.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Expanded Black"; src: url("/recursos/web-font/FWC26-ExpandedBlack.woff2") format("woff2"); font-display: swap; }
+
+@font-face { font-family: "FWC26 Semi Expanded Thin"; src: url("/recursos/web-font/FWC26-SemiExpandedThin.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Semi Expanded Light"; src: url("/recursos/web-font/FWC26-SemiExpandedLight.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Semi Expanded Regular"; src: url("/recursos/web-font/FWC26-SemiExpandedRegular.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Semi Expanded Medium"; src: url("/recursos/web-font/FWC26-SemiExpandedMedium.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Semi Expanded Bold"; src: url("/recursos/web-font/FWC26-SemiExpandedBold.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Semi Expanded Black"; src: url("/recursos/web-font/FWC26-SemiExpandedBlack.woff2") format("woff2"); font-display: swap; }
+
+@font-face { font-family: "FWC26 Ultra Condensed Thin"; src: url("/recursos/web-font/FWC26-UltraCondensedThin.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Ultra Condensed Light"; src: url("/recursos/web-font/FWC26-UltraCondensedLight.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Ultra Condensed Regular"; src: url("/recursos/web-font/FWC26-UltraCondensedRegular.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Ultra Condensed Medium"; src: url("/recursos/web-font/FWC26-UltraCondensedMedium.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Ultra Condensed Bold"; src: url("/recursos/web-font/FWC26-UltraCondensedBold.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "FWC26 Ultra Condensed Black"; src: url("/recursos/web-font/FWC26-UltraCondensedBlack.woff2") format("woff2"); font-display: swap; }
