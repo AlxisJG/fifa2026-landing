@@ -6,6 +6,7 @@ import { MetaPixel } from "@/components/analytics/meta-pixel";
 import { JsonLd } from "@/components/seo/json-ld";
 import { HOME_SEO, GOOGLE_SITE_VERIFICATION, SITE_NAME, SITE_URL } from "@/lib/seo/site";
 import { buildSiteGraphSchema } from "@/lib/seo/json-ld";
+import { fwc26 } from "@/lib/fonts/fwc26";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
@@ -42,8 +43,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
-      <body>
+    <html lang="es" className={fwc26.variable}>
+      <body className={`${fwc26.className} font-sans`}>
         <JsonLd data={buildSiteGraphSchema()} />
         <GoogleAnalytics />
         <MetaPixel />

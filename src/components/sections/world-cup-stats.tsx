@@ -37,7 +37,7 @@ export function WorldCupStatsSection({ showHeader = true }: { showHeader?: boole
         )}
         {showSourceBadge && (
           <span
-            className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${liveSource ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-white/50"}`}
+            className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${liveSource ? "bg-red-600 text-white" : "bg-white/10 text-white/50"}`}
           >
             {liveSource ? "Datos en vivo" : "Demo"}
           </span>

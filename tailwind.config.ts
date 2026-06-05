@@ -4,6 +4,9 @@ const config: Config = {
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-fwc26)", "system-ui", "-apple-system", "Segoe UI", "sans-serif"]
+      },
       colors: {
         midnight: "#060916",
         pitch: "#0A1020",

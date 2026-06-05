@@ -103,7 +103,7 @@ export function FixturesSection() {
         />
         {showSourceBadge && (
           <span
-            className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${source === "live" ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-white/50"}`}
+            className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${source === "live" ? "bg-red-600 text-white" : "bg-white/10 text-white/50"}`}
           >
             {source === "live" ? "Datos en vivo" : "Demo"}
           </span>

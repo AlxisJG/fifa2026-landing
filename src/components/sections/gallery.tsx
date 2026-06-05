@@ -3,11 +3,15 @@
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import Masonry from "react-masonry-css";
-import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Reveal } from "@/components/ui/motion";
+import { ListPagination } from "@/components/ui/list-pagination";
 import { useGallery } from "@/hooks/useGallery";
 import type { GalleryItem } from "@/lib/gallery-types";
+
+export const GALLERY_ITEMS_PER_PAGE = 12;
 
 const breakpointCols = {
   default: 4,
@@ -112,10 +116,21 @@ function GalleryLightbox({
 }
 
 export function GallerySection() {
+  const searchParams = useSearchParams();
   const { items, loading } = useGallery();
   const [active, setActive] = useState<GalleryItem | null>(null);
   const [mounted, setMounted] = useState(false);
   const closeLightbox = useCallback(() => setActive(null), []);
+
+  const rawPage = Number.parseInt(searchParams.get("page") ?? "1", 10);
+  const currentPage = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+  const totalPages = Math.max(1, Math.ceil(items.length / GALLERY_ITEMS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+
+  const pageItems = useMemo(() => {
+    const start = (safePage - 1) * GALLERY_ITEMS_PER_PAGE;
+    return items.slice(start, start + GALLERY_ITEMS_PER_PAGE);
+  }, [items, safePage]);
 
   useEffect(() => {
     setMounted(true);
@@ -123,18 +138,19 @@ export function GallerySection() {
 
   return (
     <section id="gallery" className="section-shell pb-16 sm:pb-20">
-      <Reveal ready={!loading}>
+      <Reveal ready={!loading} key={`gallery-page-${safePage}`}>
         {loading ? (
           <GallerySkeleton />
         ) : items.length === 0 ? (
           <p className="text-sm text-slate-600">No hay imágenes en la galería por el momento.</p>
         ) : (
+          <>
           <Masonry
             breakpointCols={breakpointCols}
             className="-ml-4 flex w-auto"
             columnClassName="bg-clip-padding pl-4"
           >
-            {items.map((item) => (
+            {pageItems.map((item) => (
               <motion.button
                 key={item.id}
                 type="button"
@@ -155,6 +171,8 @@ export function GallerySection() {
               </motion.button>
             ))}
           </Masonry>
+          <ListPagination currentPage={safePage} totalPages={totalPages} />
+          </>
         )}
       </Reveal>
 

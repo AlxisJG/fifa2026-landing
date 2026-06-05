@@ -10,7 +10,7 @@ import { NAV_PAGES, type PageSeoKey } from "@/lib/seo/pages";
 import { isSubscriptionFunnelEnabled } from "@/lib/subscription-funnel-gate";
 
 const navLinkClass =
-  "whitespace-nowrap text-[10px] uppercase tracking-[0.18em] text-white/70 transition hover:text-white sm:text-[11px] sm:tracking-[0.2em]";
+  "whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.18em] text-white/70 transition hover:text-white sm:text-[11px] sm:tracking-[0.2em]";
 
 const mobileNavLinkClass =
   "block rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-white/90 transition hover:border-electric/45 hover:bg-white/[0.06]";

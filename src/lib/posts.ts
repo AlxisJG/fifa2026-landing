@@ -48,6 +48,62 @@ function wpToPost(raw: Record<string, unknown>): PostItem | null {
   };
 }
 
+function extractPostsPayload(json: unknown): {
+  posts: Record<string, unknown>[];
+  totalPages: number;
+} {
+  const root = json as {
+    data?: { posts?: unknown; total_pages?: number } | unknown[];
+    posts?: unknown;
+  };
+
+  const data = root?.data;
+  if (data && typeof data === "object" && !Array.isArray(data) && Array.isArray(data.posts)) {
+    return {
+      posts: data.posts as Record<string, unknown>[],
+      totalPages: typeof data.total_pages === "number" && data.total_pages > 0 ? data.total_pages : 1
+    };
+  }
+
+  if (Array.isArray(data)) {
+    return { posts: data as Record<string, unknown>[], totalPages: 1 };
+  }
+
+  if (Array.isArray(root?.posts)) {
+    return { posts: root.posts as Record<string, unknown>[], totalPages: 1 };
+  }
+
+  if (Array.isArray(json)) {
+    return { posts: json as Record<string, unknown>[], totalPages: 1 };
+  }
+
+  return { posts: [], totalPages: 1 };
+}
+
+async function fetchAllWordPressPosts(baseUrl: string): Promise<Record<string, unknown>[]> {
+  const allPosts: Record<string, unknown>[] = [];
+  let page = 1;
+  let totalPages = 1;
+
+  do {
+    const res = await fetch(`${baseUrl}/posts?tag=fifa-2026&per_page=100&page=${page}`, {
+      next: { revalidate: 60 }
+    });
+
+    if (!res.ok) {
+      return page === 1 ? [] : allPosts;
+    }
+
+    const json = await res.json();
+    const { posts, totalPages: reportedTotalPages } = extractPostsPayload(json);
+    allPosts.push(...posts);
+    totalPages = reportedTotalPages;
+    page += 1;
+  } while (page <= totalPages);
+
+  return allPosts;
+}
+
 export async function getPosts(): Promise<PostItem[]> {
   const baseUrl = process.env.NEXT_PUBLIC_WP_API_URL;
 
@@ -56,22 +112,13 @@ export async function getPosts(): Promise<PostItem[]> {
   }
 
   try {
-    const res = await fetch(`${baseUrl}/posts?tag=fifa-2026`, {
-      next: { revalidate: 60 }
-    });
+    const raw = await fetchAllWordPressPosts(baseUrl);
 
-    if (!res.ok) {
+    if (raw.length === 0) {
       return staticPosts;
     }
 
-    const json = await res.json();
-    const raw = json?.data?.posts ?? json?.data ?? json;
-
-    if (!Array.isArray(raw)) {
-      return staticPosts;
-    }
-
-    const wpPosts = raw.map((item) => wpToPost(item as Record<string, unknown>)).filter(Boolean) as PostItem[];
+    const wpPosts = raw.map((item) => wpToPost(item)).filter(Boolean) as PostItem[];
     return wpPosts.length > 0 ? sortPostsByDate(wpPosts) : staticPosts;
   } catch {
     return staticPosts;

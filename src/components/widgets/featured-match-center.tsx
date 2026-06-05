@@ -126,7 +126,7 @@ export function FeaturedMatchCenter({ ctaMode = "transmision" }: FeaturedMatchCe
         <div className="mb-2 flex justify-end">
           <span
             className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${
-              source === "live" ? "bg-emerald-500/20 text-emerald-200" : "bg-white/10 text-white/70"
+              source === "live" ? "bg-red-600 text-white" : "bg-white/10 text-white/70"
             }`}
           >
             {source === "live" ? "Datos en vivo" : "Datos demo"}

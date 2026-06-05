@@ -1,15 +1,9 @@
 "use client";
 
-import { Archivo_Black } from "next/font/google";
 import { useEffect, useMemo, useState } from "react";
 import { WORLD_CUP_KICKOFF_MS } from "@/lib/world-cup-kickoff";
 
 const target = WORLD_CUP_KICKOFF_MS;
-
-const countdownFont = Archivo_Black({
-  subsets: ["latin"],
-  weight: "400"
-});
 
 const COUNTDOWN_BG = "/recursos/COUNTDOWN.jpg";
 
@@ -56,7 +50,7 @@ export function CountdownWidget() {
   return (
     <section
       id="countdown"
-      className={`theater-dark relative z-[1] mt-5 w-full ${countdownFont.className}`}
+      className="theater-dark relative z-[1] mt-5 w-full font-black"
     >
       <div
         className="pointer-events-none absolute inset-0 bg-black bg-cover bg-center bg-no-repeat"
@@ -65,7 +59,7 @@ export function CountdownWidget() {
       />
 
       <div className="section-shell relative z-10 px-4 py-8 sm:py-10 md:py-12">
-        <h3 className="mb-6 text-center text-[clamp(1.35rem,3.5vw,2.5rem)] font-normal uppercase leading-[0.95] tracking-[0.02em] text-white sm:mb-8">
+        <h3 className="mb-6 text-center text-[clamp(1.35rem,3.5vw,2.5rem)] font-black uppercase leading-[0.95] tracking-[0.02em] text-white sm:mb-8">
           Road to FIFA World Cup 2026
         </h3>
 

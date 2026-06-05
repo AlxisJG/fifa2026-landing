@@ -18,8 +18,7 @@ html {
 }
 
 body {
-  @apply bg-white text-slate-900 antialiased;
-  font-feature-settings: "ss01" on, "ss02" on;
+  @apply bg-white font-sans text-slate-900 antialiased;
   overflow-x: hidden;
   background-image:
     radial-gradient(circle at 12% -8%, rgba(56, 189, 248, 0.14), transparent 36%),

@@ -41,7 +41,7 @@ export function FixturesWidget() {
     <section className="section-shell py-12 sm:py-16">
       <div className="mb-2 flex items-center justify-between">
         <SectionTitle kicker="Calendario" title="Fixtures Widget" subtitle="Demo visual premium con estructura lista para data API real." />
-        <span className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${source === "live" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
+        <span className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${source === "live" ? "bg-red-600 text-white" : "bg-slate-100 text-slate-600"}`}>
           {source === "live" ? "Live data" : "Demo data"}
         </span>
       </div>

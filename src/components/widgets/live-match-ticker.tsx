@@ -25,7 +25,7 @@ export function LiveMatchTicker() {
             </h2>
             <span
               className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] ${
-                source === "live" ? "bg-emerald-500/20 text-emerald-200" : "bg-white/10 text-white/70"
+                source === "live" ? "bg-red-600 text-white" : "bg-white/10 text-white/70"
               }`}
             >
               {source === "live" ? "Datos en vivo" : "Datos demo"}

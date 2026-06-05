@@ -1,5 +1,5 @@
-/** 16:9 para layout a ancho completo (el código estrecho de Brightcove usaba 177.7778% / 9:16). */
-const BRIGHTCOVE_ASPECT_PADDING = "56.25%";
+/** Proporción del embed Brightcove (padding-top 75% ≈ 4:3). */
+const BRIGHTCOVE_ASPECT_PADDING = "75%";
 
 const DEFAULT_EMBED_SRC =
   "https://players.brightcove.net/6416149296001/default_default/index.html?playlistId=1867009149758593664";
@@ -14,9 +14,7 @@ type BrightcovePlaylistEmbedProps = {
   className?: string;
 };
 
-/**
- * Playlist Brightcove (vertical 9:16). Mantiene la relación del código de embed original.
- */
+/** Playlist Brightcove — ancho completo hasta 1280px, relación 4:3. */
 export function BrightcovePlaylistEmbed({
   title = "Highlights Mundial FIFA 2026",
   className = ""
@@ -24,7 +22,7 @@ export function BrightcovePlaylistEmbed({
   const src = getBrightcoveEmbedSrc();
 
   return (
-    <div className={`relative block w-full ${className}`}>
+    <div className={`relative mx-auto block w-full max-w-[1280px] ${className}`}>
       <div className="relative w-full" style={{ paddingTop: BRIGHTCOVE_ASPECT_PADDING }}>
         <iframe
           src={src}
