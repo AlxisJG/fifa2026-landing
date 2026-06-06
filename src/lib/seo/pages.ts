@@ -88,10 +88,10 @@ export const PAGE_SEO: Record<PageSeoKey, PageSeoConfig> = {
     showInNav: false,
     title: "Dónde ver el Mundial 2026 en RD | Pio Deportes",
     description:
-      "Descubre dónde ver el Mundial FIFA 2026 en República Dominicana con PIO Deportes: plan gratis con anuncios o premium sin anuncios.",
+      "Descubre dónde ver el Mundial FIFA 2026 en República Dominicana con PIO Deportes: transmisión en vivo, calendario y cobertura completa.",
     h1: "Dónde ver el Mundial 2026 en República Dominicana",
     intro:
-      "En PIO Deportes puedes ver el Mundial 2026 en vivo online desde cualquier dispositivo. Regístrate gratis con anuncios o elige un plan premium sin anuncios."
+      "En PIO Deportes puedes ver el Mundial 2026 en vivo online desde cualquier dispositivo, sin registro ni suscripción."
   },
   partidosEnVivoMundial: {
     path: "/partidos-en-vivo-mundial-2026",

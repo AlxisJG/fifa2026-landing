@@ -1,20 +1,22 @@
 import Link from "next/link";
 import { NAV_PAGES, SEO_FOOTER_PAGES } from "@/lib/seo/pages";
-import { isSubscriptionFunnelEnabled } from "@/lib/subscription-funnel-gate";
 
 export function FooterSection() {
-  const funnelEnabled = isSubscriptionFunnelEnabled();
-
   return (
     <footer className="theater-dark border-t border-white/15 bg-black/90 backdrop-blur-2xl">
       <div className="section-shell py-8 sm:py-10">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-2">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80">Contenido</p>
             <ul className="mt-3 space-y-2">
               <li>
                 <Link href="/" className="text-sm text-white/65 transition hover:text-white">
                   Inicio
+                </Link>
+              </li>
+              <li>
+                <Link href="/transmision" className="text-sm text-white/65 transition hover:text-white">
+                  Transmisión en vivo
                 </Link>
               </li>
               {NAV_PAGES.map((page) => (
@@ -36,23 +38,6 @@ export function FooterSection() {
                   </Link>
                 </li>
               ))}
-            </ul>
-          </div>
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80">Cuenta</p>
-            <ul className="mt-3 space-y-2">
-              {funnelEnabled && (
-                <li>
-                  <Link href="/suscribete" className="text-sm text-white/65 transition hover:text-white">
-                    Suscríbete
-                  </Link>
-                </li>
-              )}
-              <li>
-                <Link href="/planes" className="text-sm text-white/65 transition hover:text-white">
-                  Planes
-                </Link>
-              </li>
             </ul>
           </div>
         </div>

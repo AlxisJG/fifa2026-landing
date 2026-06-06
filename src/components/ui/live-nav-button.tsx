@@ -1,10 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { getTickerSeed } from "@/lib/football-widget-seeds";
-import { useTicker } from "@/hooks/useFootballData";
 import { useLiveNavigation } from "@/hooks/use-live-navigation";
-import { isSubscriptionFunnelEnabled } from "@/lib/subscription-funnel-gate";
+import { useLiveTransmissionAvailable } from "@/hooks/use-live-stream-status";
 
 type LiveNavButtonProps = {
   onClick?: () => void;
@@ -19,20 +16,15 @@ export function LiveNavButton({
   label = "En vivo",
   className = ""
 }: LiveNavButtonProps) {
-  const funnelEnabled = isSubscriptionFunnelEnabled();
   const navigateLive = useLiveNavigation();
-  const { data } = useTicker(getTickerSeed(), { enabled: funnelEnabled });
-  const isLive = data.some((item) => item.live);
+  const available = useLiveTransmissionAvailable();
 
-  if (!funnelEnabled) {
+  if (!available) {
     return null;
   }
 
   const handleClick = () => {
-    if (onClick) {
-      onClick();
-      return;
-    }
+    onClick?.();
     navigateLive();
   };
 
@@ -41,17 +33,14 @@ export function LiveNavButton({
 
   const sizing =
     variant === "nav"
-      ? "shrink-0 px-4 py-1.5 text-[10px] sm:text-[11px]"
+      ? "ml-1 shrink-0 px-4 py-1.5 text-[10px] sm:text-[11px]"
       : variant === "hero"
         ? "min-h-10 w-full justify-center px-4 py-2.5 text-xs sm:min-h-12 sm:px-7 sm:py-3 sm:text-sm md:w-auto md:shrink-0"
         : "w-full justify-center px-4 py-3 text-sm";
 
   return (
     <button type="button" onClick={handleClick} className={`${base} ${sizing} ${className}`.trim()}>
-      <span
-        className={`h-2 w-2 shrink-0 rounded-full ${isLive ? "live-dot-blink bg-[#d71920]" : "bg-neutral-400"}`}
-        aria-hidden
-      />
+      <span className="live-dot-blink h-2 w-2 shrink-0 rounded-full bg-[#d71920]" aria-hidden />
       {label}
     </button>
   );

@@ -5,9 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { BrandLogoMark } from "@/components/ui/brand-logo-mark";
 import { LiveNavButton } from "@/components/ui/live-nav-button";
-import { useAuth } from "@/hooks/use-auth";
 import { NAV_PAGES, type PageSeoKey } from "@/lib/seo/pages";
-import { isSubscriptionFunnelEnabled } from "@/lib/subscription-funnel-gate";
 
 const navLinkClass =
   "whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.18em] text-white/70 transition hover:text-white sm:text-[11px] sm:tracking-[0.2em]";
@@ -24,8 +22,6 @@ function navPagesByKeys(keys: PageSeoKey[]) {
 }
 
 export function TopNav() {
-  const { user, loading } = useAuth();
-  const loggedIn = !loading && !!user;
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -33,7 +29,6 @@ export function TopNav() {
     return () => document.body.classList.remove("no-scroll");
   }, [menuOpen]);
 
-  const funnelEnabled = isSubscriptionFunnelEnabled();
   const navLeft = navPagesByKeys(NAV_LEFT_KEYS);
   const navRight = navPagesByKeys(NAV_RIGHT_KEYS);
   const mobileNavPages = navPagesByKeys(MOBILE_NAV_KEYS);
@@ -57,7 +52,6 @@ export function TopNav() {
               <Link href="/" className={navLinkClass}>
                 Portada
               </Link>
-              <LiveNavButton />
               {navLeft.map((item) => (
                 <Link key={item.path} href={item.path} className={navLinkClass}>
                   {item.navLabel}
@@ -79,23 +73,7 @@ export function TopNav() {
                   {item.navLabel}
                 </Link>
               ))}
-              {loggedIn ? (
-                <>
-                  <Link href="/perfil" className={navLinkClass}>
-                    Perfil
-                  </Link>
-                  <Link href="/planes" className={navLinkClass}>
-                    Planes
-                  </Link>
-                </>
-              ) : funnelEnabled ? (
-                <Link
-                  href="/suscribete"
-                  className="ml-1 shrink-0 rounded-full bg-electric px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-midnight transition hover:brightness-110 sm:text-[11px]"
-                >
-                  Suscríbete
-                </Link>
-              ) : null}
+              <LiveNavButton />
             </nav>
 
             <button
@@ -159,24 +137,6 @@ export function TopNav() {
                     </Link>
                   </motion.div>
                 ))}
-                {loggedIn ? (
-                  <>
-                    <Link href="/perfil" onClick={() => setMenuOpen(false)} className={mobileNavLinkClass}>
-                      Perfil
-                    </Link>
-                    <Link href="/planes" onClick={() => setMenuOpen(false)} className={mobileNavLinkClass}>
-                      Planes
-                    </Link>
-                  </>
-                ) : funnelEnabled ? (
-                  <Link
-                    href="/suscribete"
-                    onClick={() => setMenuOpen(false)}
-                    className="mt-2 block rounded-full bg-electric py-3 text-center text-sm font-semibold text-midnight"
-                  >
-                    Suscríbete
-                  </Link>
-                ) : null}
               </div>
             </motion.div>
           </motion.div>

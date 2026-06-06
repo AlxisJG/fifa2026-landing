@@ -11,8 +11,6 @@ export type PageAdKey =
   | "mundial2026Rd"
   | "dondeVerMundial"
   | "partidosEnVivoMundial"
-  | "suscribete"
-  | "planes"
   | "transmision";
 
 type PageAdLabels = {
@@ -30,8 +28,6 @@ const PAGE_LABELS: Record<PageAdKey, PageAdLabels> = {
   mundial2026Rd: { top: "Mundial RD · superior", bottom: "Mundial RD · inferior" },
   dondeVerMundial: { top: "Dónde ver · superior", bottom: "Dónde ver · inferior" },
   partidosEnVivoMundial: { top: "Partidos en vivo · superior", bottom: "Partidos en vivo · inferior" },
-  suscribete: { top: "Suscríbete · superior", bottom: "Suscríbete · inferior" },
-  planes: { top: "Planes · superior", bottom: "Planes · inferior" },
   transmision: { top: "Transmisión · superior", bottom: "Transmisión · inferior" }
 };
 

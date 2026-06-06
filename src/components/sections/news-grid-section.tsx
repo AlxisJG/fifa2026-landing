@@ -109,6 +109,7 @@ export function NewsGridSection() {
                 url={cell.post.url}
                 date={cell.post.date}
                 uniform
+                editorialTypography
                 priority={safePage === 1 && index < 3}
               />
             );

@@ -26,10 +26,17 @@ export function LatestNewsSection() {
 
       {loading ? (
         <div className="grid gap-4 xl:grid-cols-12">
-          <div className="h-[360px] animate-pulse rounded-3xl bg-slate-200 xl:col-span-7" />
+          <div className="h-[340px] animate-pulse overflow-hidden rounded-3xl bg-slate-200 xl:col-span-7 sm:h-[460px]">
+            <div className="aspect-[16/10] h-[58%] bg-slate-300/70" />
+            <div className="h-[42%] bg-white p-5">
+              <div className="h-5 w-24 rounded bg-slate-200" />
+              <div className="mt-3 h-6 w-full rounded bg-slate-200" />
+              <div className="mt-2 h-4 w-32 rounded bg-slate-100" />
+            </div>
+          </div>
           <div className="space-y-4 xl:col-span-5">
-            <div className="h-44 animate-pulse rounded-3xl bg-slate-200" />
-            <div className="h-44 animate-pulse rounded-3xl bg-slate-200" />
+            <div className="h-56 animate-pulse rounded-3xl bg-slate-200 sm:h-64" />
+            <div className="h-56 animate-pulse rounded-3xl bg-slate-200 sm:h-64" />
           </div>
         </div>
       ) : (
@@ -42,7 +49,8 @@ export function LatestNewsSection() {
                 title={gridPosts[0].title}
                 category={gridPosts[0].category}
                 url={gridPosts[0].url}
-                tall
+                date={gridPosts[0].date}
+                homeFeaturedLead
                 priority
               />
             </div>
@@ -56,6 +64,8 @@ export function LatestNewsSection() {
                 title={item.title}
                 category={item.category}
                 url={item.url}
+                date={item.date}
+                homeFeatured
               />
             ))}
           </div>
@@ -67,6 +77,8 @@ export function LatestNewsSection() {
                 title={item.title}
                 category={item.category}
                 url={item.url}
+                date={item.date}
+                homeFeatured
                 matchAdHeight={adsEnabled}
               />
             </div>

@@ -7,7 +7,6 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { HOME_SEO, GOOGLE_SITE_VERIFICATION, SITE_NAME, SITE_URL } from "@/lib/seo/site";
 import { buildSiteGraphSchema } from "@/lib/seo/json-ld";
 import { fwc26 } from "@/lib/fonts/fwc26";
-import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -48,7 +47,7 @@ export default function RootLayout({
         <JsonLd data={buildSiteGraphSchema()} />
         <GoogleAnalytics />
         <MetaPixel />
-        <Providers>{children}</Providers>
+        {children}
         <Analytics />
       </body>
     </html>

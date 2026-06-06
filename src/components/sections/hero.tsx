@@ -4,8 +4,8 @@ import Image from "next/image";
 import { Reveal } from "@/components/ui/motion";
 import { HeroButtons } from "@/components/sections/hero-buttons";
 
-const HERO_IMAGE = "/recursos/HEADER1600x668.jpg";
-const HERO_ASPECT = "1600 / 668";
+const HERO_IMAGE = "/recursos/headerv2.jpg";
+const HERO_ASPECT = "1672 / 941";
 
 const heroCopyShadow =
   "0 2px 4px rgba(0,0,0,0.9), 0 8px 32px rgba(0,0,0,0.65), 0 0 1px rgba(0,0,0,1)";
