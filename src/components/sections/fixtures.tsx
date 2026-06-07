@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { FootballDataEmpty } from "@/components/football/football-data-empty";
+import { FootballSourceBadge } from "@/components/football/football-source-badge";
 import { useFixtures } from "@/hooks/useFootballData";
 import {
   countFixturesByTab,
@@ -101,13 +102,7 @@ export function FixturesSection() {
           title="Calendario FIFA World Cup"
           subtitle="Partidos del Mundial FIFA World Cup 2026."
         />
-        {showSourceBadge && (
-          <span
-            className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${source === "live" ? "bg-red-600 text-white" : "bg-white/10 text-white/50"}`}
-          >
-            {source === "live" ? "Datos en vivo" : "Demo"}
-          </span>
-        )}
+        {showSourceBadge && <FootballSourceBadge live={source === "live"} />}
       </div>
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
@@ -116,13 +111,11 @@ export function FixturesSection() {
           <select
             value={selectedDate ?? ""}
             onChange={(event) => updateQuery(event.target.value || null, 1)}
-            className="rounded-2xl border border-white/20 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition focus:border-electric/50 focus:ring-2 focus:ring-electric/25"
+            className="fixture-date-select rounded-2xl border border-white/20 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition focus:border-electric/50 focus:ring-2 focus:ring-electric/25"
           >
-            <option value="" className="bg-slate-900 text-white">
-              Todas las fechas
-            </option>
+            <option value="">Todas las fechas</option>
             {dateOptions.map((dateKey) => (
-              <option key={dateKey} value={dateKey} className="bg-slate-900 text-white">
+              <option key={dateKey} value={dateKey}>
                 {formatFixtureDateLabel(dateKey)}
               </option>
             ))}

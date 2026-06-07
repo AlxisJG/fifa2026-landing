@@ -199,3 +199,16 @@ body {
   70% { opacity: 0.3; }
   100% { transform: translateX(120%); opacity: 0; }
 }
+
+.fixture-date-select {
+  color-scheme: dark;
+}
+
+.fixture-date-select option {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.live-data-badge {
+  color: #ffffff !important;
+}

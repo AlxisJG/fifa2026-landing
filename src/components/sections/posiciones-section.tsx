@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FootballDataEmpty } from "@/components/football/football-data-empty";
+import { FootballSourceBadge } from "@/components/football/football-source-badge";
 import { BrowserTabShell } from "@/components/ui/browser-tab-shell";
 import { useSquads, useStandings, useTopscorers } from "@/hooks/useFootballData";
 import { useTeamSquad } from "@/hooks/useTeamSquad";
@@ -65,15 +66,7 @@ export function PosicionesSection() {
         onTabChange={(id) => setActiveTab(id as MainTab)}
         badge={
           showSourceBadge ? (
-            <span
-              className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${
-                liveSource
-                  ? "bg-red-600 text-white"
-                  : "bg-slate-200/80 text-slate-500"
-              }`}
-            >
-              {liveSource ? "Datos en vivo" : "Demo"}
-            </span>
+            <FootballSourceBadge live={liveSource} demoOnLight />
           ) : undefined
         }
       >

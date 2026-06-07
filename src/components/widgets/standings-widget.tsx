@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { FootballDataEmpty } from "@/components/football/football-data-empty";
+import { FootballSourceBadge } from "@/components/football/football-source-badge";
 import { SectionTitle } from "@/components/ui/section-title";
 import { useStandings } from "@/hooks/useFootballData";
 import { getStandingsSeed } from "@/lib/football-widget-seeds";
@@ -28,13 +29,7 @@ export function StandingsWidget({ showHeader = false }: { showHeader?: boolean }
           ) : (
             <div />
           )}
-          {showSourceBadge && (
-            <span
-              className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${source === "live" ? "bg-red-600 text-white" : "bg-white/10 text-white/50"}`}
-            >
-              {source === "live" ? "Datos en vivo" : "Demo"}
-            </span>
-          )}
+          {showSourceBadge && <FootballSourceBadge live={source === "live"} />}
         </div>
       )}
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FootballDataEmpty } from "@/components/football/football-data-empty";
+import { FootballSourceBadge } from "@/components/football/football-source-badge";
 import { SectionTitle } from "@/components/ui/section-title";
 import { Reveal } from "@/components/ui/motion";
 import { useSquads, useTopscorers } from "@/hooks/useFootballData";
@@ -35,13 +36,7 @@ export function WorldCupStatsSection({ showHeader = true }: { showHeader?: boole
         ) : (
           <p className="text-[11px] uppercase tracking-[0.22em] text-white/55">Selecciones y goleadores</p>
         )}
-        {showSourceBadge && (
-          <span
-            className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${liveSource ? "bg-red-600 text-white" : "bg-white/10 text-white/50"}`}
-          >
-            {liveSource ? "Datos en vivo" : "Demo"}
-          </span>
-        )}
+        {showSourceBadge && <FootballSourceBadge live={liveSource} />}
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">

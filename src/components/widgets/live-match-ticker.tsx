@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { getTickerSeed } from "@/lib/football-widget-seeds";
 import { useTicker } from "@/hooks/useFootballData";
+import { FootballSourceBadge } from "@/components/football/football-source-badge";
 import { TickerMatchChip } from "@/components/widgets/ticker-match-chip";
 
 export function LiveMatchTicker() {
@@ -23,13 +24,11 @@ export function LiveMatchTicker() {
             <h2 className="text-base font-semibold leading-tight tracking-[-0.01em] text-white sm:text-lg">
               Resultados de Futbol en Vivo
             </h2>
-            <span
-              className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] ${
-                source === "live" ? "bg-red-600 text-white" : "bg-white/10 text-white/70"
-              }`}
-            >
-              {source === "live" ? "Datos en vivo" : "Datos demo"}
-            </span>
+            <FootballSourceBadge
+              live={source === "live"}
+              demoLabel="Datos demo"
+              compact
+            />
           </div>
 
           <div className="flex gap-3 overflow-x-auto pb-1">

@@ -5,6 +5,7 @@ import { getFeaturedMatchSeed } from "@/lib/football-widget-seeds";
 import { useMatchCenter } from "@/hooks/useFootballData";
 import { useLiveNavigation } from "@/hooks/use-live-navigation";
 import type { FeaturedMatch } from "@/lib/football-api/types";
+import { FootballSourceBadge } from "@/components/football/football-source-badge";
 import { scrollToSection } from "@/lib/scroll-to-section";
 import { getFlagCdnUrl } from "@/lib/team-flags";
 import { PAGE_SEO } from "@/lib/seo/pages";
@@ -124,13 +125,7 @@ export function FeaturedMatchCenter({ ctaMode = "transmision" }: FeaturedMatchCe
 
       <div className="section-shell relative z-10">
         <div className="mb-2 flex justify-end">
-          <span
-            className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${
-              source === "live" ? "bg-red-600 text-white" : "bg-white/10 text-white/70"
-            }`}
-          >
-            {source === "live" ? "Datos en vivo" : "Datos demo"}
-          </span>
+          <FootballSourceBadge live={source === "live"} demoLabel="Datos demo" />
         </div>
 
         <div className="mb-6 text-center sm:mb-8">
