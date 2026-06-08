@@ -15,8 +15,11 @@ export function FooterSection() {
                 </Link>
               </li>
               <li>
-                <Link href="/transmision" className="text-sm text-white/65 transition hover:text-white">
-                  Transmisión en vivo
+                <Link
+                  href="/donde-ver-mundial-2026-rd"
+                  className="text-sm text-white/65 transition hover:text-white"
+                >
+                  Dónde ver el Mundial 2026
                 </Link>
               </li>
               {NAV_PAGES.map((page) => (

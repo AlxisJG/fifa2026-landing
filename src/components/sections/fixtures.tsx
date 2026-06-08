@@ -28,13 +28,19 @@ import { ListPagination } from "@/components/ui/list-pagination";
 
 export const FIXTURES_PER_PAGE = 9;
 
-export function FixturesSection() {
+type FixturesSectionProps = {
+  initialFixtures?: Fixture[];
+  initialSource?: "live" | "demo";
+};
+
+export function FixturesSection({ initialFixtures, initialSource }: FixturesSectionProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<FixtureTab>("Group Stage");
   const [hasInitializedTab, setHasInitializedTab] = useState(false);
   const now = useWorldCupNow();
-  const { data, loading, source } = useFixtures(getFixturesSeed());
+  const seed = initialFixtures ?? getFixturesSeed();
+  const { data, loading, source } = useFixtures(seed, { initialSource });
 
   const selectedDate = searchParams.get("fecha");
   const rawPage = Number.parseInt(searchParams.get("page") ?? "1", 10);
@@ -255,7 +261,7 @@ function TeamRow({
       <div className="flex min-w-0 items-center gap-3">
         {flagUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={flagUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+          <img src={flagUrl} alt={`Bandera de ${name}`} className="h-7 w-7 shrink-0 rounded-full object-cover" />
         ) : (
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] text-white/40">
             ?

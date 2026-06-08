@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import type { PostItem } from "@/lib/posts-types";
 
-export function usePosts() {
-  const [posts, setPosts] = useState<PostItem[]>([]);
-  const [loading, setLoading] = useState(true);
+export function usePosts(initialPosts?: PostItem[]) {
+  const hasInitial = initialPosts !== undefined;
+  const [posts, setPosts] = useState<PostItem[]>(initialPosts ?? []);
+  const [loading, setLoading] = useState(!hasInitial);
 
   useEffect(() => {
     let active = true;

@@ -4,6 +4,7 @@ import "./globals.css";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { MetaPixel } from "@/components/analytics/meta-pixel";
 import { JsonLd } from "@/components/seo/json-ld";
+import { ROOT_OG_IMAGE } from "@/lib/seo/metadata-shared";
 import { HOME_SEO, GOOGLE_SITE_VERIFICATION, SITE_NAME, SITE_URL } from "@/lib/seo/site";
 import { buildSiteGraphSchema } from "@/lib/seo/json-ld";
 import { fwc26 } from "@/lib/fonts/fwc26";
@@ -24,7 +25,14 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: SITE_NAME,
     title: HOME_SEO.title,
-    description: HOME_SEO.description
+    description: HOME_SEO.description,
+    images: ROOT_OG_IMAGE
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: HOME_SEO.title,
+    description: HOME_SEO.description,
+    images: ROOT_OG_IMAGE.map((img) => img.url)
   },
   icons: {
     icon: [
@@ -42,7 +50,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={fwc26.variable}>
+    <html lang="es-DO" className={fwc26.variable}>
       <body className={`${fwc26.className} font-sans`}>
         <JsonLd data={buildSiteGraphSchema()} />
         <GoogleAnalytics />

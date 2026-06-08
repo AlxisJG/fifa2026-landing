@@ -8,7 +8,13 @@ import { BrowserTabShell } from "@/components/ui/browser-tab-shell";
 import { useSquads, useStandings, useTopscorers } from "@/hooks/useFootballData";
 import { useTeamSquad } from "@/hooks/useTeamSquad";
 import { getSquadsSeed, getStandingsSeed, getTopscorersSeed } from "@/lib/football-widget-seeds";
-import type { SquadTeam, StandingsGroup, StandingsRow, TopscorersData } from "@/lib/football-api/types";
+import type {
+  SquadTeam,
+  StandingsData,
+  StandingsGroup,
+  StandingsRow,
+  TopscorersData
+} from "@/lib/football-api/types";
 import { Reveal } from "@/components/ui/motion";
 
 const MAIN_TABS = [
@@ -19,11 +25,20 @@ const MAIN_TABS = [
 
 type MainTab = (typeof MAIN_TABS)[number]["id"];
 
-export function PosicionesSection() {
+type PosicionesSectionProps = {
+  initialStandings?: StandingsData;
+  initialStandingsSource?: "live" | "demo";
+};
+
+export function PosicionesSection({
+  initialStandings,
+  initialStandingsSource
+}: PosicionesSectionProps = {}) {
   const [activeTab, setActiveTab] = useState<MainTab>("standings");
 
   const { data: standings, loading: standingsLoading, source: standingsSource } = useStandings(
-    getStandingsSeed()
+    initialStandings ?? getStandingsSeed(),
+    { initialSource: initialStandingsSource }
   );
   const { data: squads, loading: squadsLoading, source: squadsSource } = useSquads(
     getSquadsSeed(),
@@ -409,7 +424,7 @@ function TeamFlag({
   if (flagUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={flagUrl} alt="" className={`${dim} shrink-0 rounded-full object-cover`} />
+      <img src={flagUrl} alt={code ? `Bandera de ${code}` : "Bandera del equipo"} className={`${dim} shrink-0 rounded-full object-cover`} />
     );
   }
 

@@ -19,6 +19,8 @@ const ctaClass =
 type FeaturedMatchCenterProps = {
   /** Home uses live nav + calendario; transmisión scrolls to secciones en la misma página. */
   ctaMode?: "transmision" | "marketing";
+  initialMatch?: FeaturedMatch;
+  initialSource?: "live" | "demo";
 };
 
 function hasFeaturedMatch(match: FeaturedMatch) {
@@ -107,8 +109,14 @@ function MatchCenterActions({ ctaMode }: { ctaMode: "transmision" | "marketing" 
   );
 }
 
-export function FeaturedMatchCenter({ ctaMode = "transmision" }: FeaturedMatchCenterProps) {
-  const { data, loading, source } = useMatchCenter(getFeaturedMatchSeed());
+export function FeaturedMatchCenter({
+  ctaMode = "transmision",
+  initialMatch,
+  initialSource
+}: FeaturedMatchCenterProps) {
+  const { data, loading, source } = useMatchCenter(initialMatch ?? getFeaturedMatchSeed(), {
+    initialSource
+  });
   const match: FeaturedMatch = data;
 
   if (!loading && !hasFeaturedMatch(match)) {

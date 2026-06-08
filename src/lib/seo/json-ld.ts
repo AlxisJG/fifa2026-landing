@@ -1,5 +1,7 @@
-import { fixtures, matchSummaries, type Match, type MatchSummary } from "@/data/landing-content";
+import { matchSummaries, type Match, type MatchSummary } from "@/data/landing-content";
 import { BRANDING } from "@/lib/branding";
+import type { Fixture } from "@/lib/football-api/types";
+import { getPostPath } from "@/lib/posts-slug";
 import type { PostItem } from "@/lib/posts-types";
 import { HOME_SEO, SITE_NAME, SITE_URL } from "@/lib/seo/site";
 
@@ -82,14 +84,15 @@ function buildPublisherReference() {
 }
 
 export function buildArticleSchema(post: PostItem, index: number) {
+  const articleUrl = absoluteUrl(getPostPath(post));
   const schema: Record<string, unknown> = {
     "@type": "NewsArticle",
-    "@id": `${SITE_URL}/#article-${post.id || index}`,
+    "@id": `${articleUrl}#article`,
     headline: post.title,
     author: buildPublisherReference(),
     publisher: buildPublisherReference(),
-    mainEntityOfPage: post.url ?? SITE_URL,
-    ...(post.url ? { url: post.url } : {}),
+    mainEntityOfPage: articleUrl,
+    url: articleUrl,
     inLanguage: "es-DO",
     isPartOf: {
       "@id": WEBSITE_ID
@@ -175,12 +178,108 @@ export function buildVideoSchema(summary: MatchSummary) {
   return schema;
 }
 
-export function buildHomepageGraphSchema(posts: PostItem[]) {
+export function buildFixtureSportsEventSchema(fixture: Fixture) {
+  const home = fixture.home;
+  const away = fixture.away;
+  return {
+    "@type": "SportsEvent",
+    "@id": `${SITE_URL}/#fixture-${fixture.id}`,
+    name: `${home} vs ${away}`,
+    startDate: fixture.startsAt,
+    eventStatus: fixture.live ? "https://schema.org/EventScheduled" : "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    location: fixture.venue
+      ? {
+          "@type": "Place",
+          name: fixture.venue
+        }
+      : undefined,
+    homeTeam: { "@type": "SportsTeam", name: home },
+    awayTeam: { "@type": "SportsTeam", name: away },
+    organizer: { "@id": ORGANIZATION_ID },
+    isPartOf: { "@type": "SportsEvent", name: "FIFA World Cup 2026" }
+  };
+}
+
+export function buildBreadcrumbSchema(items: { name: string; path: string }[]) {
+  return {
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: absoluteUrl(item.path)
+    }))
+  };
+}
+
+export function buildWebPageSchema({
+  path,
+  title,
+  description
+}: {
+  path: string;
+  title: string;
+  description: string;
+}) {
+  const url = absoluteUrl(path);
+  return {
+    "@type": "WebPage",
+    "@id": `${url}#webpage`,
+    url,
+    name: title,
+    description,
+    inLanguage: "es-DO",
+    isPartOf: { "@id": WEBSITE_ID }
+  };
+}
+
+export function buildFaqSchema(faqs: { question: string; answer: string }[]) {
+  return {
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer
+      }
+    }))
+  };
+}
+
+export function buildLandingPageGraphSchema({
+  path,
+  title,
+  description,
+  breadcrumbs,
+  faqs
+}: {
+  path: string;
+  title: string;
+  description: string;
+  breadcrumbs: { name: string; path: string }[];
+  faqs?: { question: string; answer: string }[];
+}) {
+  const graph: Record<string, unknown>[] = [
+    buildWebPageSchema({ path, title, description }),
+    buildBreadcrumbSchema(breadcrumbs)
+  ];
+  if (faqs?.length) {
+    graph.push(buildFaqSchema(faqs));
+  }
+  return {
+    "@context": "https://schema.org",
+    "@graph": graph
+  };
+}
+
+export function buildHomepageGraphSchema(posts: PostItem[], fixtures: Fixture[] = []) {
   return {
     "@context": "https://schema.org",
     "@graph": [
       ...posts.slice(0, 5).map((post, index) => buildArticleSchema(post, index)),
-      ...fixtures.map((match) => buildSportsEventSchema(match)),
+      ...fixtures.slice(0, 8).map((fixture) => buildFixtureSportsEventSchema(fixture)),
       ...matchSummaries.map((summary) => buildVideoSchema(summary))
     ]
   };

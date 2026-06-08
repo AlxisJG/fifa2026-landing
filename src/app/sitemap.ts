@@ -1,14 +1,39 @@
 import type { MetadataRoute } from "next";
+import { getPostSlugs } from "@/lib/posts";
 import { PAGE_SEO } from "@/lib/seo/pages";
-import { SITE_URL } from "@/lib/seo/site";
+import { absoluteSiteUrl } from "@/lib/seo/site";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const staticPaths = ["", ...Object.values(PAGE_SEO).map((page) => page.path)];
+type SitemapEntry = MetadataRoute.Sitemap[number];
 
-  return staticPaths.map((path) => ({
-    url: new URL(path || "/", SITE_URL).href,
+function staticEntry(
+  path: string,
+  priority: number,
+  changeFrequency: SitemapEntry["changeFrequency"] = "weekly"
+): SitemapEntry {
+  return {
+    url: absoluteSiteUrl(path),
     lastModified: new Date(),
-    changeFrequency: path === "" ? "daily" : "weekly",
-    priority: path === "" ? 1 : 0.8
-  }));
+    changeFrequency,
+    priority
+  };
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const pagePaths = Object.values(PAGE_SEO).map((page) => page.path);
+
+  const entries: SitemapEntry[] = [
+    staticEntry("/", 1, "daily"),
+    ...pagePaths.map((path) => staticEntry(path, path.includes("mundial") ? 0.9 : 0.8))
+  ];
+
+  try {
+    const slugs = await getPostSlugs();
+    for (const slug of slugs) {
+      entries.push(staticEntry(`/noticias/${slug}`, 0.7, "weekly"));
+    }
+  } catch {
+    // WordPress unavailable — static routes still published
+  }
+
+  return entries;
 }

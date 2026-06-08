@@ -7,12 +7,17 @@ import { Reveal } from "@/components/ui/motion";
 import { rectanglePlacements } from "@/data/ad-placements";
 import { isAdsEnabled } from "@/lib/ads-gate";
 import { usePosts } from "@/hooks/usePosts";
+import type { PostItem } from "@/lib/posts-types";
 import { PAGE_SEO } from "@/lib/seo/pages";
 import { NewsCard, fallbackPosts, sortPostsByDate } from "@/components/sections/news-shared";
 
-export function LatestNewsSection() {
+type LatestNewsSectionProps = {
+  initialPosts?: PostItem[];
+};
+
+export function LatestNewsSection({ initialPosts }: LatestNewsSectionProps) {
   const adsEnabled = isAdsEnabled();
-  const { posts: apiPosts, loading } = usePosts();
+  const { posts: apiPosts, loading } = usePosts(initialPosts);
   const posts = sortPostsByDate(apiPosts.length > 0 ? apiPosts : fallbackPosts);
   const gridPosts = posts.slice(0, 5);
 
@@ -49,6 +54,7 @@ export function LatestNewsSection() {
                 title={gridPosts[0].title}
                 category={gridPosts[0].category}
                 url={gridPosts[0].url}
+                slug={gridPosts[0].slug}
                 date={gridPosts[0].date}
                 homeFeaturedLead
                 priority
@@ -64,6 +70,7 @@ export function LatestNewsSection() {
                 title={item.title}
                 category={item.category}
                 url={item.url}
+                slug={item.slug}
                 date={item.date}
                 homeFeatured
               />
@@ -77,6 +84,7 @@ export function LatestNewsSection() {
                 title={item.title}
                 category={item.category}
                 url={item.url}
+                slug={item.slug}
                 date={item.date}
                 homeFeatured
                 matchAdHeight={adsEnabled}

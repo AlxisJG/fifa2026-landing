@@ -16,6 +16,10 @@ export function FootballSourceBadge({
   compact = false,
   className = ""
 }: FootballSourceBadgeProps) {
+  if (!live && process.env.NODE_ENV === "production") {
+    return null;
+  }
+
   const size = compact ? "px-2 py-0.5" : "px-2 py-1";
 
   return (

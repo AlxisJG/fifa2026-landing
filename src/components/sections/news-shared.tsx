@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { news as fallbackNews } from "@/data/landing-content";
-import { usePosts } from "@/hooks/usePosts";
 import type { PostItem } from "@/lib/posts-types";
+import { getPostPath } from "@/lib/posts-slug";
 import { formatDateRd } from "@/lib/datetime-rd";
 import { fwc26NewsBold, fwc26NewsMedium } from "@/lib/fonts/fwc26-news";
 
@@ -84,6 +85,7 @@ type NewsCardProps = {
   title: string;
   category: string;
   url?: string;
+  slug?: string;
   date?: string;
   tall?: boolean;
   uniform?: boolean;
@@ -99,6 +101,7 @@ export function NewsCard({
   title,
   category,
   url,
+  slug,
   date,
   tall = false,
   uniform = false,
@@ -214,10 +217,23 @@ export function NewsCard({
     ? "group relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_12px_36px_rgba(15,23,42,0.12)] transition-shadow hover:shadow-[0_16px_44px_rgba(15,23,42,0.18)]"
     : "group relative block overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 shadow-[0_12px_36px_rgba(15,23,42,0.14)] transition-shadow hover:shadow-[0_16px_44px_rgba(15,23,42,0.2)]";
 
-  if (url) {
+  const internalHref = getPostPath({ title, url, slug });
+  const externalUrl = url?.trim();
+
+  if (internalHref) {
+    return (
+      <motion.div whileHover={{ y: -4 }} className={shellClass}>
+        <Link href={internalHref} className="block h-full" aria-label={`Leer noticia: ${safeTitle}`}>
+          {card}
+        </Link>
+      </motion.div>
+    );
+  }
+
+  if (externalUrl) {
     return (
       <motion.a
-        href={url}
+        href={externalUrl}
         target="_blank"
         rel="noopener noreferrer"
         whileHover={{ y: -4 }}

@@ -20,6 +20,8 @@ type HookState<T> = {
 
 type FetchOptions = {
   enabled?: boolean;
+  /** When set, skip initial loading state (SSR-hydrated data). */
+  initialSource?: "live" | "demo";
 };
 
 async function fetchRoute<T>(url: string): Promise<ProviderResponse<T>> {
@@ -30,20 +32,23 @@ async function fetchRoute<T>(url: string): Promise<ProviderResponse<T>> {
 
 function useFootballRoute<T>(url: string, initialData: T, options?: FetchOptions): HookState<T> {
   const enabled = options?.enabled ?? true;
+  const hasSsrSource = options?.initialSource !== undefined;
   const [state, setState] = useState<HookState<T>>({
     data: initialData,
-    loading: enabled,
-    source: "demo"
+    loading: enabled && !hasSsrSource,
+    source: options?.initialSource ?? "demo"
   });
 
   useEffect(() => {
     if (!enabled) {
-      setState({ data: initialData, loading: false, source: "demo" });
+      setState({ data: initialData, loading: false, source: options?.initialSource ?? "demo" });
       return;
     }
 
     let active = true;
-    setState((prev) => ({ ...prev, loading: true }));
+    if (!hasSsrSource) {
+      setState((prev) => ({ ...prev, loading: true }));
+    }
     fetchRoute<T>(url)
       .then((payload) => {
         if (!active) return;
@@ -65,7 +70,7 @@ function useFootballRoute<T>(url: string, initialData: T, options?: FetchOptions
     return () => {
       active = false;
     };
-  }, [url, enabled]);
+  }, [url, enabled, hasSsrSource, initialData, options?.initialSource]);
 
   return state;
 }

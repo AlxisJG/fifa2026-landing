@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { HOME_SEO, SITE_NAME, SITE_URL } from "@/lib/seo/site";
+import { absoluteSiteUrl } from "@/lib/seo/site";
+import { buildSocialMetadata } from "@/lib/seo/metadata-shared";
 
 export type PageSeoKey =
   | "noticias"
@@ -91,7 +92,7 @@ export const PAGE_SEO: Record<PageSeoKey, PageSeoConfig> = {
       "Descubre dónde ver el Mundial FIFA 2026 en República Dominicana con PIO Deportes: transmisión en vivo, calendario y cobertura completa.",
     h1: "Dónde ver el Mundial 2026 en República Dominicana",
     intro:
-      "En PIO Deportes puedes ver el Mundial 2026 en vivo online desde cualquier dispositivo, sin registro ni suscripción."
+      "En PIO Deportes puedes seguir el Mundial 2026 en vivo online desde cualquier dispositivo. Consulta calendario, marcadores y cobertura completa del torneo en República Dominicana."
   },
   partidosEnVivoMundial: {
     path: "/partidos-en-vivo-mundial-2026",
@@ -115,19 +116,27 @@ export const SEO_FOOTER_PAGES = (Object.entries(PAGE_SEO) as [PageSeoKey, PageSe
 
 export function buildPageMetadata(key: PageSeoKey): Metadata {
   const page = PAGE_SEO[key];
-  const canonical = new URL(page.path, SITE_URL).href;
+  const canonical = absoluteSiteUrl(page.path);
 
   return {
-    title: page.title,
+    title: { absolute: page.title },
     description: page.description,
     alternates: { canonical },
-    openGraph: {
-      url: canonical,
+    ...buildSocialMetadata({
       title: page.title,
       description: page.description,
-      siteName: SITE_NAME
-    },
+      path: page.path,
+      imageAlt: page.h1
+    }),
     robots: { index: true, follow: true }
+  };
+}
+
+export function buildNoIndexMetadata(title: string, description?: string): Metadata {
+  return {
+    title: { absolute: title },
+    ...(description ? { description } : {}),
+    robots: { index: false, follow: false }
   };
 }
 

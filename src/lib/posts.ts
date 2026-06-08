@@ -1,5 +1,6 @@
 import { news as fallbackNews } from "@/data/landing-content";
 import type { PostItem } from "@/lib/posts-types";
+import { extractSlugFromUrl, getPostSlug, slugifyPostTitle } from "@/lib/posts-slug";
 
 function sortPostsByDate(posts: PostItem[]): PostItem[] {
   return [...posts].sort((a, b) => {
@@ -9,15 +10,21 @@ function sortPostsByDate(posts: PostItem[]): PostItem[] {
   });
 }
 
-const staticPosts: PostItem[] = fallbackNews.map((item, index) => ({
-  id: `fallback-${index}`,
-  title: item.title,
-  category: item.category,
-  image: item.image,
-  excerpt: "",
-  date: "",
-  source: "static"
-}));
+function withSlug(post: PostItem): PostItem {
+  return { ...post, slug: getPostSlug(post) };
+}
+
+const staticPosts: PostItem[] = fallbackNews.map((item, index) =>
+  withSlug({
+    id: `fallback-${index}`,
+    title: item.title,
+    category: item.category,
+    image: item.image,
+    excerpt: "",
+    date: "",
+    source: "static"
+  })
+);
 
 function wpToPost(raw: Record<string, unknown>): PostItem | null {
   const titleRaw = raw.title as { rendered?: string } | string | undefined;
@@ -28,12 +35,14 @@ function wpToPost(raw: Record<string, unknown>): PostItem | null {
   const embedded = raw._embedded as { "wp:featuredmedia"?: Array<{ source_url?: string }> } | undefined;
 
   const link = (raw.link as string | undefined)?.trim();
+  const rawSlug = (raw.slug as string | undefined)?.trim();
 
-  return {
+  const post: PostItem = {
     id: String(raw.id ?? title.slice(0, 20)),
     title,
     category: categories?.[0]?.name ?? (raw.category as string | undefined) ?? "Noticias",
     url: link || undefined,
+    slug: rawSlug || extractSlugFromUrl(link) || slugifyPostTitle(title),
     image:
       (raw.image as string | undefined) ??
       (raw.featured_image as string | undefined) ??
@@ -46,6 +55,8 @@ function wpToPost(raw: Record<string, unknown>): PostItem | null {
     date: (raw.date as string | undefined) ?? "",
     source: "wordpress"
   };
+
+  return withSlug(post);
 }
 
 function extractPostsPayload(json: unknown): {
@@ -124,3 +135,16 @@ export async function getPosts(): Promise<PostItem[]> {
     return staticPosts;
   }
 }
+
+export async function getPostSlugs(): Promise<string[]> {
+  const posts = await getPosts();
+  return posts.map((post) => getPostSlug(post));
+}
+
+export async function getPostBySlug(slug: string): Promise<PostItem | undefined> {
+  const normalized = decodeURIComponent(slug).toLowerCase();
+  const posts = await getPosts();
+  return posts.find((post) => getPostSlug(post).toLowerCase() === normalized);
+}
+
+export { getPostSlug, getPostPath } from "@/lib/posts-slug";

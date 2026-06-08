@@ -3,6 +3,8 @@ import { FixturesSection } from "@/components/sections/fixtures";
 import { CountdownWidget } from "@/components/widgets/countdown-widget";
 import { MarketingPageMain, PageIntro } from "@/components/layout/page-intro";
 import { PageContentAds } from "@/components/layout/page-content-ads";
+import { Breadcrumbs } from "@/components/seo/breadcrumbs";
+import { footballDataProvider } from "@/lib/football-api/provider";
 import { buildPageMetadata, PAGE_SEO } from "@/lib/seo/pages";
 
 export const metadata = buildPageMetadata("partidos");
@@ -19,14 +21,25 @@ function FixturesFallback() {
   );
 }
 
-export default function PartidosPage() {
+export default async function PartidosPage() {
+  const fixturesRes = await footballDataProvider.getFixtures();
+
   return (
     <MarketingPageMain>
+      <Breadcrumbs
+        items={[
+          { name: "Inicio", path: "/" },
+          { name: PAGE_SEO.partidos.h1 }
+        ]}
+      />
       <PageIntro config={PAGE_SEO.partidos} kicker="Competiciones" />
       <PageContentAds page="partidos">
         <CountdownWidget />
         <Suspense fallback={<FixturesFallback />}>
-          <FixturesSection />
+          <FixturesSection
+            initialFixtures={fixturesRes.data}
+            initialSource={fixturesRes.source}
+          />
         </Suspense>
       </PageContentAds>
     </MarketingPageMain>

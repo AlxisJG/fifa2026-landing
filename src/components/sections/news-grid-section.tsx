@@ -5,10 +5,10 @@ import { useMemo } from "react";
 import { RectangleAdSlot } from "@/components/ads/rectangle-ad-slot";
 import { Reveal } from "@/components/ui/motion";
 import { usePosts } from "@/hooks/usePosts";
+import type { PostItem } from "@/lib/posts-types";
 import { isAdsEnabled } from "@/lib/ads-gate";
 import { rectanglePlacements } from "@/data/ad-placements";
 import { NewsCard, fallbackPosts, sortPostsByDate } from "@/components/sections/news-shared";
-import type { PostItem } from "@/lib/posts-types";
 import { ListPagination } from "@/components/ui/list-pagination";
 
 export const NEWS_SLOTS_PER_PAGE = 9;
@@ -61,10 +61,14 @@ function NewsGridSkeleton() {
   );
 }
 
-export function NewsGridSection() {
+type NewsGridSectionProps = {
+  initialPosts?: PostItem[];
+};
+
+export function NewsGridSection({ initialPosts }: NewsGridSectionProps) {
   const searchParams = useSearchParams();
   const adsEnabled = isAdsEnabled();
-  const { posts: apiPosts, loading } = usePosts();
+  const { posts: apiPosts, loading } = usePosts(initialPosts);
   const posts = useMemo(
     () => sortPostsByDate(apiPosts.length > 0 ? apiPosts : fallbackPosts),
     [apiPosts]
@@ -107,6 +111,7 @@ export function NewsGridSection() {
                 title={cell.post.title}
                 category={cell.post.category}
                 url={cell.post.url}
+                slug={cell.post.slug}
                 date={cell.post.date}
                 uniform
                 editorialTypography
