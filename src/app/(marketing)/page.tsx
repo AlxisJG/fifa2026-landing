@@ -16,6 +16,9 @@ import type { Metadata } from "next";
 import { buildSocialMetadata } from "@/lib/seo/metadata-shared";
 import { HOME_SEO, SITE_URL } from "@/lib/seo/site";
 
+/** 5 min — sync with WORDPRESS_CACHE_SECONDS in src/lib/cache/wordpress.ts */
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   title: { absolute: HOME_SEO.title },
   description: HOME_SEO.description,

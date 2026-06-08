@@ -3,6 +3,9 @@ import { getPostSlugs } from "@/lib/posts";
 import { PAGE_SEO } from "@/lib/seo/pages";
 import { absoluteSiteUrl } from "@/lib/seo/site";
 
+/** 5 min — sync with WORDPRESS_CACHE_SECONDS in src/lib/cache/wordpress.ts */
+export const revalidate = 300;
+
 type SitemapEntry = MetadataRoute.Sitemap[number];
 
 function staticEntry(

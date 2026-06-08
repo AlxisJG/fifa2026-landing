@@ -1,3 +1,5 @@
+import { wordpressFetchCache } from "@/lib/cache/wordpress";
+
 export type WpCategory = { id: number; slug?: string; name?: string };
 
 export type WpMedia = {
@@ -28,9 +30,10 @@ export function extractDuration(...fields: (string | undefined)[]): string {
 }
 
 export async function resolveCategoryId(wpRestBase: string, slug: string): Promise<number | null> {
-  const res = await fetch(`${wpRestBase}/wp/v2/categories?slug=${encodeURIComponent(slug)}`, {
-    next: { revalidate: 60 }
-  });
+  const res = await fetch(
+    `${wpRestBase}/wp/v2/categories?slug=${encodeURIComponent(slug)}`,
+    wordpressFetchCache()
+  );
 
   if (!res.ok) return null;
 
@@ -45,9 +48,7 @@ export async function fetchMediaByCategory(wpRestBase: string, categoryId: numbe
     _fields: "id,source_url,alt_text,title,caption,description,media_details"
   });
 
-  const res = await fetch(`${wpRestBase}/wp/v2/media?${params.toString()}`, {
-    next: { revalidate: 60 }
-  });
+  const res = await fetch(`${wpRestBase}/wp/v2/media?${params.toString()}`, wordpressFetchCache());
 
   if (!res.ok) return [];
 

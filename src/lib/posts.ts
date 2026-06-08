@@ -1,3 +1,4 @@
+import { wordpressFetchCache } from "@/lib/cache/wordpress";
 import { news as fallbackNews } from "@/data/landing-content";
 import type { PostItem } from "@/lib/posts-types";
 import { extractSlugFromUrl, getPostSlug, slugifyPostTitle } from "@/lib/posts-slug";
@@ -97,9 +98,7 @@ async function fetchAllWordPressPosts(baseUrl: string): Promise<Record<string, u
   let totalPages = 1;
 
   do {
-    const res = await fetch(`${baseUrl}/posts?tag=fifa-2026&per_page=100&page=${page}`, {
-      next: { revalidate: 60 }
-    });
+    const res = await fetch(`${baseUrl}/posts?tag=fifa-2026&per_page=100&page=${page}`, wordpressFetchCache());
 
     if (!res.ok) {
       return page === 1 ? [] : allPosts;

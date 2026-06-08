@@ -4,6 +4,9 @@ import { MarketingPageMain, PageIntro } from "@/components/layout/page-intro";
 import { PageContentAds } from "@/components/layout/page-content-ads";
 import { buildPageMetadata, PAGE_SEO } from "@/lib/seo/pages";
 
+/** 5 min — sync with WORDPRESS_CACHE_SECONDS in src/lib/cache/wordpress.ts */
+export const revalidate = 300;
+
 export const metadata = buildPageMetadata("galeria");
 
 function GalleryFallback() {

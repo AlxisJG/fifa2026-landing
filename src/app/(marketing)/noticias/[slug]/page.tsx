@@ -12,6 +12,9 @@ import { PAGE_SEO } from "@/lib/seo/pages";
 import { absoluteSiteUrl } from "@/lib/seo/site";
 import type { Metadata } from "next";
 
+/** 5 min — sync with WORDPRESS_CACHE_SECONDS in src/lib/cache/wordpress.ts */
+export const revalidate = 300;
+
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
