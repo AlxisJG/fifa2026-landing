@@ -117,6 +117,11 @@ export function buildArticleSchema(post: PostItem, index: number) {
     schema.description = excerpt;
   }
 
+  const articleBody = stripHtml(post.content ?? "");
+  if (articleBody) {
+    schema.articleBody = articleBody;
+  }
+
   return schema;
 }
 

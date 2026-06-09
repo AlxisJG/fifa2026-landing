@@ -8,6 +8,8 @@ export type PostItem = {
   /** URL canónica del artículo en piodeportes.com (legacy WP) */
   url?: string;
   excerpt?: string;
+  /** HTML completo del artículo (WordPress). */
+  content?: string;
   date?: string;
   source: "static" | "wordpress";
 };

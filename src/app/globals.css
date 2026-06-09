@@ -212,3 +212,40 @@ body {
 .live-data-badge {
   color: #ffffff !important;
 }
+
+.article-body {
+  @apply text-base leading-relaxed text-slate-700;
+}
+
+.article-body p {
+  @apply mb-4;
+}
+
+.article-body h2 {
+  @apply mb-3 mt-8 text-xl font-bold text-slate-900;
+}
+
+.article-body h3 {
+  @apply mb-2 mt-6 text-lg font-bold text-slate-900;
+}
+
+.article-body ul,
+.article-body ol {
+  @apply mb-4 ml-6 list-disc space-y-2;
+}
+
+.article-body ol {
+  @apply list-decimal;
+}
+
+.article-body a {
+  @apply font-medium text-red-600 underline-offset-2 hover:underline;
+}
+
+.article-body img {
+  @apply my-6 w-full rounded-2xl;
+}
+
+.article-body blockquote {
+  @apply my-6 border-l-4 border-red-600 pl-4 italic text-slate-600;
+}

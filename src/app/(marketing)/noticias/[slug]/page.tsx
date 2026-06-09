@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArticleBody, ArticleSourceFooter } from "@/components/sections/article-content";
 import { MarketingPageMain } from "@/components/layout/page-intro";
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -30,7 +31,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!post) return {};
 
   const title = `${stripHtml(post.title)} | Pio Deportes`;
-  const description = stripHtml(post.excerpt ?? post.title).slice(0, 160);
+  const description = stripHtml(post.content ?? post.excerpt ?? post.title).slice(0, 160);
   const path = getPostPath(post);
 
   return {
@@ -54,8 +55,7 @@ export default async function NoticiaArticlePage({ params }: PageProps) {
   if (!post) notFound();
 
   const safeTitle = stripHtml(post.title);
-  const safeExcerpt = stripHtml(post.excerpt ?? "");
-  const path = getPostPath(post);
+  const bodyHtml = post.content?.trim() || post.excerpt?.trim() || "";
 
   return (
     <MarketingPageMain>
@@ -92,21 +92,21 @@ export default async function NoticiaArticlePage({ params }: PageProps) {
           </div>
         )}
 
-        <div className="prose prose-slate mt-8 max-w-3xl">
-          {safeExcerpt ? (
-            <div
-              className="text-base leading-relaxed text-slate-700"
-              dangerouslySetInnerHTML={{ __html: post.excerpt ?? "" }}
-            />
+        <div className="mt-8 max-w-3xl">
+          {bodyHtml ? (
+            <ArticleBody html={bodyHtml} />
           ) : (
             <p className="text-base leading-relaxed text-slate-700">
-              Cobertura de PIO Deportes sobre el Mundial FIFA 2026 y el futbol internacional. Consulta más
-              noticias en nuestra sección editorial.
+              Cobertura de PIO Deportes sobre el Mundial FIFA 2026 y el futbol internacional.
             </p>
           )}
         </div>
 
-        <div className="mt-10 flex flex-wrap gap-3">
+        <div className="max-w-3xl">
+          <ArticleSourceFooter originalUrl={post.url} />
+        </div>
+
+        <div className="mt-10 flex max-w-3xl flex-wrap gap-3">
           <Link
             href={PAGE_SEO.noticias.path}
             className="rounded-full border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-800"

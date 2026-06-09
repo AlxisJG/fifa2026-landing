@@ -2,6 +2,7 @@ import { wordpressFetchCache } from "@/lib/cache/wordpress";
 import { news as fallbackNews } from "@/data/landing-content";
 import type { PostItem } from "@/lib/posts-types";
 import { extractSlugFromUrl, getPostSlug, slugifyPostTitle } from "@/lib/posts-slug";
+import { getWpRestBase } from "@/lib/wordpress-media";
 
 function sortPostsByDate(posts: PostItem[]): PostItem[] {
   return [...posts].sort((a, b) => {
@@ -53,6 +54,10 @@ function wpToPost(raw: Record<string, unknown>): PostItem | null {
       typeof raw.excerpt === "string"
         ? raw.excerpt
         : ((raw.excerpt as { rendered?: string } | undefined)?.rendered ?? ""),
+    content:
+      typeof raw.content === "string"
+        ? raw.content
+        : ((raw.content as { rendered?: string } | undefined)?.rendered ?? undefined),
     date: (raw.date as string | undefined) ?? "",
     source: "wordpress"
   };
@@ -140,10 +145,41 @@ export async function getPostSlugs(): Promise<string[]> {
   return posts.map((post) => getPostSlug(post));
 }
 
+async function fetchWordPressPostContent(slug: string): Promise<string | null> {
+  const baseUrl = process.env.NEXT_PUBLIC_WP_API_URL;
+  if (!baseUrl) return null;
+
+  const wpRestBase = getWpRestBase(baseUrl);
+  const res = await fetch(
+    `${wpRestBase}/wp/v2/posts?slug=${encodeURIComponent(slug)}&_fields=content`,
+    wordpressFetchCache()
+  );
+
+  if (!res.ok) return null;
+
+  const posts = (await res.json()) as Array<{ content?: { rendered?: string } }>;
+  const rendered = posts[0]?.content?.rendered?.trim();
+  return rendered || null;
+}
+
 export async function getPostBySlug(slug: string): Promise<PostItem | undefined> {
   const normalized = decodeURIComponent(slug).toLowerCase();
   const posts = await getPosts();
-  return posts.find((post) => getPostSlug(post).toLowerCase() === normalized);
+  const post = posts.find((item) => getPostSlug(item).toLowerCase() === normalized);
+  if (!post) return undefined;
+
+  if (post.content?.trim()) {
+    return post;
+  }
+
+  if (post.source === "wordpress") {
+    const content = await fetchWordPressPostContent(getPostSlug(post));
+    if (content) {
+      return { ...post, content };
+    }
+  }
+
+  return post;
 }
 
 export { getPostSlug, getPostPath } from "@/lib/posts-slug";
