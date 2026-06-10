@@ -4,14 +4,18 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 interface GoogleAnalyticsPageViewProps {
-  measurementId: string;
+  measurementId?: string;
+  googleAdsId?: string;
 }
 
 /**
- * Sends `page_view` on App Router navigations after the initial load (handled by `gtag('config', …)`).
- * @see https://developers.google.com/analytics/devguides/collection/ga4/views?client_type=gtag#get_started
+ * Sends page_path on App Router navigations after the initial load (handled by `gtag('config', …)`).
+ * Keeps GA4 and Google Ads web-traffic / remarketing in sync on client-side route changes.
  */
-export function GoogleAnalyticsPageView({ measurementId }: GoogleAnalyticsPageViewProps) {
+export function GoogleAnalyticsPageView({
+  measurementId,
+  googleAdsId
+}: GoogleAnalyticsPageViewProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isFirstRender = useRef(true);
@@ -29,10 +33,15 @@ export function GoogleAnalyticsPageView({ measurementId }: GoogleAnalyticsPageVi
       return;
     }
 
-    window.gtag("config", measurementId, {
-      page_path: pathWithQuery,
-    });
-  }, [pathname, searchParams, measurementId]);
+    const page = { page_path: pathWithQuery };
+
+    if (measurementId) {
+      window.gtag("config", measurementId, page);
+    }
+    if (googleAdsId) {
+      window.gtag("config", googleAdsId, page);
+    }
+  }, [pathname, searchParams, measurementId, googleAdsId]);
 
   return null;
 }
