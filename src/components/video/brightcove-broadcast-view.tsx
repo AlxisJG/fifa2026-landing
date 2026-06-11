@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { TransmissionPlayerAd } from "@/components/ads/transmission-player-ad";
 import { BrightcoveLivePlayer } from "@/components/video/brightcove-live-player";
 import { ACTIVE_BRIGHTCOVE_LIVE_STREAMS } from "@/lib/brightcove-live-config";
 
@@ -28,6 +29,10 @@ function LivePlayerTheater({ stream }: { stream: (typeof ACTIVE_BRIGHTCOVE_LIVE_
 
       <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/15 bg-black">
         <BrightcoveLivePlayer key={stream.id} stream={stream} />
+      </div>
+
+      <div className="relative mt-4">
+        <TransmissionPlayerAd />
       </div>
 
       <div className="relative mt-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3">

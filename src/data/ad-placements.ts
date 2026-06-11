@@ -33,6 +33,7 @@ export const rectanglePlacements = {
     sizeLabel: "300×250",
     placement: "Juego en vivo · Broadcast Center"
   },
+  /** Placeholder en home/demo; en `/transmision` usar GAM `transmissionPlayerGamSlot`. */
   liveStreamPlayer: {
     id: "leaderboard-live-player",
     title: "Banner Leaderboard",
