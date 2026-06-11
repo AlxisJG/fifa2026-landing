@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { BrightcoveLivePlayer } from "@/components/video/brightcove-live-player";
 import { BRIGHTCOVE_LIVE_STREAMS } from "@/lib/brightcove-live-config";
@@ -10,14 +10,10 @@ type BrightcoveBroadcastViewProps = {
 };
 
 export function BrightcoveBroadcastView({ className = "" }: BrightcoveBroadcastViewProps) {
-  const streams = useMemo(
-    () => BRIGHTCOVE_LIVE_STREAMS.filter((stream) => stream.playbackToken.trim().length > 0),
-    []
-  );
-  const [selectedId, setSelectedId] = useState(streams[0]?.id ?? BRIGHTCOVE_LIVE_STREAMS[0].id);
+  const [selectedId, setSelectedId] = useState(BRIGHTCOVE_LIVE_STREAMS[0].id);
 
   const selectedStream =
-    streams.find((stream) => stream.id === selectedId) ?? streams[0] ?? BRIGHTCOVE_LIVE_STREAMS[0];
+    BRIGHTCOVE_LIVE_STREAMS.find((stream) => stream.id === selectedId) ?? BRIGHTCOVE_LIVE_STREAMS[0];
 
   return (
     <div className={`grid gap-5 xl:grid-cols-12 ${className}`.trim()}>
@@ -61,20 +57,18 @@ export function BrightcoveBroadcastView({ className = "" }: BrightcoveBroadcastV
         <div className="mt-5 flex-1 space-y-3">
           {BRIGHTCOVE_LIVE_STREAMS.map((stream) => {
             const isSelected = stream.id === selectedStream.id;
-            const isConfigured = stream.playbackToken.trim().length > 0;
 
             return (
               <motion.button
                 key={stream.id}
                 type="button"
-                disabled={!isConfigured}
                 onClick={() => setSelectedId(stream.id)}
-                whileHover={isConfigured ? { x: 4 } : undefined}
+                whileHover={{ x: 4 }}
                 className={`w-full rounded-2xl border p-3.5 text-left transition ${
                   isSelected
                     ? "border-blue-500 bg-blue-50 shadow-[0_8px_24px_rgba(37,99,235,0.12)]"
                     : "border-slate-300 bg-slate-50 hover:border-slate-400"
-                } ${!isConfigured ? "cursor-not-allowed opacity-50" : ""}`}
+                }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -83,15 +77,12 @@ export function BrightcoveBroadcastView({ className = "" }: BrightcoveBroadcastV
                       <p className="mt-1 text-xs text-slate-600">{stream.matchSubtitle}</p>
                     ) : null}
                   </div>
-                  {isSelected && isConfigured ? (
+                  {isSelected ? (
                     <span className="shrink-0 rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-red-600">
                       En vivo
                     </span>
                   ) : null}
                 </div>
-                {!isConfigured ? (
-                  <p className="mt-2 text-xs text-slate-500">Canal no disponible</p>
-                ) : null}
               </motion.button>
             );
           })}

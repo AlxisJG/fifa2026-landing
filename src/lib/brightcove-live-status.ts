@@ -1,5 +1,6 @@
 import {
   type BrightcoveLiveStreamConfig,
+  getBrightcovePlaybackApiUrl,
   getConfiguredBrightcoveLiveStreams
 } from "@/lib/brightcove-live-config";
 
@@ -35,13 +36,9 @@ export async function getBrightcoveLiveStreamStatus(
     lastSegmentAt: null as string | null
   };
 
-  if (!stream.playbackToken.trim()) {
-    return { ...base, error: "playback_token_missing" };
-  }
-
   try {
     const playbackRes = await fetch(
-      `https://api.live.brightcove.com/v2/playback/${stream.channelId}?pt=${encodeURIComponent(stream.playbackToken)}`,
+      getBrightcovePlaybackApiUrl(stream.channelId, stream.playbackToken),
       { cache: "no-store" }
     );
 

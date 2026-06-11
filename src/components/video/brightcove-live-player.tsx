@@ -20,6 +20,7 @@ export function BrightcoveLivePlayer({
 }: BrightcoveLivePlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerScript = getBrightcoveLivePlayerScript(stream.playerId);
+  const playbackToken = stream.playbackToken?.trim();
 
   useEffect(() => {
     const container = containerRef.current;
@@ -33,7 +34,9 @@ export function BrightcoveLivePlayer({
     player.setAttribute("data-player", stream.playerId);
     player.setAttribute("data-embed", "default");
     player.setAttribute("data-video-id", stream.channelId);
-    player.setAttribute("data-live-playback-token", stream.playbackToken);
+    if (playbackToken) {
+      player.setAttribute("data-live-playback-token", playbackToken);
+    }
     player.setAttribute("data-application-id", "");
     player.setAttribute("controls", "");
     player.className = `h-full w-full ${className}`.trim();
@@ -42,15 +45,7 @@ export function BrightcoveLivePlayer({
     return () => {
       container.replaceChildren();
     };
-  }, [className, stream.channelId, stream.id, stream.playbackToken, stream.playerId]);
-
-  if (!stream.playbackToken.trim()) {
-    return (
-      <div className="flex h-full min-h-[180px] w-full items-center justify-center rounded-2xl border border-dashed border-white/20 bg-black/40 px-4 text-center text-sm text-white/60">
-        Token de reproducción no configurado para este canal.
-      </div>
-    );
-  }
+  }, [className, playbackToken, stream.channelId, stream.id, stream.playerId]);
 
   return (
     <>
