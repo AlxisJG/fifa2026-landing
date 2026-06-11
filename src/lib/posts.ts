@@ -1,3 +1,4 @@
+import { withWordPressSnapshot } from "@/lib/cache/wordpress-snapshot";
 import { wordpressFetchCache } from "@/lib/cache/wordpress";
 import { news as fallbackNews } from "@/data/landing-content";
 import type { PostItem } from "@/lib/posts-types";
@@ -97,13 +98,22 @@ function extractPostsPayload(json: unknown): {
   return { posts: [], totalPages: 1 };
 }
 
+/** Slug de categoría WordPress para noticias del Mundial (taxonomía category). */
+const WP_NEWS_CATEGORY_SLUG =
+  process.env.NEXT_PUBLIC_WP_NEWS_CATEGORY_SLUG ?? "mundial-fifa-usa-can-mex-2026";
+
 async function fetchAllWordPressPosts(baseUrl: string): Promise<Record<string, unknown>[]> {
   const allPosts: Record<string, unknown>[] = [];
   let page = 1;
   let totalPages = 1;
 
   do {
-    const res = await fetch(`${baseUrl}/posts?tag=fifa-2026&per_page=100&page=${page}`, wordpressFetchCache());
+    const params = new URLSearchParams({
+      category: WP_NEWS_CATEGORY_SLUG,
+      per_page: "100",
+      page: String(page)
+    });
+    const res = await fetch(`${baseUrl}/posts?${params}`, wordpressFetchCache());
 
     if (!res.ok) {
       return page === 1 ? [] : allPosts;
@@ -126,18 +136,17 @@ export async function getPosts(): Promise<PostItem[]> {
     return staticPosts;
   }
 
-  try {
-    const raw = await fetchAllWordPressPosts(baseUrl);
+  const raw = await withWordPressSnapshot("posts", async () => {
+    const posts = await fetchAllWordPressPosts(baseUrl);
+    return posts.length > 0 ? posts : null;
+  });
 
-    if (raw.length === 0) {
-      return staticPosts;
-    }
-
-    const wpPosts = raw.map((item) => wpToPost(item)).filter(Boolean) as PostItem[];
-    return wpPosts.length > 0 ? sortPostsByDate(wpPosts) : staticPosts;
-  } catch {
+  if (!raw || raw.length === 0) {
     return staticPosts;
   }
+
+  const wpPosts = raw.map((item) => wpToPost(item)).filter(Boolean) as PostItem[];
+  return wpPosts.length > 0 ? sortPostsByDate(wpPosts) : staticPosts;
 }
 
 export async function getPostSlugs(): Promise<string[]> {

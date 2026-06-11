@@ -1,12 +1,14 @@
 import {
-  BRIGHTCOVE_LIVE_PLAYBACK_TOKEN,
-  BRIGHTCOVE_LIVE_VIDEO_ID
+  type BrightcoveLiveStreamConfig,
+  getConfiguredBrightcoveLiveStreams
 } from "@/lib/brightcove-live-config";
 
 /** Segmentos HLS de 6s; toleramos ~30s de retraso antes de marcar sin señal. */
 const MAX_SEGMENT_AGE_MS = 30_000;
 
 export type BrightcoveLiveStreamStatus = {
+  id: string;
+  label: string;
   active: boolean;
   lastSegmentAt: string | null;
   error?: string;
@@ -23,47 +25,66 @@ function isRecentSegment(timestamp: string, now = Date.now()): boolean {
   return age >= 0 && age <= MAX_SEGMENT_AGE_MS;
 }
 
-export async function getBrightcoveLiveStreamStatus(): Promise<BrightcoveLiveStreamStatus> {
+export async function getBrightcoveLiveStreamStatus(
+  stream: Pick<BrightcoveLiveStreamConfig, "id" | "label" | "channelId" | "playbackToken">
+): Promise<BrightcoveLiveStreamStatus> {
+  const base = {
+    id: stream.id,
+    label: stream.label,
+    active: false,
+    lastSegmentAt: null as string | null
+  };
+
+  if (!stream.playbackToken.trim()) {
+    return { ...base, error: "playback_token_missing" };
+  }
+
   try {
     const playbackRes = await fetch(
-      `https://api.live.brightcove.com/v2/playback/${BRIGHTCOVE_LIVE_VIDEO_ID}?pt=${encodeURIComponent(BRIGHTCOVE_LIVE_PLAYBACK_TOKEN)}`,
+      `https://api.live.brightcove.com/v2/playback/${stream.channelId}?pt=${encodeURIComponent(stream.playbackToken)}`,
       { cache: "no-store" }
     );
 
     if (!playbackRes.ok) {
-      return { active: false, lastSegmentAt: null, error: "playback_url_unavailable" };
+      return { ...base, error: "playback_url_unavailable" };
     }
 
     const playback = (await playbackRes.json()) as { url?: string };
     if (!playback.url) {
-      return { active: false, lastSegmentAt: null, error: "playback_url_missing" };
+      return { ...base, error: "playback_url_missing" };
     }
 
     const manifestBase = playback.url.replace(/\/playlist-hls\.m3u8$/, "");
     const chunklistRes = await fetch(`${manifestBase}/chunklist_hls720p.m3u8`, { cache: "no-store" });
 
     if (!chunklistRes.ok) {
-      return { active: false, lastSegmentAt: null, error: "chunklist_unavailable" };
+      return { ...base, error: "chunklist_unavailable" };
     }
 
     const chunklist = await chunklistRes.text();
 
     if (chunklist.includes("#EXT-X-ENDLIST")) {
-      return { active: false, lastSegmentAt: null };
+      return base;
     }
 
     const timestamps = parseProgramDateTimes(chunklist);
     if (timestamps.length === 0) {
       const hasSegments = /#EXTINF:/.test(chunklist);
-      return { active: hasSegments, lastSegmentAt: null };
+      return { ...base, active: hasSegments };
     }
 
     const lastSegmentAt = timestamps[timestamps.length - 1];
     return {
+      ...base,
       active: isRecentSegment(lastSegmentAt),
       lastSegmentAt
     };
   } catch {
-    return { active: false, lastSegmentAt: null, error: "status_check_failed" };
+    return { ...base, error: "status_check_failed" };
   }
+}
+
+export async function getAllBrightcoveLiveStreamsStatus(): Promise<BrightcoveLiveStreamStatus[]> {
+  const streams = getConfiguredBrightcoveLiveStreams();
+  return Promise.all(streams.map((stream) => getBrightcoveLiveStreamStatus(stream)));
 }

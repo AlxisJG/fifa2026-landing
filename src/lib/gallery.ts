@@ -1,3 +1,4 @@
+import { withWordPressSnapshot } from "@/lib/cache/wordpress-snapshot";
 import { gallery as fallbackGallery } from "@/data/landing-content";
 import type { GalleryItem } from "@/lib/gallery-types";
 import { fetchMediaForCategorySlug, stripHtml, type WpMedia } from "@/lib/wordpress-media";
@@ -33,11 +34,15 @@ export async function getGallery(): Promise<GalleryItem[]> {
   const categorySlug =
     process.env.NEXT_PUBLIC_WP_GALLERY_CATEGORY_SLUG?.trim() || DEFAULT_CATEGORY_SLUG;
 
-  try {
-    const raw = await fetchMediaForCategorySlug(process.env.NEXT_PUBLIC_WP_API_URL, categorySlug);
-    const items = raw.map(wpMediaToGalleryItem).filter(Boolean) as GalleryItem[];
-    return items.length > 0 ? items : staticGallery;
-  } catch {
+  const raw = await withWordPressSnapshot("gallery", async () => {
+    const media = await fetchMediaForCategorySlug(process.env.NEXT_PUBLIC_WP_API_URL, categorySlug);
+    return media.length > 0 ? media : null;
+  });
+
+  if (!raw || raw.length === 0) {
     return staticGallery;
   }
+
+  const items = raw.map(wpMediaToGalleryItem).filter(Boolean) as GalleryItem[];
+  return items.length > 0 ? items : staticGallery;
 }
