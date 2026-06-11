@@ -22,6 +22,8 @@ type FetchOptions = {
   enabled?: boolean;
   /** When set, skip initial loading state (SSR-hydrated data). */
   initialSource?: "live" | "demo";
+  /** Refetch interval in ms (e.g. live match center). */
+  pollIntervalMs?: number;
 };
 
 async function fetchRoute<T>(url: string): Promise<ProviderResponse<T>> {
@@ -32,6 +34,7 @@ async function fetchRoute<T>(url: string): Promise<ProviderResponse<T>> {
 
 function useFootballRoute<T>(url: string, initialData: T, options?: FetchOptions): HookState<T> {
   const enabled = options?.enabled ?? true;
+  const pollIntervalMs = options?.pollIntervalMs;
   const hasSsrSource = options?.initialSource !== undefined;
   const [state, setState] = useState<HookState<T>>({
     data: initialData,
@@ -46,31 +49,45 @@ function useFootballRoute<T>(url: string, initialData: T, options?: FetchOptions
     }
 
     let active = true;
-    if (!hasSsrSource) {
-      setState((prev) => ({ ...prev, loading: true }));
-    }
-    fetchRoute<T>(url)
-      .then((payload) => {
-        if (!active) return;
-        setState({
-          data: payload.data,
-          loading: false,
-          error: payload.error,
-          source: payload.source
+
+    const load = (isPoll = false) => {
+      if (!hasSsrSource && !isPoll) {
+        setState((prev) => ({ ...prev, loading: true }));
+      }
+
+      fetchRoute<T>(url)
+        .then((payload) => {
+          if (!active) return;
+          setState({
+            data: payload.data,
+            loading: false,
+            error: payload.error,
+            source: payload.source
+          });
+        })
+        .catch((err) => {
+          if (!active) return;
+          setState((prev) => ({
+            ...prev,
+            loading: false,
+            error: err instanceof Error ? err.message : "Failed to load"
+          }));
         });
-      })
-      .catch((err) => {
-        if (!active) return;
-        setState((prev) => ({
-          ...prev,
-          loading: false,
-          error: err instanceof Error ? err.message : "Failed to load"
-        }));
-      });
+    };
+
+    load();
+    if (!pollIntervalMs) {
+      return () => {
+        active = false;
+      };
+    }
+
+    const intervalId = window.setInterval(() => load(true), pollIntervalMs);
     return () => {
       active = false;
+      window.clearInterval(intervalId);
     };
-  }, [url, enabled, hasSsrSource, initialData, options?.initialSource]);
+  }, [url, enabled, hasSsrSource, initialData, options?.initialSource, pollIntervalMs]);
 
   return state;
 }
@@ -87,8 +104,13 @@ export function useStandings(initialData: StandingsData, options?: FetchOptions)
   return useFootballRoute<StandingsData>("/api/football/standings", initialData, options);
 }
 
+const MATCH_CENTER_POLL_MS = 30_000;
+
 export function useMatchCenter(initialData: FeaturedMatch, options?: FetchOptions) {
-  return useFootballRoute<FeaturedMatch>("/api/football/match-center", initialData, options);
+  return useFootballRoute<FeaturedMatch>("/api/football/match-center", initialData, {
+    pollIntervalMs: MATCH_CENTER_POLL_MS,
+    ...options
+  });
 }
 
 export function useSquads(initialData: SquadTeam[] = [], options?: FetchOptions) {

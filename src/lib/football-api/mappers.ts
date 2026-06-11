@@ -174,8 +174,22 @@ export function mapSportmonksFixtureToFixture(fixture: SportmonksFixture): Fixtu
   };
 }
 
+function formatFeaturedLiveDetail(fixture: SportmonksFixture): string | undefined {
+  const state = fixture.state?.developer_name?.toUpperCase() ?? "";
+  if (state.includes("HT")) return "Descanso";
+  if (state.includes("BREAK")) return "Entretiempo";
+  if (state.includes("PEN")) return "Penales";
+
+  const elapsed = getElapsedMinutes(fixture);
+  return elapsed != null ? `${elapsed}'` : "En vivo";
+}
+
 export function mapSportmonksFixtureToFeaturedMatch(fixture: SportmonksFixture): FeaturedMatch {
   const { home, away } = getHomeAwayParticipants(fixture);
+  const live = isSportmonksFixtureLive(fixture);
+  const homeScore = getGoalsForParticipant(fixture, home?.id);
+  const awayScore = getGoalsForParticipant(fixture, away?.id);
+  const hasScore = homeScore != null && awayScore != null;
 
   return {
     homeCode: teamCode(home, "LOC"),
@@ -190,7 +204,11 @@ export function mapSportmonksFixtureToFeaturedMatch(fixture: SportmonksFixture):
     kickoffAt: sportmonksStartingAtToIso(fixture.starting_at),
     homeFlagUrl: teamFlagUrl(home),
     awayFlagUrl: teamFlagUrl(away),
-    isPlaceholder: Boolean(fixture.placeholder || home?.placeholder || away?.placeholder)
+    isPlaceholder: Boolean(fixture.placeholder || home?.placeholder || away?.placeholder),
+    live,
+    homeScore: hasScore ? homeScore : undefined,
+    awayScore: hasScore ? awayScore : undefined,
+    liveDetail: live ? formatFeaturedLiveDetail(fixture) : undefined
   };
 }
 

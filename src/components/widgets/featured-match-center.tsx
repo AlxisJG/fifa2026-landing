@@ -51,12 +51,50 @@ function FeaturedMatchup({
   homeName,
   awayName,
   homeFlagUrl,
-  awayFlagUrl
-}: Pick<FeaturedMatch, "homeCode" | "awayCode" | "homeName" | "awayName" | "homeFlagUrl" | "awayFlagUrl">) {
+  awayFlagUrl,
+  homeScore,
+  awayScore,
+  live,
+  liveDetail
+}: Pick<
+  FeaturedMatch,
+  | "homeCode"
+  | "awayCode"
+  | "homeName"
+  | "awayName"
+  | "homeFlagUrl"
+  | "awayFlagUrl"
+  | "homeScore"
+  | "awayScore"
+  | "live"
+  | "liveDetail"
+>) {
+  const hasScore = homeScore != null && awayScore != null;
+
   return (
     <div className="grid grid-cols-[5.75rem_auto_5.75rem] items-end gap-x-5 gap-y-3 sm:grid-cols-[6.5rem_auto_6.5rem] sm:gap-x-8 sm:gap-y-3.5">
       <FeaturedFlag code={homeCode} flagUrl={homeFlagUrl} />
-      <span className="pb-1 text-2xl font-black uppercase leading-none text-white sm:pb-1.5 sm:text-4xl">VS</span>
+
+      <div className="flex min-w-[5.5rem] flex-col items-center gap-1 pb-1 sm:min-w-[7rem] sm:pb-1.5">
+        {hasScore ? (
+          <p className="text-3xl font-black tabular-nums leading-none tracking-tight text-white sm:text-5xl">
+            {homeScore}
+            <span className="mx-2 text-white/50">-</span>
+            {awayScore}
+          </p>
+        ) : (
+          <span className="text-2xl font-black uppercase leading-none text-white sm:text-4xl">VS</span>
+        )}
+        {live ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-red-300">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" />
+            {liveDetail ?? "En vivo"}
+          </span>
+        ) : hasScore ? (
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/55">Final</span>
+        ) : null}
+      </div>
+
       <FeaturedFlag code={awayCode} flagUrl={awayFlagUrl} />
 
       <p className="text-center text-xs font-semibold uppercase leading-snug text-white sm:text-sm">{homeName}</p>
@@ -152,11 +190,15 @@ export function FeaturedMatchCenter({
                   Por definir
                 </span>
               )}
-              {match.kickoff && (
+              {match.live ? (
+                <p className="mt-2 text-sm font-bold uppercase tracking-[0.12em] text-red-300 sm:text-base">
+                  Partido en curso
+                </p>
+              ) : match.kickoff ? (
                 <p className="mt-2 text-sm font-bold uppercase tracking-[0.12em] text-[#c8f542] sm:text-base">
                   {match.kickoff}
                 </p>
-              )}
+              ) : null}
               <p className="mt-2 text-xs text-white/85 sm:text-sm">{match.venue}</p>
             </>
           )}
@@ -183,6 +225,10 @@ export function FeaturedMatchCenter({
                 awayName={match.awayName}
                 homeFlagUrl={match.homeFlagUrl}
                 awayFlagUrl={match.awayFlagUrl}
+                homeScore={match.homeScore}
+                awayScore={match.awayScore}
+                live={match.live}
+                liveDetail={match.liveDetail}
               />
             )}
           </div>

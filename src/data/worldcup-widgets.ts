@@ -68,7 +68,11 @@ export const featuredMatch: FeaturedMatch = {
   groupLabel: "Grupo A — Fase de grupos",
   venue: "Mexico City Stadium",
   kickoff: "jue, 11 jun, 7:00 p. m.",
-  kickoffAt: "2026-06-11T23:00:00.000Z"
+  kickoffAt: "2026-06-11T23:00:00.000Z",
+  live: true,
+  homeScore: 1,
+  awayScore: 0,
+  liveDetail: "67'"
 };
 
 export const fixtures: Fixture[] = [

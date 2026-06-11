@@ -53,6 +53,11 @@ export type FeaturedMatch = {
   homeFlagUrl?: string;
   awayFlagUrl?: string;
   isPlaceholder?: boolean;
+  live?: boolean;
+  homeScore?: number;
+  awayScore?: number;
+  /** Ej. "67'" o "HT" cuando el partido está en curso. */
+  liveDetail?: string;
 };
 
 export type StandingsRow = {
