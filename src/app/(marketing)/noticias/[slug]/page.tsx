@@ -5,7 +5,7 @@ import { MarketingPageMain } from "@/components/layout/page-intro";
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { JsonLd } from "@/components/seo/json-ld";
 import { formatDateRd } from "@/lib/datetime-rd";
-import { getPostBySlug, getPostSlugs } from "@/lib/posts";
+import { getPostBySlug } from "@/lib/posts";
 import { getPostPath, stripHtml } from "@/lib/posts-slug";
 import { buildArticleSchema } from "@/lib/seo/json-ld";
 import { buildSocialMetadata } from "@/lib/seo/metadata-shared";
@@ -16,14 +16,12 @@ import type { Metadata } from "next";
 /** 5 min — sync with WORDPRESS_CACHE_SECONDS in src/lib/cache/wordpress.ts */
 export const revalidate = 300;
 
+/** Evita pre-render masivo en build (timeouts a WordPress). ISR bajo demanda. */
+export const dynamicParams = true;
+
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
-
-export async function generateStaticParams() {
-  const slugs = await getPostSlugs();
-  return slugs.map((slug) => ({ slug }));
-}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;

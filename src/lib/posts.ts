@@ -154,21 +154,32 @@ export async function getPostSlugs(): Promise<string[]> {
   return posts.map((post) => getPostSlug(post));
 }
 
+const WP_CONTENT_FETCH_TIMEOUT_MS = 12_000;
+
 async function fetchWordPressPostContent(slug: string): Promise<string | null> {
   const baseUrl = process.env.NEXT_PUBLIC_WP_API_URL;
   if (!baseUrl) return null;
 
   const wpRestBase = getWpRestBase(baseUrl);
-  const res = await fetch(
-    `${wpRestBase}/wp/v2/posts?slug=${encodeURIComponent(slug)}&_fields=content`,
-    wordpressFetchCache()
-  );
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), WP_CONTENT_FETCH_TIMEOUT_MS);
 
-  if (!res.ok) return null;
+  try {
+    const res = await fetch(
+      `${wpRestBase}/wp/v2/posts?slug=${encodeURIComponent(slug)}&_fields=content`,
+      { ...wordpressFetchCache(), signal: controller.signal }
+    );
 
-  const posts = (await res.json()) as Array<{ content?: { rendered?: string } }>;
-  const rendered = posts[0]?.content?.rendered?.trim();
-  return rendered || null;
+    if (!res.ok) return null;
+
+    const posts = (await res.json()) as Array<{ content?: { rendered?: string } }>;
+    const rendered = posts[0]?.content?.rendered?.trim();
+    return rendered || null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 export async function getPostBySlug(slug: string): Promise<PostItem | undefined> {
@@ -182,9 +193,13 @@ export async function getPostBySlug(slug: string): Promise<PostItem | undefined>
   }
 
   if (post.source === "wordpress") {
-    const content = await fetchWordPressPostContent(getPostSlug(post));
-    if (content) {
-      return { ...post, content };
+    try {
+      const content = await fetchWordPressPostContent(getPostSlug(post));
+      if (content) {
+        return { ...post, content };
+      }
+    } catch {
+      // Usar excerpt si WordPress no responde a tiempo.
     }
   }
 
