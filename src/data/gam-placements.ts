@@ -1,7 +1,15 @@
+export type GamSizeMappingBreakpoint = {
+  /** Ancho mínimo del viewport [width, height] — GPT usa el primer match de arriba hacia abajo. */
+  viewport: [number, number];
+  sizes: [number, number][];
+};
+
 export type GamSlotConfig = {
   adUnitPath: string;
   slotId: string;
   sizes: [number, number][];
+  /** Restringe qué tamaños puede pedir GAM según el viewport (evita mezclar desktop/mobile). */
+  sizeMapping?: GamSizeMappingBreakpoint[];
   minWidth: number;
   minHeight: number;
 };
@@ -19,6 +27,11 @@ export const transmissionPlayerGamSlot: GamSlotConfig = {
     [728, 90],
     [320, 50],
     [300, 50]
+  ],
+  sizeMapping: [
+    { viewport: [1024, 0], sizes: [[970, 90], [728, 90]] },
+    { viewport: [768, 0], sizes: [[728, 90]] },
+    { viewport: [0, 0], sizes: [[320, 50], [300, 50]] }
   ],
   minWidth: 300,
   minHeight: 50

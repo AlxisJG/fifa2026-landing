@@ -2,7 +2,15 @@
 
 import { useEffect } from "react";
 import type { GamSlotConfig } from "@/data/gam-placements";
-import { enableGptServicesOnce, ensureGptScript } from "@/lib/gpt-loader";
+import {
+  enableGptServicesOnce,
+  ensureGptScript,
+  hasGptSlotBeenDefined,
+  hasGptSlotBeenDisplayed,
+  markGptSlotDefined,
+  markGptSlotDisplayed
+} from "@/lib/gpt-loader";
+import { applyGptSizeMapping } from "@/lib/gpt-size-mapping";
 
 type GptAdSlotProps = {
   slot: GamSlotConfig;
@@ -21,17 +29,30 @@ export function GptAdSlot({ slot, className = "" }: GptAdSlotProps) {
         return;
       }
 
-      const alreadyDefined = googletag
-        .pubads()
-        .getSlots()
-        .some((definedSlot) => definedSlot.getSlotElementId() === slot.slotId);
+      if (!hasGptSlotBeenDefined(slot.slotId)) {
+        const defined = googletag.defineSlot(slot.adUnitPath, slot.sizes, slot.slotId);
+        if (!defined) {
+          return;
+        }
 
-      if (!alreadyDefined) {
-        googletag.defineSlot(slot.adUnitPath, slot.sizes, slot.slotId)?.addService(googletag.pubads());
+        if (slot.sizeMapping?.length) {
+          const mapping = applyGptSizeMapping(googletag, slot.sizeMapping);
+          if (mapping) {
+            defined.defineSizeMapping(mapping);
+          }
+        }
+
+        defined.addService(googletag.pubads());
+        markGptSlotDefined(slot.slotId);
       }
 
       enableGptServicesOnce();
-      googletag.display(slot.slotId);
+
+      // Evita re-display en re-renders / Strict Mode — cada refresh puede alternar creativo.
+      if (!hasGptSlotBeenDisplayed(slot.slotId)) {
+        googletag.display(slot.slotId);
+        markGptSlotDisplayed(slot.slotId);
+      }
     });
   }, [slot]);
 
