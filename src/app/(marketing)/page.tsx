@@ -12,7 +12,7 @@ import { HomepageJsonLd } from "@/components/seo/homepage-json-ld";
 import { isAdsEnabled } from "@/lib/ads-gate";
 import { footballDataProvider } from "@/lib/football-api/provider";
 import { getPosts } from "@/lib/posts";
-import { resolveCountdownTargetMs } from "@/lib/world-cup-kickoff";
+import { resolveOpeningKickoffMs, shouldShowWorldCupCountdown } from "@/lib/world-cup-kickoff";
 import type { Metadata } from "next";
 import { buildSocialMetadata } from "@/lib/seo/metadata-shared";
 import { HOME_SEO, SITE_URL } from "@/lib/seo/site";
@@ -39,10 +39,8 @@ export default async function HomePage() {
     footballDataProvider.getFixtures(),
     footballDataProvider.getFeaturedMatch()
   ]);
-  const countdownTargetMs = resolveCountdownTargetMs(
-    fixturesRes.data,
-    matchRes.data.kickoffAt
-  );
+  const countdownTargetMs = resolveOpeningKickoffMs(fixturesRes.data, matchRes.data.kickoffAt);
+  const showCountdown = shouldShowWorldCupCountdown(fixturesRes.data, matchRes.data.kickoffAt);
 
   return (
     <>
@@ -52,7 +50,7 @@ export default async function HomePage() {
         <Hero />
         <PageContentAds page="home">
           <SeoIntroSection />
-          <CountdownWidget targetMs={countdownTargetMs} />
+          {showCountdown && <CountdownWidget targetMs={countdownTargetMs} />}
           <LatestNewsSection initialPosts={posts} />
           <FeaturedMatchCenter
             ctaMode="marketing"

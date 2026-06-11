@@ -39,15 +39,21 @@ export function CountdownWidget({ targetMs = WORLD_CUP_KICKOFF_MS }: CountdownWi
     return () => window.clearInterval(i);
   }, []);
 
+  const remainingMs = targetMs - now;
+
   const parts = useMemo((): CountdownParts => {
-    const d = Math.max(targetMs - now, 0);
+    const d = Math.max(remainingMs, 0);
     return {
       days: Math.floor(d / 86400000),
       hours: Math.floor((d / 3600000) % 24),
       minutes: Math.floor((d / 60000) % 60),
       seconds: Math.floor((d / 1000) % 60)
     };
-  }, [now, targetMs]);
+  }, [remainingMs]);
+
+  if (remainingMs <= 0) {
+    return null;
+  }
 
   return (
     <section

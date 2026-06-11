@@ -19,10 +19,7 @@ function toCalendarKey(date: Date, timeZone = DOMINICAN_TIMEZONE): string {
   }).format(date);
 }
 
-export function resolveCountdownTargetMs(
-  fixtures: Fixture[],
-  kickoffAt?: string | null
-): number {
+function collectKickoffCandidates(fixtures: Fixture[], kickoffAt?: string | null): number[] {
   const candidates: number[] = [];
 
   if (kickoffAt) {
@@ -35,16 +32,47 @@ export function resolveCountdownTargetMs(
     if (Number.isFinite(ms)) candidates.push(ms);
   }
 
+  return candidates;
+}
+
+/** Opening match kickoff — earliest fixture in the tournament schedule. */
+export function resolveOpeningKickoffMs(
+  fixtures: Fixture[],
+  kickoffAt?: string | null
+): number {
+  const candidates = collectKickoffCandidates(fixtures, kickoffAt);
   if (candidates.length === 0) {
     return WORLD_CUP_KICKOFF_MS;
   }
 
-  const now = Date.now();
-  const sorted = [...new Set(candidates)].sort((a, b) => a - b);
-  return sorted.find((ms) => ms >= now) ?? sorted[0];
+  return Math.min(...candidates);
 }
 
-export function isWorldCupKickoffReached(at = Date.now()): boolean {
+/** @deprecated Use resolveOpeningKickoffMs — countdown targets opening match only. */
+export function resolveCountdownTargetMs(
+  fixtures: Fixture[],
+  kickoffAt?: string | null
+): number {
+  return resolveOpeningKickoffMs(fixtures, kickoffAt);
+}
+
+export function shouldShowWorldCupCountdown(
+  fixtures: Fixture[],
+  kickoffAt?: string | null,
+  at = Date.now()
+): boolean {
+  return at < resolveOpeningKickoffMs(fixtures, kickoffAt);
+}
+
+export function isWorldCupKickoffReached(
+  at = Date.now(),
+  fixtures: Fixture[] = [],
+  kickoffAt?: string | null
+): boolean {
+  if (fixtures.length > 0 || kickoffAt) {
+    return at >= resolveOpeningKickoffMs(fixtures, kickoffAt);
+  }
+
   return at >= WORLD_CUP_KICKOFF_MS;
 }
 

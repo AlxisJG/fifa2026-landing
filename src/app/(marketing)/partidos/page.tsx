@@ -5,7 +5,7 @@ import { MarketingPageMain, PageIntro } from "@/components/layout/page-intro";
 import { PageContentAds } from "@/components/layout/page-content-ads";
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { footballDataProvider } from "@/lib/football-api/provider";
-import { resolveCountdownTargetMs } from "@/lib/world-cup-kickoff";
+import { resolveOpeningKickoffMs, shouldShowWorldCupCountdown } from "@/lib/world-cup-kickoff";
 import { buildPageMetadata, PAGE_SEO } from "@/lib/seo/pages";
 
 export const metadata = buildPageMetadata("partidos");
@@ -24,7 +24,8 @@ function FixturesFallback() {
 
 export default async function PartidosPage() {
   const fixturesRes = await footballDataProvider.getFixtures();
-  const countdownTargetMs = resolveCountdownTargetMs(fixturesRes.data);
+  const countdownTargetMs = resolveOpeningKickoffMs(fixturesRes.data);
+  const showCountdown = shouldShowWorldCupCountdown(fixturesRes.data);
 
   return (
     <MarketingPageMain>
@@ -36,7 +37,7 @@ export default async function PartidosPage() {
       />
       <PageIntro config={PAGE_SEO.partidos} kicker="Competiciones" />
       <PageContentAds page="partidos">
-        <CountdownWidget targetMs={countdownTargetMs} />
+        {showCountdown && <CountdownWidget targetMs={countdownTargetMs} />}
         <Suspense fallback={<FixturesFallback />}>
           <FixturesSection
             initialFixtures={fixturesRes.data}
