@@ -35,11 +35,14 @@ export function shouldBypassGeoBlock(request: NextRequest): boolean {
 }
 
 export function resolveRequestCountry(request: NextRequest): string | null {
-  const fromGeo = request.geo?.country?.trim().toUpperCase();
-  if (fromGeo) return fromGeo;
-
   const fromHeader = request.headers.get("x-vercel-ip-country")?.trim().toUpperCase();
-  return fromHeader || null;
+  if (fromHeader) return fromHeader;
+
+  // Vercel Edge may attach geo on the request object at runtime (not in NextRequest types).
+  const geoCountry = (request as NextRequest & { geo?: { country?: string } }).geo?.country
+    ?.trim()
+    .toUpperCase();
+  return geoCountry || null;
 }
 
 export function isCountryAllowed(country: string | null): boolean {
