@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import {
   BRIGHTCOVE_LIVE_ACCOUNT_ID,
   type BrightcoveLiveStreamConfig,
-  BRIGHTCOVE_LIVE_STREAMS,
+  ACTIVE_BRIGHTCOVE_LIVE_STREAMS,
   getBrightcoveLivePlayerScript
 } from "@/lib/brightcove-live-config";
 
@@ -15,7 +15,7 @@ type BrightcoveLivePlayerProps = {
 };
 
 export function BrightcoveLivePlayer({
-  stream = BRIGHTCOVE_LIVE_STREAMS[0],
+  stream = ACTIVE_BRIGHTCOVE_LIVE_STREAMS[0],
   className = ""
 }: BrightcoveLivePlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);

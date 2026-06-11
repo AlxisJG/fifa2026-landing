@@ -12,7 +12,7 @@ export type BrightcoveLiveStreamConfig = {
   playbackToken?: string;
 };
 
-export const BRIGHTCOVE_LIVE_STREAMS: BrightcoveLiveStreamConfig[] = [
+const ALL_BRIGHTCOVE_LIVE_STREAMS: BrightcoveLiveStreamConfig[] = [
   {
     id: "live-1",
     label: "Transmisión Live #1",
@@ -33,10 +33,29 @@ export const BRIGHTCOVE_LIVE_STREAMS: BrightcoveLiveStreamConfig[] = [
   }
 ];
 
+/** @deprecated Usar getActiveBrightcoveLiveStreams(). */
+export const BRIGHTCOVE_LIVE_STREAMS = ALL_BRIGHTCOVE_LIVE_STREAMS;
+
+export function isBrightcoveLiveStream2Enabled(): boolean {
+  return process.env.BRIGHTCOVE_LIVE_2_ENABLED === "true";
+}
+
+export function getActiveBrightcoveLiveStreams(): BrightcoveLiveStreamConfig[] {
+  return ALL_BRIGHTCOVE_LIVE_STREAMS.filter((stream) => {
+    if (stream.id === "live-2" && !isBrightcoveLiveStream2Enabled()) {
+      return false;
+    }
+    return stream.channelId.trim().length > 0 && stream.playerId.trim().length > 0;
+  });
+}
+
+/** Canales activos en UI y en el chequeo de señal (stream 2 desactivado por defecto). */
+export const ACTIVE_BRIGHTCOVE_LIVE_STREAMS = getActiveBrightcoveLiveStreams();
+
 /** Compatibilidad con imports existentes (stream principal). */
-export const BRIGHTCOVE_LIVE_PLAYER_ID = BRIGHTCOVE_LIVE_STREAMS[0].playerId;
-export const BRIGHTCOVE_LIVE_VIDEO_ID = BRIGHTCOVE_LIVE_STREAMS[0].channelId;
-export const BRIGHTCOVE_LIVE_PLAYBACK_TOKEN = BRIGHTCOVE_LIVE_STREAMS[0].playbackToken ?? "";
+export const BRIGHTCOVE_LIVE_PLAYER_ID = ACTIVE_BRIGHTCOVE_LIVE_STREAMS[0]?.playerId ?? "nJQN4AMQl";
+export const BRIGHTCOVE_LIVE_VIDEO_ID = ACTIVE_BRIGHTCOVE_LIVE_STREAMS[0]?.channelId ?? "6397475321112";
+export const BRIGHTCOVE_LIVE_PLAYBACK_TOKEN = ACTIVE_BRIGHTCOVE_LIVE_STREAMS[0]?.playbackToken ?? "";
 
 export function getBrightcoveLivePlayerScript(playerId: string): string {
   return `https://players.brightcove.net/${BRIGHTCOVE_LIVE_ACCOUNT_ID}/${playerId}_default/index.min.js`;
@@ -47,9 +66,7 @@ export const BRIGHTCOVE_LIVE_PLAYER_SCRIPT = getBrightcoveLivePlayerScript(
 );
 
 export function getConfiguredBrightcoveLiveStreams(): BrightcoveLiveStreamConfig[] {
-  return BRIGHTCOVE_LIVE_STREAMS.filter(
-    (stream) => stream.channelId.trim().length > 0 && stream.playerId.trim().length > 0
-  );
+  return getActiveBrightcoveLiveStreams();
 }
 
 export function getBrightcovePlaybackApiUrl(channelId: string, playbackToken?: string): string {
