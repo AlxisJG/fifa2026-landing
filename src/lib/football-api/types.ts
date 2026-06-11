@@ -48,6 +48,8 @@ export type FeaturedMatch = {
   groupLabel: string;
   venue: string;
   kickoff?: string;
+  /** ISO kickoff instant (UTC) for countdown alignment. */
+  kickoffAt?: string;
   homeFlagUrl?: string;
   awayFlagUrl?: string;
   isPlaceholder?: boolean;

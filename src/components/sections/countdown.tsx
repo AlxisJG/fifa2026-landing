@@ -5,7 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { SectionTitle } from "@/components/ui/section-title";
 import { fadeInMotionProps } from "@/components/ui/motion";
 
-const OPENING_MATCH = new Date("2026-06-11T20:00:00-04:00").getTime();
+import { WORLD_CUP_KICKOFF_MS } from "@/lib/world-cup-kickoff";
+
+const OPENING_MATCH = WORLD_CUP_KICKOFF_MS;
 
 export function CountdownSection() {
   const [now, setNow] = useState(Date.now());

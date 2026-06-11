@@ -1,3 +1,4 @@
+import { parseSportmonksStartingAt, sportmonksStartingAtToIso } from "@/lib/football-api/datetime";
 import type {
   FeaturedMatch,
   Fixture,
@@ -130,7 +131,7 @@ export function mapSportmonksFixtureToTickerItem(fixture: SportmonksFixture): Ti
     awayScore: hasScore ? awayScore : undefined,
     detail: live
       ? `EN VIVO${elapsedLabel}`
-      : formatKickoffEs(fixture.starting_at ?? new Date().toISOString()),
+      : formatKickoffEs(sportmonksStartingAtToIso(fixture.starting_at)),
     live,
     homeFlagUrl: teamFlagUrl(home),
     awayFlagUrl: teamFlagUrl(away)
@@ -139,7 +140,10 @@ export function mapSportmonksFixtureToTickerItem(fixture: SportmonksFixture): Ti
 
 export function mapSportmonksFixtureToFixture(fixture: SportmonksFixture): Fixture {
   const { home, away } = getHomeAwayParticipants(fixture);
-  const date = new Date(fixture.starting_at ?? Date.now());
+  const date = parseSportmonksStartingAt(fixture.starting_at);
+  const kickoffIso = Number.isFinite(date.getTime())
+    ? date.toISOString()
+    : new Date().toISOString();
   const roundLabelRaw = getRoundLabel(fixture);
   const isPlaceholder = Boolean(fixture.placeholder);
   const homeScore = getGoalsForParticipant(fixture, home?.id);
@@ -150,8 +154,8 @@ export function mapSportmonksFixtureToFixture(fixture: SportmonksFixture): Fixtu
     id: String(fixture.id),
     home: participantDisplayName(home, "Local"),
     away: participantDisplayName(away, "Visitante"),
-    kickoffLabel: formatKickoffEs(fixture.starting_at ?? date.toISOString()),
-    startsAt: fixture.starting_at ?? date.toISOString(),
+    kickoffLabel: formatKickoffEs(kickoffIso),
+    startsAt: kickoffIso,
     phase: stageFromLeagueRound(roundLabelRaw, fixture.stage?.name),
     live: isSportmonksFixtureLive(fixture),
     isPlaceholder,
@@ -182,7 +186,8 @@ export function mapSportmonksFixtureToFeaturedMatch(fixture: SportmonksFixture):
     venue: formatVenueEs(
       fixture.venue ? { name: fixture.venue.name, city: fixture.venue.city } : null
     ),
-    kickoff: formatKickoffEs(fixture.starting_at ?? new Date().toISOString()),
+    kickoff: formatKickoffEs(sportmonksStartingAtToIso(fixture.starting_at)),
+    kickoffAt: sportmonksStartingAtToIso(fixture.starting_at),
     homeFlagUrl: teamFlagUrl(home),
     awayFlagUrl: teamFlagUrl(away),
     isPlaceholder: Boolean(fixture.placeholder || home?.placeholder || away?.placeholder)

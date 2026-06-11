@@ -61,13 +61,14 @@ export const tickerItems: TickerItem[] = [
 ];
 
 export const featuredMatch: FeaturedMatch = {
-  homeCode: "CAN",
-  awayCode: "BIH",
-  homeName: "Canadá",
-  awayName: "Bosnia y Herzegovina",
-  groupLabel: "Grupo B — Fase de grupos",
-  venue: "Estadio BC Place, Vancouver",
-  kickoff: "8:00 PM AST"
+  homeCode: "MEX",
+  awayCode: "RSA",
+  homeName: "Mexico",
+  awayName: "South Africa",
+  groupLabel: "Grupo A — Fase de grupos",
+  venue: "Mexico City Stadium",
+  kickoff: "jue, 11 jun, 7:00 p. m.",
+  kickoffAt: "2026-06-11T23:00:00.000Z"
 };
 
 export const fixtures: Fixture[] = [

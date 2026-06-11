@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { WORLD_CUP_KICKOFF_MS } from "@/lib/world-cup-kickoff";
 
-const target = WORLD_CUP_KICKOFF_MS;
+type CountdownWidgetProps = {
+  targetMs?: number;
+};
 
 const COUNTDOWN_BG = "/recursos/COUNTDOWN.jpg";
 
@@ -29,7 +31,7 @@ function CountdownBox({ value, label }: { value: number; label: string }) {
   );
 }
 
-export function CountdownWidget() {
+export function CountdownWidget({ targetMs = WORLD_CUP_KICKOFF_MS }: CountdownWidgetProps) {
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -38,14 +40,14 @@ export function CountdownWidget() {
   }, []);
 
   const parts = useMemo((): CountdownParts => {
-    const d = Math.max(target - now, 0);
+    const d = Math.max(targetMs - now, 0);
     return {
       days: Math.floor(d / 86400000),
       hours: Math.floor((d / 3600000) % 24),
       minutes: Math.floor((d / 60000) % 60),
       seconds: Math.floor((d / 1000) % 60)
     };
-  }, [now]);
+  }, [now, targetMs]);
 
   return (
     <section

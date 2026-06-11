@@ -1,3 +1,4 @@
+import { parseSportmonksStartingAt } from "@/lib/football-api/datetime";
 import { getSportmonksConfig, isLiveFootballDataEnabled } from "./config";
 import type {
   SportmonksFixture,
@@ -107,19 +108,19 @@ export async function fetchFixturesBetween(start: Date, end: Date, limit?: numbe
     }
   );
 
-  const fixtures = (json.data ?? []).slice().sort((a, b) => {
-    const ta = new Date(a.starting_at ?? 0).getTime();
-    const tb = new Date(b.starting_at ?? 0).getTime();
-    return ta - tb;
-  });
+  const fixtures = (json.data ?? []).slice().sort((a, b) => kickoffMs(a) - kickoffMs(b));
 
   return limit ? fixtures.slice(0, limit) : fixtures;
 }
 
+function kickoffMs(fixture: SportmonksFixture): number {
+  return parseSportmonksStartingAt(fixture.starting_at).getTime();
+}
+
 export async function fetchUpcomingFixtures(limit: number): Promise<SportmonksFixture[]> {
-  const now = new Date();
-  const fixtures = await fetchFixturesBetween(now, addDays(now, 60));
-  return fixtures.filter((f) => new Date(f.starting_at ?? 0) >= now).slice(0, limit);
+  const now = Date.now();
+  const fixtures = await fetchFixturesBetween(new Date(), addDays(new Date(), 60));
+  return fixtures.filter((f) => kickoffMs(f) >= now).slice(0, limit);
 }
 
 export async function fetchStandingsBySeason(): Promise<SportmonksStanding[]> {
@@ -219,9 +220,7 @@ export function flattenScheduleFixtures(
     }
   }
 
-  return out.sort(
-    (a, b) => new Date(a.starting_at ?? 0).getTime() - new Date(b.starting_at ?? 0).getTime()
-  );
+  return out.sort((a, b) => kickoffMs(a) - kickoffMs(b));
 }
 
 export async function fetchScheduleFixtures(
@@ -250,7 +249,7 @@ export async function fetchScheduleFixtures(
         ? flat
         : (() => {
             const now = Date.now();
-            const upcoming = flat.filter((f) => new Date(f.starting_at ?? 0).getTime() >= now);
+            const upcoming = flat.filter((f) => kickoffMs(f) >= now);
             return upcoming.length > 0 ? upcoming : flat;
           })();
       return limit ? pool.slice(0, limit) : pool;
