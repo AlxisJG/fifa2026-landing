@@ -1,19 +1,34 @@
 import { isWorldCupKickoffReached } from "./world-cup-kickoff";
 
-/** Manual production toggle — must be true together with kickoff to show live sections. */
+function parseEnvFlag(value: string | undefined): boolean | undefined {
+  if (value === undefined) return undefined;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return undefined;
+  if (normalized === "true" || normalized === "1" || normalized === "yes") return true;
+  if (normalized === "false" || normalized === "0" || normalized === "no") return false;
+  return undefined;
+}
+
+/** Manual production toggle — operador activa secciones en vivo en prod. */
 export function isFootballLiveSectionsManuallyEnabled(): boolean {
-  return process.env.ENABLE_FOOTBALL_LIVE_SECTIONS === "true";
+  const fromServer = parseEnvFlag(process.env.ENABLE_FOOTBALL_LIVE_SECTIONS);
+  if (fromServer !== undefined) return fromServer;
+
+  const fromPublic = parseEnvFlag(process.env.NEXT_PUBLIC_ENABLE_FOOTBALL_LIVE_SECTIONS);
+  if (fromPublic !== undefined) return fromPublic;
+
+  return false;
 }
 
 /**
- * Production: ENABLE_FOOTBALL_LIVE_SECTIONS=true AND countdown finished.
+ * Production: ENABLE_FOOTBALL_LIVE_SECTIONS=true (o NEXT_PUBLIC_*).
  * Development: always visible (SportMonks / design preview).
  */
 export function shouldShowFootballLiveSections(at = Date.now()): boolean {
   if (process.env.NODE_ENV === "development") {
     return true;
   }
-  return isFootballLiveSectionsManuallyEnabled() && isWorldCupKickoffReached(at);
+  return isFootballLiveSectionsManuallyEnabled();
 }
 
 export function getFootballLiveSectionsGateStatus(at = Date.now()) {
@@ -27,6 +42,6 @@ export function getFootballLiveSectionsGateStatus(at = Date.now()) {
     manualEnabled,
     kickoffReached,
     requiresManualFlag: !isDevelopment && !manualEnabled,
-    requiresKickoff: !isDevelopment && manualEnabled && !kickoffReached
+    requiresKickoff: false
   };
 }
