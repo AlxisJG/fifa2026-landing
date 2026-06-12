@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { BRANDING } from "@/lib/branding";
 import { DEFAULT_OG_IMAGE, SITE_NAME, SITE_URL, absoluteSiteUrl } from "@/lib/seo/site";
 
 export function buildOgImage(alt: string, path: string = DEFAULT_OG_IMAGE) {
@@ -44,5 +43,5 @@ export function buildSocialMetadata({
 
 export const ROOT_OG_IMAGE = buildOgImage(
   "PIO Deportes — Mundial FIFA 2026 en República Dominicana",
-  BRANDING.navLogoCombined
+  DEFAULT_OG_IMAGE
 );

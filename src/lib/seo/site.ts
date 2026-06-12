@@ -16,7 +16,7 @@ export const GOOGLE_SITE_VERIFICATION =
   process.env.GOOGLE_SITE_VERIFICATION ?? "7sAuRPcvupNqrIvNYcL-Bph8S19y7Tm_k_zU8umGkxA";
 
 /** Default Open Graph / Twitter preview (1200×630 recommended; logo used as fallback). */
-export const DEFAULT_OG_IMAGE = "/LOGOS/logo-pio-fifa.png";
+export const DEFAULT_OG_IMAGE = "/opengraph-image";
 
 export const HOME_SEO = {
   title: "Mundial FIFA 2026 en República Dominicana | Pio Deportes",
