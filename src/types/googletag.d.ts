@@ -1,8 +1,9 @@
 declare global {
   type GoogletagSize = [number, number];
+  type GamAdSize = GoogletagSize | "fluid";
 
   interface GoogletagSizeMappingBuilder {
-    addSize(viewport: GoogletagSize, sizes: GoogletagSize[]): GoogletagSizeMappingBuilder;
+    addSize(viewport: GoogletagSize, sizes: GamAdSize[]): GoogletagSizeMappingBuilder;
     build(): unknown;
   }
 
@@ -38,7 +39,7 @@ declare global {
     cmd: Array<() => void>;
     defineSlot?(
       adUnitPath: string,
-      size: GoogletagSize | GoogletagSize[],
+      size: GamAdSize | GamAdSize[],
       divId: string
     ): GoogletagSlot | null;
     sizeMapping?(): GoogletagSizeMappingBuilder;

@@ -5,6 +5,7 @@ import type { GamSlotConfig } from "@/data/gam-placements";
 import { applyGptSizeMapping } from "@/lib/gpt-size-mapping";
 import {
   enableGptServicesOnce,
+  findGptSlot,
   hasGptSlotInitialized,
   loadGptScript,
   markGptSlotInitialized
@@ -45,7 +46,16 @@ export function GptAdSlot({ slot, className = "" }: GptAdSlotProps) {
           }
 
           const pubads = googletag.pubads();
-          const defined = googletag.defineSlot(slot.adUnitPath, slot.sizes, slot.slotId);
+          let defined = googletag.defineSlot(slot.adUnitPath, slot.sizes, slot.slotId);
+
+          if (!defined) {
+            const existing = findGptSlot(slot.slotId);
+            if (existing && googletag.destroySlots) {
+              googletag.destroySlots([existing]);
+              defined = googletag.defineSlot(slot.adUnitPath, slot.sizes, slot.slotId);
+            }
+          }
+
           if (!defined) {
             setStatus("error");
             return;
@@ -90,8 +100,11 @@ export function GptAdSlot({ slot, className = "" }: GptAdSlotProps) {
     <div className={`relative w-full ${className}`.trim()}>
       <div
         id={slot.slotId}
-        className="mx-auto flex w-full max-w-[970px] items-center justify-center"
-        style={{ minWidth: slot.minWidth, minHeight: slot.minHeight }}
+        className="mx-auto block w-full max-w-[970px]"
+        style={{
+          minWidth: slot.minWidth,
+          minHeight: status === "loading" ? slot.minHeight : undefined
+        }}
       />
       {showDevHint ? (
         <p className="mt-2 px-2 text-center text-[11px] leading-relaxed text-amber-200/90">

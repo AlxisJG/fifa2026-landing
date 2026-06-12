@@ -1,13 +1,15 @@
+export type GamAdSize = [number, number] | "fluid";
+
 export type GamSizeMappingBreakpoint = {
   /** Ancho mínimo del viewport [width, height] — GPT usa el primer match de arriba hacia abajo. */
   viewport: [number, number];
-  sizes: [number, number][];
+  sizes: GamAdSize[];
 };
 
 export type GamSlotConfig = {
   adUnitPath: string;
   slotId: string;
-  sizes: [number, number][];
+  sizes: GamAdSize[];
   /** Restringe qué tamaños puede pedir GAM según el viewport (evita mezclar desktop/mobile). */
   sizeMapping?: GamSizeMappingBreakpoint[];
   minWidth: number;
@@ -22,16 +24,13 @@ export type GamSlotConfig = {
 export const transmissionPlayerGamSlot: GamSlotConfig = {
   adUnitPath: "/22818118543/Bri001",
   slotId: "div-gpt-ad-1781227543176-0",
+  // Banner inteligente en GAM requiere "fluid" además de tamaños fijos.
   sizes: [
     [970, 90],
     [728, 90],
     [320, 50],
-    [300, 50]
-  ],
-  sizeMapping: [
-    { viewport: [1024, 0], sizes: [[970, 90], [728, 90]] },
-    { viewport: [768, 0], sizes: [[728, 90]] },
-    { viewport: [0, 0], sizes: [[320, 50], [300, 50]] }
+    [300, 50],
+    "fluid"
   ],
   minWidth: 300,
   minHeight: 50
@@ -45,9 +44,9 @@ export const transmissionPlayerGamTestSlot: GamSlotConfig = {
     [970, 90],
     [728, 90],
     [320, 50],
-    [300, 50]
+    [300, 50],
+    "fluid"
   ],
-  sizeMapping: transmissionPlayerGamSlot.sizeMapping,
   minWidth: 300,
   minHeight: 50
 };

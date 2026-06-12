@@ -87,6 +87,7 @@ export function enableGptServicesOnce(): void {
   }
 
   configurePubads(googletag);
+  googletag.pubads().enableSingleRequest();
   googletag.enableServices();
   gptServicesEnabled = true;
 }
