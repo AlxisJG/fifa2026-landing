@@ -20,6 +20,7 @@ type PageAdLabels = {
 
 const PAGE_LABELS: Record<PageAdKey, PageAdLabels> = {
   home: { top: "Inicio · superior", bottom: "Inicio · inferior" },
+  /** Superior/inferior: banner Brugal (`BRUGAL_BANNER_ASSETS`). Rectángulo en grid sigue en placeholder. */
   noticias: { top: "Noticias · superior", bottom: "Noticias · inferior" },
   partidos: { top: "Partidos · superior", bottom: "Partidos · inferior" },
   posiciones: { top: "Posiciones · superior", bottom: "Posiciones · inferior" },
