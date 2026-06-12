@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { FootballLiveSectionsProvider } from "@/contexts/football-live-sections-context";
+import { LiveTransmissionProvider } from "@/contexts/live-transmission-context";
 import { FixedSkyscraperAds } from "@/components/ads/fixed-skyscraper-ads";
 import { TopNav } from "@/components/sections/top-nav";
 import { FooterSection } from "@/components/sections/footer";
@@ -19,17 +20,19 @@ export function MarketingShell({
   liveSectionsVisible
 }: MarketingShellProps) {
   return (
-    <FootballLiveSectionsProvider
-      manualEnabled={manualLiveSectionsEnabled}
-      visible={liveSectionsVisible}
-    >
-      <div className="relative min-h-screen overflow-x-hidden">
-        <AmbientBackground />
-        <FixedSkyscraperAds />
-        <TopNav />
-        {children}
-        <FooterSection />
-      </div>
-    </FootballLiveSectionsProvider>
+    <LiveTransmissionProvider>
+      <FootballLiveSectionsProvider
+        manualEnabled={manualLiveSectionsEnabled}
+        visible={liveSectionsVisible}
+      >
+        <div className="relative min-h-screen overflow-x-hidden">
+          <AmbientBackground />
+          <FixedSkyscraperAds />
+          <TopNav />
+          {children}
+          <FooterSection />
+        </div>
+      </FootballLiveSectionsProvider>
+    </LiveTransmissionProvider>
   );
 }

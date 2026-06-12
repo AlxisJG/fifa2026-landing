@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { getFeaturedMatchSeed } from "@/lib/football-widget-seeds";
-import { useMatchCenter } from "@/hooks/useFootballData";
+import { useLiveFootball } from "@/contexts/live-football-context";
 import { useLiveNavigation } from "@/hooks/use-live-navigation";
 import type { FeaturedMatch } from "@/lib/football-api/types";
 import { FootballSourceBadge } from "@/components/football/football-source-badge";
@@ -19,8 +18,6 @@ const ctaClass =
 type FeaturedMatchCenterProps = {
   /** Home uses live nav + calendario; transmisión scrolls to secciones en la misma página. */
   ctaMode?: "transmision" | "marketing";
-  initialMatch?: FeaturedMatch;
-  initialSource?: "live" | "demo";
 };
 
 function hasFeaturedMatch(match: FeaturedMatch) {
@@ -147,15 +144,8 @@ function MatchCenterActions({ ctaMode }: { ctaMode: "transmision" | "marketing" 
   );
 }
 
-export function FeaturedMatchCenter({
-  ctaMode = "transmision",
-  initialMatch,
-  initialSource
-}: FeaturedMatchCenterProps) {
-  const { data, loading, source } = useMatchCenter(initialMatch ?? getFeaturedMatchSeed(), {
-    initialSource
-  });
-  const match: FeaturedMatch = data;
+export function FeaturedMatchCenter({ ctaMode = "transmision" }: FeaturedMatchCenterProps) {
+  const { match, loading, source } = useLiveFootball();
 
   if (!loading && !hasFeaturedMatch(match)) {
     return null;

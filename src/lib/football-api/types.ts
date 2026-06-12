@@ -121,6 +121,11 @@ export type ProviderResponse<T> = {
   error?: string;
 };
 
+export type LiveFootballBundle = {
+  match: FeaturedMatch;
+  ticker: TickerItem[];
+};
+
 export interface FootballProvider {
   getTicker(): Promise<ProviderResponse<TickerItem[]>>;
   getFixtures(): Promise<ProviderResponse<Fixture[]>>;

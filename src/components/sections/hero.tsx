@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import type { ReactNode } from "react";
 import { Reveal } from "@/components/ui/motion";
 import { HeroButtons } from "@/components/sections/hero-buttons";
 
@@ -10,7 +11,11 @@ const HERO_ASPECT = "1672 / 941";
 const heroCopyShadow =
   "0 2px 4px rgba(0,0,0,0.9), 0 8px 32px rgba(0,0,0,0.65), 0 0 1px rgba(0,0,0,1)";
 
-export function Hero() {
+type HeroProps = {
+  belowActions?: ReactNode;
+};
+
+export function Hero({ belowActions }: HeroProps) {
   return (
     <>
       <section id="hero" aria-label="Mundial FIFA 2026" className="theater-dark relative overflow-hidden">
@@ -59,6 +64,7 @@ export function Hero() {
           <Reveal delay={0.1}>
             <HeroButtons />
           </Reveal>
+          {belowActions}
         </div>
       </section>
     </>

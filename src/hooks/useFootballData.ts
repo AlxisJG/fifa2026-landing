@@ -26,8 +26,11 @@ type FetchOptions = {
   pollIntervalMs?: number;
 };
 
-async function fetchRoute<T>(url: string, options?: { noCache?: boolean }): Promise<ProviderResponse<T>> {
-  const res = await fetch(url, options?.noCache ? { cache: "no-store" } : undefined);
+/** Alineado con CACHE_REVALIDATE.livescores (20s) y poll de stream status (30s). */
+export const LIVE_FOOTBALL_POLL_MS = 30_000;
+
+async function fetchRoute<T>(url: string): Promise<ProviderResponse<T>> {
+  const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed request: ${res.status}`);
   return res.json();
 }
@@ -49,13 +52,14 @@ function useFootballRoute<T>(url: string, initialData: T, options?: FetchOptions
     }
 
     let active = true;
+    let intervalId: number | undefined;
 
     const load = (isPoll = false) => {
       if (!hasSsrSource && !isPoll) {
         setState((prev) => ({ ...prev, loading: true }));
       }
 
-      fetchRoute<T>(url, { noCache: Boolean(pollIntervalMs) })
+      fetchRoute<T>(url)
         .then((payload) => {
           if (!active) return;
           setState({
@@ -75,19 +79,57 @@ function useFootballRoute<T>(url: string, initialData: T, options?: FetchOptions
         });
     };
 
-    load();
+    function stopPolling() {
+      if (intervalId !== undefined) {
+        window.clearInterval(intervalId);
+        intervalId = undefined;
+      }
+    }
+
+    function startPolling() {
+      stopPolling();
+      if (!pollIntervalMs) {
+        load();
+        return;
+      }
+
+      if (!hasSsrSource) {
+        load();
+      }
+
+      intervalId = window.setInterval(() => load(true), pollIntervalMs);
+    }
+
+    function handleVisibilityChange() {
+      if (!pollIntervalMs) return;
+
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        load(true);
+        startPolling();
+      }
+    }
+
     if (!pollIntervalMs) {
+      load();
       return () => {
         active = false;
       };
     }
 
-    const intervalId = window.setInterval(() => load(true), pollIntervalMs);
+    if (!document.hidden) {
+      startPolling();
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       active = false;
-      window.clearInterval(intervalId);
+      stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [url, enabled, hasSsrSource, initialData, options?.initialSource, pollIntervalMs]);
+  }, [url, enabled, hasSsrSource, options?.initialSource, pollIntervalMs]);
 
   return state;
 }
@@ -99,9 +141,6 @@ export function useFixtures(initialData: Fixture[], options?: FetchOptions) {
 export function useStandings(initialData: StandingsData, options?: FetchOptions) {
   return useFootballRoute<StandingsData>("/api/football/standings", initialData, options);
 }
-
-/** Alineado con CACHE_REVALIDATE.livescores (20s) en sportmonks-client. */
-const LIVE_FOOTBALL_POLL_MS = 20_000;
 
 export function useMatchCenter(initialData: FeaturedMatch, options?: FetchOptions) {
   return useFootballRoute<FeaturedMatch>("/api/football/match-center", initialData, {

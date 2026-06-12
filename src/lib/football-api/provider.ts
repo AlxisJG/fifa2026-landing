@@ -1,4 +1,4 @@
-import { sportmonksProvider } from "./sportmonks-provider";
+import { getLiveFootballBundle, sportmonksProvider } from "./sportmonks-provider";
 import { getFootballDataMode, isLiveFootballDataEnabled } from "./config";
 import { mockProvider } from "./mock-provider";
 import type { FootballProvider, ProviderResponse } from "./types";
@@ -35,20 +35,34 @@ async function withFallback<T>(
 
 const emptyTopscorers = { goals: [], assists: [], cards: [] };
 
+const emptyFeaturedMatch = {
+  homeCode: "",
+  awayCode: "",
+  homeName: "",
+  awayName: "",
+  groupLabel: "",
+  venue: ""
+};
+
 export const footballDataProvider = {
   getTicker: () => withFallback((p) => p.getTicker(), (m) => m.getTicker(), []),
   getFixtures: () => withFallback((p) => p.getFixtures(), (m) => m.getFixtures(), []),
   getStandings: () =>
     withFallback((p) => p.getStandings(), (m) => m.getStandings(), { groups: [] }),
   getFeaturedMatch: () =>
-    withFallback((p) => p.getFeaturedMatch(), (m) => m.getFeaturedMatch(), {
-      homeCode: "",
-      awayCode: "",
-      homeName: "",
-      awayName: "",
-      groupLabel: "",
-      venue: ""
-    }),
+    withFallback((p) => p.getFeaturedMatch(), (m) => m.getFeaturedMatch(), emptyFeaturedMatch),
+  getLiveFootball: () =>
+    withFallback(
+      () => getLiveFootballBundle(),
+      async (m) => {
+        const [ticker, match] = await Promise.all([m.getTicker(), m.getFeaturedMatch()]);
+        return {
+          source: ticker.source,
+          data: { ticker: ticker.data, match: match.data }
+        };
+      },
+      { ticker: [], match: emptyFeaturedMatch }
+    ),
   getSquads: () => withFallback((p) => p.getSquads(), (m) => m.getSquads(), []),
   getTopscorers: () =>
     withFallback((p) => p.getTopscorers(), (m) => m.getTopscorers(), emptyTopscorers)

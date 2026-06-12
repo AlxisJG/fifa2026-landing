@@ -21,6 +21,7 @@ import type {
   ProviderResponse,
   FeaturedMatch,
   Fixture,
+  LiveFootballBundle,
   SquadTeam,
   StandingsData,
   TickerItem,
@@ -54,8 +55,8 @@ function uniqueFixturesById(fixtures: SportmonksFixture[]): SportmonksFixture[] 
   });
 }
 
-async function buildTickerFixtures(): Promise<SportmonksFixture[]> {
-  const live = filterProductionFixtures(await fetchLivescores());
+async function buildTickerFixtures(liveInput?: SportmonksFixture[]): Promise<SportmonksFixture[]> {
+  const live = liveInput ?? filterProductionFixtures(await fetchLivescores());
   const merged = uniqueFixturesById(live);
 
   if (merged.length >= 4) {
@@ -69,12 +70,32 @@ async function buildTickerFixtures(): Promise<SportmonksFixture[]> {
   return uniqueFixturesById([...merged, ...nonLiveUpcoming]).slice(0, 4);
 }
 
-async function resolveFeaturedFixture(): Promise<SportmonksFixture | undefined> {
-  const live = filterProductionFixtures(await fetchLivescores());
+async function resolveFeaturedFixture(liveInput?: SportmonksFixture[]): Promise<SportmonksFixture | undefined> {
+  const live = liveInput ?? filterProductionFixtures(await fetchLivescores());
   if (live[0]) return live[0];
 
   const fromSchedule = filterProductionFixtures(await fetchScheduleFixtures(12));
   return fromSchedule[0];
+}
+
+export async function getLiveFootballBundle(): Promise<ProviderResponse<LiveFootballBundle>> {
+  const live = filterProductionFixtures(await fetchLivescores());
+  const [tickerFixtures, featuredFixture] = await Promise.all([
+    buildTickerFixtures(live),
+    resolveFeaturedFixture(live)
+  ]);
+
+  if (!featuredFixture) {
+    throw new Error("No featured match data from SportMonks.");
+  }
+
+  return {
+    source: "live",
+    data: {
+      ticker: tickerFixtures.map(mapSportmonksFixtureToTickerItem),
+      match: mapSportmonksFixtureToFeaturedMatch(featuredFixture)
+    }
+  };
 }
 
 export const sportmonksProvider: FootballProvider = {

@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { getAllBrightcoveLiveStreamsStatus } from "@/lib/brightcove-live-status";
 import { isLiveTransmissionEnabled } from "@/lib/live-transmission-gate";
 
@@ -18,7 +19,7 @@ export type LiveTransmissionStatus = {
   error?: string;
 };
 
-export async function getLiveTransmissionStatus(): Promise<LiveTransmissionStatus> {
+async function computeLiveTransmissionStatus(): Promise<LiveTransmissionStatus> {
   const enabled = isLiveTransmissionEnabled();
   const streams = await getAllBrightcoveLiveStreamsStatus();
   const activeStreams = streams.filter((stream) => stream.active);
@@ -37,4 +38,14 @@ export async function getLiveTransmissionStatus(): Promise<LiveTransmissionStatu
     streams,
     error: streams.length === 0 ? "no_streams_configured" : undefined
   };
+}
+
+const getCachedLiveTransmissionStatus = unstable_cache(
+  computeLiveTransmissionStatus,
+  ["live-transmission-status"],
+  { revalidate: 30 }
+);
+
+export async function getLiveTransmissionStatus(): Promise<LiveTransmissionStatus> {
+  return getCachedLiveTransmissionStatus();
 }

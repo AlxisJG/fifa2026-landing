@@ -1,16 +1,18 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { getTickerSeed } from "@/lib/football-widget-seeds";
-import { useTicker } from "@/hooks/useFootballData";
+import { useLiveFootball } from "@/contexts/live-football-context";
 import { FootballSourceBadge } from "@/components/football/football-source-badge";
 import { TickerMatchChip } from "@/components/widgets/ticker-match-chip";
 
-export function LiveMatchTicker() {
-  const { data, loading, source } = useTicker(getTickerSeed());
+type LiveMatchTickerProps = {
+  embedded?: boolean;
+};
 
-  return (
-    <section className="section-shell py-4 sm:py-5">
+export function LiveMatchTicker({ embedded = false }: LiveMatchTickerProps) {
+  const { ticker: data, loading, source } = useLiveFootball();
+
+  const card = (
       <div className="theater-dark relative overflow-hidden rounded-2xl border border-white/15 bg-[#141414]">
         <div
           className="bg-pioRed px-4 py-2.5 text-center text-xs font-bold uppercase tracking-[0.22em] text-white sm:py-3 sm:text-sm sm:tracking-[0.24em]"
@@ -44,6 +46,11 @@ export function LiveMatchTicker() {
           </div>
         </div>
       </div>
-    </section>
   );
+
+  if (embedded) {
+    return <div className="mt-6 sm:mt-8">{card}</div>;
+  }
+
+  return <section className="section-shell py-4 sm:py-5">{card}</section>;
 }

@@ -4,7 +4,7 @@ import { SeoIntroSection } from "@/components/sections/seo-intro";
 import { SponsorBar } from "@/components/sections/sponsor-bar";
 import { LatestNewsSection } from "@/components/sections/latest-news-section";
 import { CountdownWidget } from "@/components/widgets/countdown-widget";
-import { FeaturedMatchCenter } from "@/components/widgets/featured-match-center";
+import { TransmisionLiveBlock } from "@/components/sections/live-blocks";
 import { MarketingPageMain } from "@/components/layout/page-intro";
 import { PageContentAds } from "@/components/layout/page-content-ads";
 import { StickyMobileAd } from "@/components/ads/sticky-mobile-ad";
@@ -34,29 +34,40 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const adsEnabled = isAdsEnabled();
-  const [posts, fixturesRes, matchRes] = await Promise.all([
+  const [posts, fixturesRes, liveFootballRes] = await Promise.all([
     getPosts(),
     footballDataProvider.getFixtures(),
-    footballDataProvider.getFeaturedMatch()
+    footballDataProvider.getLiveFootball()
   ]);
-  const countdownTargetMs = resolveOpeningKickoffMs(fixturesRes.data, matchRes.data.kickoffAt);
-  const showCountdown = shouldShowWorldCupCountdown(fixturesRes.data, matchRes.data.kickoffAt);
+  const countdownTargetMs = resolveOpeningKickoffMs(
+    fixturesRes.data,
+    liveFootballRes.data.match.kickoffAt
+  );
+  const showCountdown = shouldShowWorldCupCountdown(
+    fixturesRes.data,
+    liveFootballRes.data.match.kickoffAt
+  );
 
   return (
     <>
       <HomepageJsonLd posts={posts} fixtures={fixturesRes.data} />
       <PopupAd />
       <MarketingPageMain>
-        <Hero />
+        <Hero
+          belowActions={
+            <TransmisionLiveBlock
+              embedded
+              ctaMode="marketing"
+              initialMatch={liveFootballRes.data.match}
+              initialTicker={liveFootballRes.data.ticker}
+              initialSource={liveFootballRes.source}
+            />
+          }
+        />
         <PageContentAds page="home">
           <SeoIntroSection />
           {showCountdown && <CountdownWidget targetMs={countdownTargetMs} />}
           <LatestNewsSection initialPosts={posts} />
-          <FeaturedMatchCenter
-            ctaMode="marketing"
-            initialMatch={matchRes.data}
-            initialSource={matchRes.source}
-          />
           <SponsorBar />
         </PageContentAds>
       </MarketingPageMain>
