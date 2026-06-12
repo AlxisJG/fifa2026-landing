@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { MetaPixel } from "@/components/analytics/meta-pixel";
@@ -58,7 +57,6 @@ export default function RootLayout({
         <MetaPixel />
         {children}
         <Analytics />
-        <SpeedInsights />
       </body>
     </html>
   );

@@ -26,12 +26,9 @@ export function middleware(request: NextRequest) {
   });
 }
 
+/** Rutas con geoblock: transmisión en vivo y su API de estado. */
+export const GEO_BLOCK_PATHS = ["/transmision", "/api/stream"] as const;
+
 export const config = {
-  matcher: [
-    /*
-     * Apply to all routes except static assets needed for basic rendering.
-     * API routes and pages are blocked for non-DO visitors.
-     */
-    "/((?!_next/static|_next/image|favicon.ico|recursos/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)"
-  ]
+  matcher: ["/transmision", "/transmision/:path*", "/api/stream/:path*"]
 };

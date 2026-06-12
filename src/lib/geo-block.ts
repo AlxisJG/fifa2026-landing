@@ -106,10 +106,10 @@ export function geoBlockedHtml(): string {
   <body>
     <main class="card">
       <div class="badge">Acceso restringido</div>
-      <h1>Este sitio solo está disponible en República Dominicana</h1>
+      <h1>La transmisión en vivo solo está disponible en República Dominicana</h1>
       <p>
-        Por restricciones de distribución, PIO Deportes FIFA 2026 solo puede visitarse desde
-        República Dominicana.
+        Por restricciones de distribución, el stream del Mundial FIFA 2026 en PIO Deportes solo
+        puede verse desde República Dominicana.
       </p>
     </main>
   </body>
