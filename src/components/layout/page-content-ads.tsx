@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { HorizontalAdSlot } from "@/components/ads/horizontal-ad-slot";
+import { TransmisionBottomAd } from "@/components/ads/transmission-player-ad";
 import { getPageHorizontalPlacements, type PageAdKey } from "@/lib/page-ads";
 
 type PageContentAdsProps = {
@@ -19,12 +20,16 @@ export function PageContentAds({ page, children }: PageContentAdsProps) {
         variant="leaderboard"
       />
       {children}
-      <HorizontalAdSlot
-        id={bottom.id}
-        title={bottom.title}
-        placement={bottom.placement}
-        variant="leaderboard"
-      />
+      {page === "transmision" ? (
+        <TransmisionBottomAd />
+      ) : (
+        <HorizontalAdSlot
+          id={bottom.id}
+          title={bottom.title}
+          placement={bottom.placement}
+          variant="leaderboard"
+        />
+      )}
     </>
   );
 }

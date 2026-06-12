@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
-import { GptScript } from "@/components/ads/gpt-script";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { MetaPixel } from "@/components/analytics/meta-pixel";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -55,7 +54,6 @@ export default function RootLayout({
     <html lang="es-DO" className={fwc26.variable}>
       <body className={`${fwc26.className} font-sans`}>
         <JsonLd data={buildSiteGraphSchema()} />
-        <GptScript />
         <GoogleAnalytics />
         <MetaPixel />
         {children}

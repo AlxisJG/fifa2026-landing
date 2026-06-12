@@ -1,29 +1,54 @@
 "use client";
 
-import { GptAdSlot } from "@/components/ads/gpt-ad-slot";
-import { getTransmissionPlayerGamSlot, transmissionPlayerGamSlot } from "@/data/gam-placements";
-import { isGamTransmissionPlayerAdEnabled } from "@/lib/ads-gate";
+import Image from "next/image";
+import { AD_SIZES } from "@/lib/ad-sizes";
+import { getPageHorizontalPlacements } from "@/lib/page-ads";
+
+const BRILLANTE_ADS = {
+  desktopWide: "/ads/brillante/Brillante-Sport-750x100px-ANM.gif",
+  desktop: "/ads/brillante/Brillante-Sport-728X90px-Futbol.gif",
+  mobile: "/ads/brillante/Brillante-Sport-300x50px-ANM.gif"
+} as const;
 
 /**
- * GAM `/22818118543/Bri001` below the Brightcove player on `/transmision`.
- * En dev usa unidad demo de Google salvo NEXT_PUBLIC_GAM_USE_PRODUCTION_UNIT=true.
+ * Banner Brillante en el slot horizontal inferior de `/transmision`
+ * (`Transmisión · inferior` / `leaderboard-transmision-bottom`).
  */
-export function TransmissionPlayerAd() {
-  if (!isGamTransmissionPlayerAdEnabled()) {
-    return null;
-  }
-
-  const slot = getTransmissionPlayerGamSlot();
-  const isDevTestSlot = slot.adUnitPath !== transmissionPlayerGamSlot.adUnitPath;
+export function TransmisionBottomAd() {
+  const { bottom } = getPageHorizontalPlacements("transmision");
 
   return (
-    <div className="flex w-full flex-col items-center gap-2 overflow-hidden rounded-xl bg-black/20 py-2">
-      {isDevTestSlot ? (
-        <p className="px-3 text-center text-[10px] uppercase tracking-[0.12em] text-amber-200/80">
-          Modo prueba GAM (unidad demo Google) — prod usa {transmissionPlayerGamSlot.adUnitPath}
-        </p>
-      ) : null}
-      <GptAdSlot slot={slot} className="mx-auto flex w-full items-center justify-center" />
-    </div>
+    <section className="section-shell py-6 sm:py-8">
+      <div
+        className="flex flex-col items-center gap-3"
+        data-ad-slot={bottom.id}
+        data-ad-placement={bottom.placement}
+      >
+        <Image
+          src={BRILLANTE_ADS.desktopWide}
+          alt="Brillante Sport"
+          width={750}
+          height={100}
+          unoptimized
+          className={`mx-auto h-auto max-w-full ${AD_SIZES["super-leaderboard"].visibilityClass}`}
+        />
+        <Image
+          src={BRILLANTE_ADS.desktop}
+          alt="Brillante Sport"
+          width={728}
+          height={90}
+          unoptimized
+          className={`mx-auto h-auto max-w-full ${AD_SIZES.leaderboard.visibilityClass}`}
+        />
+        <Image
+          src={BRILLANTE_ADS.mobile}
+          alt="Brillante Sport"
+          width={300}
+          height={50}
+          unoptimized
+          className={`mx-auto h-auto max-w-full ${AD_SIZES["mobile-banner"].visibilityClass}`}
+        />
+      </div>
+    </section>
   );
 }
