@@ -26,8 +26,8 @@ type FetchOptions = {
   pollIntervalMs?: number;
 };
 
-async function fetchRoute<T>(url: string): Promise<ProviderResponse<T>> {
-  const res = await fetch(url);
+async function fetchRoute<T>(url: string, options?: { noCache?: boolean }): Promise<ProviderResponse<T>> {
+  const res = await fetch(url, options?.noCache ? { cache: "no-store" } : undefined);
   if (!res.ok) throw new Error(`Failed request: ${res.status}`);
   return res.json();
 }
@@ -55,7 +55,7 @@ function useFootballRoute<T>(url: string, initialData: T, options?: FetchOptions
         setState((prev) => ({ ...prev, loading: true }));
       }
 
-      fetchRoute<T>(url)
+      fetchRoute<T>(url, { noCache: Boolean(pollIntervalMs) })
         .then((payload) => {
           if (!active) return;
           setState({
@@ -92,10 +92,6 @@ function useFootballRoute<T>(url: string, initialData: T, options?: FetchOptions
   return state;
 }
 
-export function useTicker(initialData: TickerItem[], options?: FetchOptions) {
-  return useFootballRoute<TickerItem[]>("/api/football/ticker", initialData, options);
-}
-
 export function useFixtures(initialData: Fixture[], options?: FetchOptions) {
   return useFootballRoute<Fixture[]>("/api/football/fixtures", initialData, options);
 }
@@ -104,11 +100,19 @@ export function useStandings(initialData: StandingsData, options?: FetchOptions)
   return useFootballRoute<StandingsData>("/api/football/standings", initialData, options);
 }
 
-const MATCH_CENTER_POLL_MS = 30_000;
+/** Alineado con CACHE_REVALIDATE.livescores (20s) en sportmonks-client. */
+const LIVE_FOOTBALL_POLL_MS = 20_000;
 
 export function useMatchCenter(initialData: FeaturedMatch, options?: FetchOptions) {
   return useFootballRoute<FeaturedMatch>("/api/football/match-center", initialData, {
-    pollIntervalMs: MATCH_CENTER_POLL_MS,
+    pollIntervalMs: LIVE_FOOTBALL_POLL_MS,
+    ...options
+  });
+}
+
+export function useTicker(initialData: TickerItem[], options?: FetchOptions) {
+  return useFootballRoute<TickerItem[]>("/api/football/ticker", initialData, {
+    pollIntervalMs: LIVE_FOOTBALL_POLL_MS,
     ...options
   });
 }

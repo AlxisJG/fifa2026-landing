@@ -22,7 +22,6 @@ import { FIXTURE_STAGE_LABELS } from "@/lib/football-api/formatters";
 import { getFixturesSeed } from "@/lib/football-widget-seeds";
 import { useWorldCupNow } from "@/hooks/useWorldCupNow";
 import type { Fixture } from "@/lib/football-api/types";
-import { SectionTitle } from "@/components/ui/section-title";
 import { Reveal } from "@/components/ui/motion";
 import { ListPagination } from "@/components/ui/list-pagination";
 
@@ -101,15 +100,12 @@ export function FixturesSection({ initialFixtures, initialSource }: FixturesSect
   };
 
   return (
-    <section id="fixtures" className="section-shell py-14 sm:py-20">
-      <div className="mb-2 flex flex-wrap items-end justify-between gap-4">
-        <SectionTitle
-          kicker="Mundial 2026"
-          title="Calendario FIFA World Cup"
-          subtitle="Partidos del Mundial FIFA World Cup 2026."
-        />
-        {showSourceBadge && <FootballSourceBadge live={source === "live"} />}
-      </div>
+    <section id="fixtures" className="section-shell pb-14 pt-4 sm:pb-20 sm:pt-6">
+      {showSourceBadge && (
+        <div className="mb-4 flex justify-end">
+          <FootballSourceBadge live={source === "live"} />
+        </div>
+      )}
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <label className="flex min-w-[min(100%,16rem)] flex-col gap-1.5">

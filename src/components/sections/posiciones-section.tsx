@@ -371,10 +371,10 @@ function TopscorersTab({ data, loading }: { data: TopscorersData; loading: boole
               key={m.id}
               type="button"
               onClick={() => setMetric(m.id)}
-              className={`rounded-full px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] ${
+              className={`rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${
                 metric === m.id
-                  ? "bg-slate-900 text-white"
-                  : "border border-slate-200 text-slate-500 hover:text-slate-700"
+                  ? "topscorers-metric-active"
+                  : "border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700"
               }`}
             >
               {m.label}
