@@ -21,7 +21,7 @@ export type GamSlotConfig = {
  */
 export const transmissionPlayerGamSlot: GamSlotConfig = {
   adUnitPath: "/22818118543/Bri001",
-  slotId: "div-gpt-ad-1781205455759-0",
+  slotId: "div-gpt-ad-1781227543176-0",
   sizes: [
     [970, 90],
     [728, 90],
