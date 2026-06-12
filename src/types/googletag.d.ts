@@ -10,12 +10,28 @@ declare global {
     addService(service: GoogletagPubAdsService): GoogletagSlot;
     defineSizeMapping(mapping: unknown): GoogletagSlot;
     getSlotElementId(): string;
+    getAdUnitPath(): string;
+  }
+
+  interface GoogletagSlotRenderEndedEvent {
+    slot: GoogletagSlot;
+    isEmpty: boolean;
+    size?: GoogletagSize;
   }
 
   interface GoogletagPubAdsService {
     enableSingleRequest(): void;
-    collapseEmptyDivs(): void;
+    collapseEmptyDivs(collapse?: boolean): void;
     getSlots(): GoogletagSlot[];
+    set(key: string, value: string): void;
+    addEventListener(
+      event: "slotRenderEnded",
+      handler: (event: GoogletagSlotRenderEndedEvent) => void
+    ): void;
+    removeEventListener(
+      event: "slotRenderEnded",
+      handler: (event: GoogletagSlotRenderEndedEvent) => void
+    ): void;
   }
 
   interface Googletag {
@@ -27,8 +43,15 @@ declare global {
     ): GoogletagSlot | null;
     sizeMapping?(): GoogletagSizeMappingBuilder;
     display?(divId: string): void;
+    destroySlots?(slots: GoogletagSlot[]): boolean;
     pubads?(): GoogletagPubAdsService;
     enableServices?(): void;
+  }
+
+  namespace googletag {
+    namespace events {
+      type SlotRenderEndedEvent = GoogletagSlotRenderEndedEvent;
+    }
   }
 
   interface Window {

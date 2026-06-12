@@ -1,42 +1,83 @@
-let gptScriptInjected = false;
+const GAM_PAGE_URL =
+  process.env.NEXT_PUBLIC_GAM_PAGE_URL?.trim() || "https://fifa.piodeportes.com/transmision";
+
 let gptServicesEnabled = false;
 
-const displayedSlotIds = new Set<string>();
-const definedSlotIds = new Set<string>();
+/** Evita doble init de GPT con React Strict Mode (dev). */
+const initializedSlotIds = new Set<string>();
 
-export function hasGptSlotBeenDisplayed(slotId: string): boolean {
-  return displayedSlotIds.has(slotId);
+export function hasGptSlotInitialized(slotId: string): boolean {
+  return initializedSlotIds.has(slotId);
 }
 
-export function markGptSlotDisplayed(slotId: string): void {
-  displayedSlotIds.add(slotId);
+export function markGptSlotInitialized(slotId: string): void {
+  initializedSlotIds.add(slotId);
 }
 
-export function hasGptSlotBeenDefined(slotId: string): boolean {
-  return definedSlotIds.has(slotId);
+function isLocalGptHost(): boolean {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  return host === "localhost" || host === "127.0.0.1";
 }
 
-export function markGptSlotDefined(slotId: string): void {
-  definedSlotIds.add(slotId);
-}
-
-export function ensureGptScript(): void {
+/** Espera a que gpt.js (layout) exponga la API de googletag. */
+export function loadGptScript(): Promise<void> {
   if (typeof window === "undefined") {
-    return;
+    return Promise.resolve();
   }
 
   window.googletag = window.googletag || { cmd: [] };
 
-  if (gptScriptInjected) {
-    return;
+  if (window.googletag.defineSlot) {
+    return Promise.resolve();
   }
 
-  gptScriptInjected = true;
+  return new Promise<void>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error("gpt_script_timeout"));
+    }, 15_000);
 
-  const script = document.createElement("script");
-  script.async = true;
-  script.src = "https://securepubads.g.doubleclick.net/tag/js/gpt.js";
-  document.head.appendChild(script);
+    const finish = () => {
+      window.clearTimeout(timeoutId);
+      resolve();
+    };
+
+    window.googletag!.cmd.push(finish);
+
+    const existing = document.querySelector<HTMLScriptElement>('script[src*="gpt.js"]');
+    if (!existing) {
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = "https://securepubads.g.doubleclick.net/tag/js/gpt.js";
+      script.onload = () => window.googletag!.cmd.push(finish);
+      script.onerror = () => {
+        window.clearTimeout(timeoutId);
+        reject(new Error("gpt_script_failed"));
+      };
+      document.head.appendChild(script);
+    }
+  });
+}
+
+function configurePubads(googletag: NonNullable<Window["googletag"]>): void {
+  const pubads = googletag.pubads!();
+
+  if (isLocalGptHost() || process.env.NODE_ENV === "development") {
+    pubads.set("page_url", GAM_PAGE_URL);
+  }
+
+  pubads.collapseEmptyDivs(false);
+
+  if (process.env.NODE_ENV === "development") {
+    pubads.addEventListener("slotRenderEnded", (event) => {
+      const slotId = event.slot.getSlotElementId();
+      // eslint-disable-next-line no-console -- diagnóstico local GAM
+      console.info(
+        `[GAM] ${slotId}:`,
+        event.isEmpty ? "sin creativo (vacío)" : `render OK ${event.size?.join("x") ?? ""}`
+      );
+    });
+  }
 }
 
 export function enableGptServicesOnce(): void {
@@ -45,8 +86,13 @@ export function enableGptServicesOnce(): void {
     return;
   }
 
-  googletag.pubads().enableSingleRequest();
-  googletag.pubads().collapseEmptyDivs();
+  configurePubads(googletag);
   googletag.enableServices();
   gptServicesEnabled = true;
+}
+
+export function findGptSlot(slotId: string) {
+  const googletag = window.googletag;
+  if (!googletag?.pubads) return null;
+  return googletag.pubads().getSlots().find((entry) => entry.getSlotElementId() === slotId) ?? null;
 }
