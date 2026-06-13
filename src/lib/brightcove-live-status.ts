@@ -4,8 +4,8 @@ import {
   getConfiguredBrightcoveLiveStreams
 } from "@/lib/brightcove-live-config";
 
-/** Segmentos HLS de 6s; toleramos ~30s de retraso antes de marcar sin señal. */
-const MAX_SEGMENT_AGE_MS = 30_000;
+/** Segmentos HLS de 6s; toleramos ~45s de retraso antes de marcar sin señal. */
+const MAX_SEGMENT_AGE_MS = 45_000;
 
 export type BrightcoveLiveStreamStatus = {
   id: string;
@@ -17,6 +17,24 @@ export type BrightcoveLiveStreamStatus = {
 
 function parseProgramDateTimes(manifest: string): string[] {
   return [...manifest.matchAll(/#EXT-X-PROGRAM-DATE-TIME:(.+)/g)].map((match) => match[1].trim());
+}
+
+async function resolveChunklistUrl(playlistUrl: string): Promise<string | null> {
+  const manifestRes = await fetch(playlistUrl, { cache: "no-store" });
+  if (!manifestRes.ok) return null;
+
+  const manifest = await manifestRes.text();
+  const baseUrl = playlistUrl.replace(/[^/]+$/, "");
+
+  for (const line of manifest.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    if (trimmed.endsWith(".m3u8")) {
+      return trimmed.startsWith("http") ? trimmed : `${baseUrl}${trimmed}`;
+    }
+  }
+
+  return null;
 }
 
 function isRecentSegment(timestamp: string, now = Date.now()): boolean {
@@ -51,9 +69,12 @@ export async function getBrightcoveLiveStreamStatus(
       return { ...base, error: "playback_url_missing" };
     }
 
-    const manifestBase = playback.url.replace(/\/playlist-hls\.m3u8$/, "");
-    const chunklistRes = await fetch(`${manifestBase}/chunklist_hls720p.m3u8`, { cache: "no-store" });
+    const chunklistUrl = await resolveChunklistUrl(playback.url);
+    if (!chunklistUrl) {
+      return { ...base, error: "chunklist_unavailable" };
+    }
 
+    const chunklistRes = await fetch(chunklistUrl, { cache: "no-store" });
     if (!chunklistRes.ok) {
       return { ...base, error: "chunklist_unavailable" };
     }

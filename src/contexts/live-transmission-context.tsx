@@ -2,8 +2,8 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
-/** Alineado con MAX_SEGMENT_AGE_MS en brightcove-live-status. */
-const POLL_INTERVAL_MS = 30_000;
+/** Poll frecuente sin cache CDN — los botones «En vivo» deben aparecer pronto al iniciar señal. */
+const POLL_INTERVAL_MS = 15_000;
 
 type LiveTransmissionContextValue = {
   available: boolean;
@@ -22,7 +22,7 @@ export function LiveTransmissionProvider({ children }: { children: ReactNode }) 
 
     async function check() {
       try {
-        const res = await fetch("/api/stream/status");
+        const res = await fetch("/api/stream/status", { cache: "no-store" });
         if (!res.ok) throw new Error("status_unavailable");
         const data = (await res.json()) as { available?: boolean };
         if (!cancelled) setAvailable(Boolean(data.available));

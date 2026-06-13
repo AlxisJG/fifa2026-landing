@@ -1,4 +1,3 @@
-import { unstable_cache } from "next/cache";
 import { getAllBrightcoveLiveStreamsStatus } from "@/lib/brightcove-live-status";
 import { isLiveTransmissionEnabled } from "@/lib/live-transmission-gate";
 
@@ -40,12 +39,7 @@ async function computeLiveTransmissionStatus(): Promise<LiveTransmissionStatus> 
   };
 }
 
-const getCachedLiveTransmissionStatus = unstable_cache(
-  computeLiveTransmissionStatus,
-  ["live-transmission-status"],
-  { revalidate: 30 }
-);
-
+/** Sin cache de Next — el estado en vivo debe reflejarse al instante para botones y /transmision. */
 export async function getLiveTransmissionStatus(): Promise<LiveTransmissionStatus> {
-  return getCachedLiveTransmissionStatus();
+  return computeLiveTransmissionStatus();
 }
