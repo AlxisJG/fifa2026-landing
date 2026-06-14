@@ -36,3 +36,20 @@ export const BRUGAL_BANNER_ASSETS: SponsorBannerAssets = {
   mobile: brugalAsset("Banner digital Futbol Brugal 2026 (300x50).jpg", 300, 50),
   alt: "Brugal"
 };
+
+const dominosBase = "/ads/dominos";
+
+function dominosAsset(filename: string, width: number, height: number): SponsorBannerAsset {
+  return {
+    src: `${dominosBase}/${encodeURIComponent(filename)}`,
+    width,
+    height
+  };
+}
+
+export const DOMINOS_BANNER_ASSETS: SponsorBannerAssets = {
+  desktopWide: dominosAsset("750 x 100.gif", 750, 100),
+  desktop: dominosAsset("728 x 90.gif", 728, 90),
+  mobile: dominosAsset("300 x 50.gif", 300, 50),
+  alt: "Domino's"
+};

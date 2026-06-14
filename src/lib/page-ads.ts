@@ -19,8 +19,9 @@ type PageAdLabels = {
 };
 
 const PAGE_LABELS: Record<PageAdKey, PageAdLabels> = {
+  /** Superior: banner Domino's (`DOMINOS_BANNER_ASSETS`), debajo del partido destacado. */
   home: { top: "Inicio · superior", bottom: "Inicio · inferior" },
-  /** Superior/inferior: banner Brugal (`BRUGAL_BANNER_ASSETS`). Rectángulo en grid sigue en placeholder. */
+  /** Superior/inferior: banner Brugal. Rectángulo en grid sigue en placeholder. */
   noticias: { top: "Noticias · superior", bottom: "Noticias · inferior" },
   partidos: { top: "Partidos · superior", bottom: "Partidos · inferior" },
   posiciones: { top: "Posiciones · superior", bottom: "Posiciones · inferior" },
@@ -29,6 +30,7 @@ const PAGE_LABELS: Record<PageAdKey, PageAdLabels> = {
   mundial2026Rd: { top: "Mundial RD · superior", bottom: "Mundial RD · inferior" },
   dondeVerMundial: { top: "Dónde ver · superior", bottom: "Dónde ver · inferior" },
   partidosEnVivoMundial: { top: "Partidos en vivo · superior", bottom: "Partidos en vivo · inferior" },
+  /** Superior: Domino's. Inferior: Brillante (`TransmisionBottomAd`). */
   transmision: { top: "Transmisión · superior", bottom: "Transmisión · inferior" }
 };
 
