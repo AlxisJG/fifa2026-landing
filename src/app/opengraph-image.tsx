@@ -7,7 +7,6 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 const PIO_RED = "#d71920";
-const PIO_RED_BORDER = "#9e1218";
 
 export default async function Image() {
   const logoData = await readFile(join(process.cwd(), "public/LOGOS/logo-pio-fifa.png"));
@@ -25,27 +24,16 @@ export default async function Image() {
           backgroundColor: PIO_RED
         }}
       >
-        <div
+        <img
+          src={logoSrc}
+          alt=""
+          width={920}
+          height={390}
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 24,
-            border: `4px solid ${PIO_RED_BORDER}`,
-            padding: 32,
-            backgroundColor: PIO_RED
+            objectFit: "contain",
+            mixBlendMode: "screen"
           }}
-        >
-          <img
-            src={logoSrc}
-            alt=""
-            width={920}
-            height={390}
-            style={{
-              objectFit: "contain"
-            }}
-          />
-        </div>
+        />
       </div>
     ),
     { ...size }

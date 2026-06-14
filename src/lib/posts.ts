@@ -1,4 +1,8 @@
-import { withWordPressSnapshot } from "@/lib/cache/wordpress-snapshot";
+import {
+  readWordPressSnapshot,
+  withWordPressSnapshot,
+  writeWordPressSnapshot
+} from "@/lib/cache/wordpress-snapshot";
 import { wordpressFetchCache } from "@/lib/cache/wordpress";
 import { news as fallbackNews } from "@/data/landing-content";
 import type { PostItem } from "@/lib/posts-types";
@@ -102,7 +106,24 @@ function extractPostsPayload(json: unknown): {
 const WP_NEWS_CATEGORY_SLUG =
   process.env.NEXT_PUBLIC_WP_NEWS_CATEGORY_SLUG ?? "mundial-fifa-usa-can-mex-2026";
 
-async function fetchAllWordPressPosts(baseUrl: string): Promise<Record<string, unknown>[]> {
+function extractSlugsFromRawPosts(raw: Record<string, unknown>[]): string[] {
+  return raw
+    .map((item) => {
+      const titleRaw = item.title as { rendered?: string } | string | undefined;
+      const title = typeof titleRaw === "string" ? titleRaw : titleRaw?.rendered;
+      const link = (item.link as string | undefined)?.trim();
+      const rawSlug = (item.slug as string | undefined)?.trim();
+      return rawSlug || extractSlugFromUrl(link) || (title ? slugifyPostTitle(title) : null);
+    })
+    .filter((slug): slug is string => Boolean(slug));
+}
+
+const SITEMAP_WP_TIMEOUT_MS = 2_000;
+
+async function fetchAllWordPressPosts(
+  baseUrl: string,
+  options?: { signal?: AbortSignal }
+): Promise<Record<string, unknown>[]> {
   const allPosts: Record<string, unknown>[] = [];
   let page = 1;
   let totalPages = 1;
@@ -113,7 +134,10 @@ async function fetchAllWordPressPosts(baseUrl: string): Promise<Record<string, u
       per_page: "100",
       page: String(page)
     });
-    const res = await fetch(`${baseUrl}/posts?${params}`, wordpressFetchCache());
+    const res = await fetch(`${baseUrl}/posts?${params}`, {
+      ...wordpressFetchCache(),
+      signal: options?.signal
+    });
 
     if (!res.ok) {
       return page === 1 ? [] : allPosts;
@@ -152,6 +176,41 @@ export async function getPosts(): Promise<PostItem[]> {
 export async function getPostSlugs(): Promise<string[]> {
   const posts = await getPosts();
   return posts.map((post) => getPostSlug(post));
+}
+
+/**
+ * Slugs for sitemap.xml — snapshot-first with a short live-fetch timeout so Google
+ * never waits on a slow WordPress/FIFApp response.
+ */
+export async function getSitemapNewsSlugs(): Promise<string[]> {
+  const fallbackSlugs = staticPosts.map((post) => getPostSlug(post));
+
+  const snapshot = await readWordPressSnapshot<Record<string, unknown>[]>("posts");
+  if (snapshot?.length) {
+    return extractSlugsFromRawPosts(snapshot);
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_WP_API_URL;
+  if (!baseUrl) {
+    return fallbackSlugs;
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), SITEMAP_WP_TIMEOUT_MS);
+
+  try {
+    const live = await fetchAllWordPressPosts(baseUrl, { signal: controller.signal });
+    if (live.length > 0) {
+      void writeWordPressSnapshot("posts", live);
+      return extractSlugsFromRawPosts(live);
+    }
+  } catch {
+    // Timeout or network error — use fallback slugs below.
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  return fallbackSlugs;
 }
 
 const WP_CONTENT_FETCH_TIMEOUT_MS = 12_000;
