@@ -15,6 +15,8 @@ type TransmisionLiveBlockProps = {
   initialSource?: "live" | "demo";
   /** Dentro de #hero-actions: sin section-shell duplicado. */
   embedded?: boolean;
+  /** Margen superior cuando `embedded` (p. ej. pegado al banner en /transmision). */
+  embeddedTopClassName?: string;
 };
 
 /** Marcador en vivo + partido destacado (transmisión y home). */
@@ -23,7 +25,8 @@ export function TransmisionLiveBlock({
   initialMatch,
   initialTicker,
   initialSource,
-  embedded = false
+  embedded = false,
+  embeddedTopClassName
 }: TransmisionLiveBlockProps = {}) {
   return (
     <LiveFootballProvider
@@ -32,7 +35,7 @@ export function TransmisionLiveBlock({
       initialSource={initialSource}
     >
       <FootballLiveSectionsGate>
-        <LiveMatchTicker embedded={embedded} />
+        <LiveMatchTicker embedded={embedded} embeddedTopClassName={embeddedTopClassName} />
       </FootballLiveSectionsGate>
       <FootballLiveSectionsGate>
         <FeaturedMatchCenter ctaMode={ctaMode} />

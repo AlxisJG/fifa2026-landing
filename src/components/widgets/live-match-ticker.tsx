@@ -7,9 +7,10 @@ import { TickerMatchChip } from "@/components/widgets/ticker-match-chip";
 
 type LiveMatchTickerProps = {
   embedded?: boolean;
+  embeddedTopClassName?: string;
 };
 
-export function LiveMatchTicker({ embedded = false }: LiveMatchTickerProps) {
+export function LiveMatchTicker({ embedded = false, embeddedTopClassName }: LiveMatchTickerProps) {
   const { ticker: data, loading, source } = useLiveFootball();
 
   const card = (
@@ -49,7 +50,7 @@ export function LiveMatchTicker({ embedded = false }: LiveMatchTickerProps) {
   );
 
   if (embedded) {
-    return <div className="mt-6 sm:mt-8">{card}</div>;
+    return <div className={embeddedTopClassName ?? "mt-6 sm:mt-8"}>{card}</div>;
   }
 
   return <section className="section-shell py-4 sm:py-5">{card}</section>;
