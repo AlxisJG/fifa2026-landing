@@ -7,3 +7,4 @@ dist
 build
 coverage
 .wp-cache
+mobile/node_modules

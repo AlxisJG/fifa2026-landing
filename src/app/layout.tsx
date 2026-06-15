@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { MetaPixel } from "@/components/analytics/meta-pixel";
+import { NativeAppProvider } from "@/components/layout/native-app-provider";
 import { JsonLd } from "@/components/seo/json-ld";
 import { ROOT_OG_IMAGE } from "@/lib/seo/metadata-shared";
 import { HOME_SEO, GOOGLE_SITE_VERIFICATION, SITE_NAME, SITE_URL } from "@/lib/seo/site";
@@ -55,7 +56,7 @@ export default function RootLayout({
         <JsonLd data={buildSiteGraphSchema()} />
         <GoogleAnalytics />
         <MetaPixel />
-        {children}
+        <NativeAppProvider>{children}</NativeAppProvider>
         <Analytics />
       </body>
     </html>

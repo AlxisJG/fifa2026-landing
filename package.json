@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "mobile:sync": "cd mobile && npm run cap:sync",
+    "mobile:ios": "cd mobile && npm run cap:open:ios",
+    "mobile:android": "cd mobile && npm run cap:open:android"
   },
   "dependencies": {
     "@upstash/redis": "^1.38.0",
