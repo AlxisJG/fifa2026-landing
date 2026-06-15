@@ -6,6 +6,6 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const payload = await footballDataProvider.getLiveFootball();
   return NextResponse.json(payload, {
-    headers: { "Cache-Control": "public, s-maxage=20, stale-while-revalidate=40" }
+    headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" }
   });
 }

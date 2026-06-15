@@ -17,3 +17,10 @@ export function isLiveTransmissionEnabled(): boolean {
 
   return false;
 }
+
+/** Misma lógica que el gate de servidor, expuesta al cliente vía NEXT_PUBLIC_*. */
+export function isLiveTransmissionEnabledOnClient(): boolean {
+  const fromPublic = parseEnvFlag(process.env.NEXT_PUBLIC_ENABLE_LIVE_TRANSMISSION);
+  if (fromPublic !== undefined) return fromPublic;
+  return false;
+}

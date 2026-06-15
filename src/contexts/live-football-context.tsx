@@ -9,7 +9,12 @@ import {
   type ReactNode
 } from "react";
 import { useFootballLiveSectionsVisible } from "@/contexts/football-live-sections-context";
-import { LIVE_FOOTBALL_POLL_MS } from "@/hooks/useFootballData";
+import { fetchMatchPollWindows } from "@/lib/match-schedule-client";
+import {
+  getNextFootballPollDelayMs,
+  shouldPollFootballLive,
+  type MatchPollWindow
+} from "@/lib/live-transmission-poll-schedule";
 import type { FeaturedMatch, LiveFootballBundle, ProviderResponse } from "@/lib/football-api/types";
 
 type LiveFootballContextValue = {
@@ -46,7 +51,7 @@ export function LiveFootballProvider({
   const [state, setState] = useState<LiveFootballContextValue>({
     match: initialMatch,
     ticker: initialTicker,
-    loading: !hasSsrSource,
+    loading: visible && !hasSsrSource,
     source: initialSource ?? "demo"
   });
 
@@ -54,14 +59,29 @@ export function LiveFootballProvider({
     if (!visible) return;
 
     let active = true;
-    let intervalId: number | undefined;
+    let timeoutId: number | undefined;
+    let windows: MatchPollWindow[] = [];
+
+    function clearScheduledPoll() {
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId);
+        timeoutId = undefined;
+      }
+    }
+
+    function scheduleNextPoll() {
+      clearScheduledPoll();
+      if (!active || document.hidden) return;
+      const delay = getNextFootballPollDelayMs(windows, Date.now());
+      timeoutId = window.setTimeout(() => void pollTick(), delay);
+    }
 
     const load = (isPoll = false) => {
       if (!hasSsrSource && !isPoll) {
         setState((prev) => ({ ...prev, loading: true }));
       }
 
-      fetchLiveFootball()
+      return fetchLiveFootball()
         .then((payload) => {
           if (!active) return;
           setState({
@@ -82,41 +102,54 @@ export function LiveFootballProvider({
         });
     };
 
-    function stopPolling() {
-      if (intervalId !== undefined) {
-        window.clearInterval(intervalId);
-        intervalId = undefined;
+    async function pollTick() {
+      if (!active || document.hidden) return;
+
+      const now = Date.now();
+      if (shouldPollFootballLive(windows, now)) {
+        await load(true);
       }
+
+      scheduleNextPoll();
     }
 
-    function startPolling() {
-      stopPolling();
-
-      if (!hasSsrSource) {
-        load();
+    async function init() {
+      try {
+        windows = await fetchMatchPollWindows();
+      } catch {
+        windows = [];
       }
 
-      intervalId = window.setInterval(() => load(true), LIVE_FOOTBALL_POLL_MS);
+      if (!active) return;
+
+      if (shouldPollFootballLive(windows)) {
+        if (!hasSsrSource) {
+          await load();
+        } else {
+          await load(true);
+        }
+      } else {
+        scheduleNextPoll();
+      }
     }
 
     function handleVisibilityChange() {
       if (document.hidden) {
-        stopPolling();
+        clearScheduledPoll();
       } else {
-        load(true);
-        startPolling();
+        void init();
       }
     }
 
     if (!document.hidden) {
-      startPolling();
+      void init();
     }
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       active = false;
-      stopPolling();
+      clearScheduledPoll();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [hasSsrSource, visible]);

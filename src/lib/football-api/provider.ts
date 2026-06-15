@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { getLiveFootballBundle, sportmonksProvider } from "./sportmonks-provider";
 import { getFootballDataMode, isLiveFootballDataEnabled } from "./config";
 import { mockProvider } from "./mock-provider";
@@ -44,6 +45,12 @@ const emptyFeaturedMatch = {
   venue: ""
 };
 
+const getCachedLiveFootballBundle = unstable_cache(
+  getLiveFootballBundle,
+  ["football-live-bundle"],
+  { revalidate: 300 }
+);
+
 export const footballDataProvider = {
   getTicker: () => withFallback((p) => p.getTicker(), (m) => m.getTicker(), []),
   getFixtures: () => withFallback((p) => p.getFixtures(), (m) => m.getFixtures(), []),
@@ -53,7 +60,7 @@ export const footballDataProvider = {
     withFallback((p) => p.getFeaturedMatch(), (m) => m.getFeaturedMatch(), emptyFeaturedMatch),
   getLiveFootball: () =>
     withFallback(
-      () => getLiveFootballBundle(),
+      () => getCachedLiveFootballBundle(),
       async (m) => {
         const [ticker, match] = await Promise.all([m.getTicker(), m.getFeaturedMatch()]);
         return {

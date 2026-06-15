@@ -18,7 +18,7 @@ export function LiveMatchTicker({ embedded = false }: LiveMatchTickerProps) {
           className="bg-pioRed px-4 py-2.5 text-center text-xs font-bold uppercase tracking-[0.22em] text-white sm:py-3 sm:text-sm sm:tracking-[0.24em]"
           style={{ backgroundColor: "#d71920" }}
         >
-          Presentado por patrocinador
+          Presentado por AES DOMINICANA
         </div>
 
         <div className="px-4 py-3 sm:px-5 sm:py-4">

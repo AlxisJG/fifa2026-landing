@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getLiveTransmissionStatus } from "@/lib/live-transmission-status";
+import { getLiveTransmissionStatusFresh } from "@/lib/live-transmission-status";
 import TransmisionPage from "./transmision-client";
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function TransmisionRoute() {
-  const status = await getLiveTransmissionStatus();
+  const status = await getLiveTransmissionStatusFresh();
 
   if (!status.available) {
     redirect("/");

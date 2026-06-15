@@ -33,7 +33,7 @@ export const rectanglePlacements = {
     sizeLabel: "300×250",
     placement: "Juego en vivo · Broadcast Center"
   },
-  /** Placeholder en home/demo; en `/transmision` el banner Brillante va en `Transmisión · inferior`. */
+  /** Placeholder en home/demo; en `/transmision` los horizontales rotan entre patrocinadores. */
   liveStreamPlayer: {
     id: "leaderboard-live-player",
     title: "Banner Leaderboard",

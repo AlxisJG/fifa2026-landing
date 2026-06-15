@@ -19,7 +19,7 @@ type PageAdLabels = {
 };
 
 const PAGE_LABELS: Record<PageAdKey, PageAdLabels> = {
-  /** Superior: banner Domino's (`DOMINOS_BANNER_ASSETS`), debajo del partido destacado. */
+  /** Superior: Domino's. Inferior: AES Dominicana (fijo, arriba del footer). */
   home: { top: "Inicio · superior", bottom: "Inicio · inferior" },
   /** Superior/inferior: banner Brugal. Rectángulo en grid sigue en placeholder. */
   noticias: { top: "Noticias · superior", bottom: "Noticias · inferior" },
@@ -30,7 +30,7 @@ const PAGE_LABELS: Record<PageAdKey, PageAdLabels> = {
   mundial2026Rd: { top: "Mundial RD · superior", bottom: "Mundial RD · inferior" },
   dondeVerMundial: { top: "Dónde ver · superior", bottom: "Dónde ver · inferior" },
   partidosEnVivoMundial: { top: "Partidos en vivo · superior", bottom: "Partidos en vivo · inferior" },
-  /** Superior: Domino's. Inferior: Brillante (`TransmisionBottomAd`). */
+  /** Superior/inferior: rotación Domino's · Brillante · AES Dominicana (cada ~30 s). */
   transmision: { top: "Transmisión · superior", bottom: "Transmisión · inferior" }
 };
 

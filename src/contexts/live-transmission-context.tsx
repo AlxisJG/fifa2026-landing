@@ -1,9 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-
-/** Poll frecuente sin cache CDN — los botones «En vivo» deben aparecer pronto al iniciar señal. */
-const POLL_INTERVAL_MS = 15_000;
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { fetchMatchPollWindows } from "@/lib/match-schedule-client";
+import {
+  getNextPollDelayMs,
+  shouldPollStreamStatus,
+  type MatchPollWindow
+} from "@/lib/live-transmission-poll-schedule";
+import { isLiveTransmissionEnabledOnClient } from "@/lib/live-transmission-gate";
 
 type LiveTransmissionContextValue = {
   available: boolean;
@@ -13,54 +17,107 @@ const LiveTransmissionContext = createContext<LiveTransmissionContextValue>({
   available: false
 });
 
+async function fetchStreamAvailable(): Promise<boolean> {
+  const res = await fetch("/api/stream/status");
+  if (!res.ok) return false;
+  const data = (await res.json()) as { available?: boolean };
+  return Boolean(data.available);
+}
+
 export function LiveTransmissionProvider({ children }: { children: ReactNode }) {
   const [available, setAvailable] = useState(false);
+  const availableRef = useRef(false);
 
   useEffect(() => {
+    availableRef.current = available;
+  }, [available]);
+
+  useEffect(() => {
+    if (!isLiveTransmissionEnabledOnClient()) {
+      setAvailable(false);
+      return;
+    }
+
     let cancelled = false;
-    let intervalId: number | undefined;
+    let timeoutId: number | undefined;
+    let windows: MatchPollWindow[] = [];
 
-    async function check() {
+    function clearScheduledPoll() {
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId);
+        timeoutId = undefined;
+      }
+    }
+
+    function scheduleNextPoll() {
+      clearScheduledPoll();
+      if (cancelled || document.hidden) return;
+
+      const delay = getNextPollDelayMs(windows, Date.now(), availableRef.current);
+      timeoutId = window.setTimeout(() => void pollTick(), delay);
+    }
+
+    async function pollTick() {
+      if (cancelled || document.hidden) return;
+
+      const now = Date.now();
+      if (!shouldPollStreamStatus(windows, now)) {
+        setAvailable(false);
+        scheduleNextPoll();
+        return;
+      }
+
       try {
-        const res = await fetch("/api/stream/status", { cache: "no-store" });
-        if (!res.ok) throw new Error("status_unavailable");
-        const data = (await res.json()) as { available?: boolean };
-        if (!cancelled) setAvailable(Boolean(data.available));
+        const isAvailable = await fetchStreamAvailable();
+        if (!cancelled) {
+          setAvailable(isAvailable);
+          availableRef.current = isAvailable;
+        }
       } catch {
-        if (!cancelled) setAvailable(false);
+        if (!cancelled) {
+          setAvailable(false);
+          availableRef.current = false;
+        }
+      }
+
+      scheduleNextPoll();
+    }
+
+    async function refreshSchedule() {
+      try {
+        windows = await fetchMatchPollWindows();
+      } catch {
+        windows = [];
       }
     }
 
-    function stopPolling() {
-      if (intervalId !== undefined) {
-        window.clearInterval(intervalId);
-        intervalId = undefined;
-      }
-    }
+    async function init() {
+      await refreshSchedule();
+      if (cancelled) return;
 
-    function startPolling() {
-      stopPolling();
-      void check();
-      intervalId = window.setInterval(() => void check(), POLL_INTERVAL_MS);
+      if (shouldPollStreamStatus(windows)) {
+        await pollTick();
+      } else {
+        setAvailable(false);
+        availableRef.current = false;
+        scheduleNextPoll();
+      }
     }
 
     function handleVisibilityChange() {
       if (document.hidden) {
-        stopPolling();
+        clearScheduledPoll();
       } else {
-        startPolling();
+        void init();
       }
     }
 
-    if (!document.hidden) {
-      startPolling();
-    }
-
+    void init();
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       cancelled = true;
-      stopPolling();
+      clearScheduledPoll();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);

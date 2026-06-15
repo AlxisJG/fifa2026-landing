@@ -53,3 +53,27 @@ export const DOMINOS_BANNER_ASSETS: SponsorBannerAssets = {
   mobile: dominosAsset("300 x 50.gif", 300, 50),
   alt: "Domino's"
 };
+
+const aesDominicanaBase = `/ads/${encodeURIComponent("aes dominicana")}`;
+
+function aesDominicanaAsset(filename: string, width: number, height: number): SponsorBannerAsset {
+  return {
+    src: `${aesDominicanaBase}/${encodeURIComponent(filename)}`,
+    width,
+    height
+  };
+}
+
+export const AES_DOMINICANA_BANNER_ASSETS: SponsorBannerAssets = {
+  desktopWide: aesDominicanaAsset("750x100-LIGHT.gif", 750, 100),
+  desktop: aesDominicanaAsset("728x90-LIGHT.gif", 728, 90),
+  mobile: aesDominicanaAsset("300x50-LIGHT.gif", 300, 50),
+  alt: "AES Dominicana"
+};
+
+/** Orden de rotación en `/transmision` (slots superior e inferior). */
+export const TRANSMISSION_ROTATING_SPONSORS: SponsorBannerAssets[] = [
+  DOMINOS_BANNER_ASSETS,
+  BRILLANTE_BANNER_ASSETS,
+  AES_DOMINICANA_BANNER_ASSETS
+];

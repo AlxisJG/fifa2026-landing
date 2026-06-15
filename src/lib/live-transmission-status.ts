@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { getAllBrightcoveLiveStreamsStatus } from "@/lib/brightcove-live-status";
 import { isLiveTransmissionEnabled } from "@/lib/live-transmission-gate";
 
@@ -20,6 +21,16 @@ export type LiveTransmissionStatus = {
 
 async function computeLiveTransmissionStatus(): Promise<LiveTransmissionStatus> {
   const enabled = isLiveTransmissionEnabled();
+  if (!enabled) {
+    return {
+      active: false,
+      enabled: false,
+      available: false,
+      lastSegmentAt: null,
+      streams: []
+    };
+  }
+
   const streams = await getAllBrightcoveLiveStreamsStatus();
   const activeStreams = streams.filter((stream) => stream.active);
   const lastSegmentAt =
@@ -39,7 +50,18 @@ async function computeLiveTransmissionStatus(): Promise<LiveTransmissionStatus> 
   };
 }
 
-/** Sin cache de Next — el estado en vivo debe reflejarse al instante para botones y /transmision. */
+const getCachedLiveTransmissionStatus = unstable_cache(
+  computeLiveTransmissionStatus,
+  ["live-transmission-status"],
+  { revalidate: 60 }
+);
+
+/** Cache corto — el cliente ya consulta según ventanas del calendario. */
 export async function getLiveTransmissionStatus(): Promise<LiveTransmissionStatus> {
+  return getCachedLiveTransmissionStatus();
+}
+
+/** Sin cache — solo para el gate SSR de /transmision. */
+export async function getLiveTransmissionStatusFresh(): Promise<LiveTransmissionStatus> {
   return computeLiveTransmissionStatus();
 }
