@@ -112,14 +112,14 @@ export function BrightcoveLivePlayer({
         >
           <div className="flex flex-col items-center gap-3">
             <div className="h-9 w-9 animate-spin rounded-full border-2 border-white/25 border-t-white" />
-            <p className="text-xs uppercase tracking-[0.16em] text-white/60">Cargando transmisión…</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-white/80">Cargando transmisión…</p>
           </div>
         </div>
       ) : null}
 
       {status === "error" ? (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/90 px-4 text-center">
-          <p className="text-sm text-white/85">No se pudo cargar el reproductor.</p>
+          <p className="text-sm text-white">No se pudo cargar el reproductor.</p>
           <button
             type="button"
             onClick={handleRetry}

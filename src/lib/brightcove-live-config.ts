@@ -40,6 +40,11 @@ export function isBrightcoveLiveStream2Enabled(): boolean {
   return process.env.BRIGHTCOVE_LIVE_2_ENABLED === "true";
 }
 
+/** Dos reproductores visibles a la vez (desktop: lado a lado; móvil: apilados). */
+export function isBrightcoveSimultaneousPlayersEnabled(): boolean {
+  return process.env.BRIGHTCOVE_LIVE_SIMULTANEOUS_PLAYERS === "true";
+}
+
 export function getActiveBrightcoveLiveStreams(): BrightcoveLiveStreamConfig[] {
   return ALL_BRIGHTCOVE_LIVE_STREAMS.filter((stream) => {
     if (stream.id === "live-2" && !isBrightcoveLiveStream2Enabled()) {

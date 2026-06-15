@@ -11,10 +11,10 @@ import { prefetchBrightcovePlayerScript } from "@/lib/brightcove-player-loader";
 
 export default function TransmisionPage() {
   useEffect(() => {
-    const primaryStream = ACTIVE_BRIGHTCOVE_LIVE_STREAMS[0];
-    if (primaryStream) {
-      prefetchBrightcovePlayerScript(primaryStream.playerId);
-    }
+    const playerIds = [
+      ...new Set(ACTIVE_BRIGHTCOVE_LIVE_STREAMS.map((stream) => stream.playerId))
+    ];
+    playerIds.forEach((playerId) => prefetchBrightcovePlayerScript(playerId));
   }, []);
 
   return (

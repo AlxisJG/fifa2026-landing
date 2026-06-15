@@ -5,7 +5,9 @@ const DEFAULT_EMBED_SRC =
   "https://players.brightcove.net/6416149296001/default_default/index.html?playlistId=1867009149758593664";
 
 function getBrightcoveEmbedSrc(): string {
-  const fromEnv = process.env.NEXT_PUBLIC_BRIGHTCOVE_HIGHLIGHTS_EMBED_URL?.trim();
+  const fromEnv =
+    process.env.NEXT_PUBLIC_BRIGHTCOVE_GALLERY_EMBED_URL?.trim() ??
+    process.env.NEXT_PUBLIC_BRIGHTCOVE_HIGHLIGHTS_EMBED_URL?.trim();
   return fromEnv || DEFAULT_EMBED_SRC;
 }
 
