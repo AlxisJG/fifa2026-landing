@@ -14,29 +14,28 @@ function LivePlayerTheater({ stream }: { stream: (typeof ACTIVE_BRIGHTCOVE_LIVE_
     <div className="theater-dark glass-heavy relative overflow-hidden rounded-3xl border border-slate-700/60 bg-[#090f1f] p-4 shadow-[0_25px_80px_rgba(2,6,23,0.55)] sm:p-5">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(70,210,255,0.18),transparent_40%)]" />
 
-      <div className="relative mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-400" />
-          <span className="rounded-full bg-red-500/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-red-300">
-            En vivo
-          </span>
+      <div className="relative mb-3 flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="mb-1.5 flex items-center gap-2">
+            <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-400" />
+            <span className="rounded-full bg-red-500/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-red-300">
+              En vivo
+            </span>
+          </div>
+          <p className="text-sm font-semibold text-white">{stream.matchTitle}</p>
+          {stream.matchSubtitle ? (
+            <p className="mt-0.5 text-xs uppercase tracking-[0.16em] text-white/55">
+              {stream.matchSubtitle}
+            </p>
+          ) : null}
         </div>
-        <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/80">
+        <span className="shrink-0 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/80">
           {stream.label}
         </span>
       </div>
 
-      <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/15 bg-black">
+      <div className="live-player-frame relative aspect-video overflow-hidden rounded-2xl border border-white/15 bg-black">
         <BrightcoveLivePlayer key={stream.id} stream={stream} />
-      </div>
-
-      <div className="relative mt-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-        <p className="text-sm font-semibold text-white">{stream.matchTitle}</p>
-        {stream.matchSubtitle ? (
-          <p className="mt-0.5 text-xs uppercase tracking-[0.16em] text-white/55">
-            {stream.matchSubtitle}
-          </p>
-        ) : null}
       </div>
     </div>
   );

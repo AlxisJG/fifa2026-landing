@@ -103,7 +103,7 @@ export function BrightcoveLivePlayer({
   }, [className, elementId, playbackToken, retryKey, stream.channelId, stream.id, stream.playerId]);
 
   return (
-    <div className="relative h-full w-full">
+    <div className="absolute inset-0">
       {status === "loading" ? (
         <div
           className="absolute inset-0 z-10 flex items-center justify-center bg-black/80"
