@@ -28,11 +28,19 @@ type MainTab = (typeof MAIN_TABS)[number]["id"];
 type PosicionesSectionProps = {
   initialStandings?: StandingsData;
   initialStandingsSource?: "live" | "demo";
+  initialSquads?: SquadTeam[];
+  initialSquadsSource?: "live" | "demo";
+  initialTopscorers?: TopscorersData;
+  initialTopscorersSource?: "live" | "demo";
 };
 
 export function PosicionesSection({
   initialStandings,
-  initialStandingsSource
+  initialStandingsSource,
+  initialSquads,
+  initialSquadsSource,
+  initialTopscorers,
+  initialTopscorersSource
 }: PosicionesSectionProps = {}) {
   const [activeTab, setActiveTab] = useState<MainTab>("standings");
 
@@ -41,11 +49,12 @@ export function PosicionesSection({
     { initialSource: initialStandingsSource }
   );
   const { data: squads, loading: squadsLoading, source: squadsSource } = useSquads(
-    getSquadsSeed(),
-    { enabled: activeTab === "teams" }
+    initialSquads ?? getSquadsSeed(),
+    { initialSource: initialSquadsSource, enabled: activeTab === "teams" }
   );
   const { data: topscorers, loading: topsLoading, source: topsSource } = useTopscorers(
-    getTopscorersSeed()
+    initialTopscorers ?? getTopscorersSeed(),
+    { initialSource: initialTopscorersSource, enabled: activeTab === "topscorers" }
   );
 
   const groups = standings.groups ?? [];
@@ -53,10 +62,7 @@ export function PosicionesSection({
   const hasTopscorers =
     topscorers.goals.length > 0 || topscorers.assists.length > 0 || topscorers.cards.length > 0;
 
-  const visibleTabs = useMemo(
-    () => MAIN_TABS.filter((tab) => tab.id !== "topscorers" || hasTopscorers),
-    [hasTopscorers]
-  );
+  const visibleTabs = MAIN_TABS;
 
   const isLoading =
     activeTab === "standings"
@@ -89,7 +95,7 @@ export function PosicionesSection({
           <StandingsTab groups={groups} loading={standingsLoading} />
         )}
         {activeTab === "teams" && <TeamsTab teams={teams} loading={squadsLoading} />}
-        {activeTab === "topscorers" && hasTopscorers && (
+        {activeTab === "topscorers" && (
           <TopscorersTab data={topscorers} loading={topsLoading} />
         )}
       </BrowserTabShell>
@@ -347,9 +353,6 @@ function TeamCard({
 }
 
 function TopscorersTab({ data, loading }: { data: TopscorersData; loading: boolean }) {
-  const [metric, setMetric] = useState<"goals" | "assists" | "cards">("goals");
-
-  const entries = data[metric];
   const metrics = (
     [
       { id: "goals" as const, label: "Goles", count: data.goals.length },
@@ -358,8 +361,21 @@ function TopscorersTab({ data, loading }: { data: TopscorersData; loading: boole
     ] as const
   ).filter((m) => m.count > 0);
 
+  const [metric, setMetric] = useState<"goals" | "assists" | "cards">("goals");
+  const activeMetric = metrics.some((m) => m.id === metric) ? metric : (metrics[0]?.id ?? "goals");
+  const entries = data[activeMetric];
+
   if (loading) {
     return <div className="h-64 animate-pulse rounded-2xl bg-slate-100" />;
+  }
+
+  if (metrics.length === 0) {
+    return (
+      <FootballDataEmpty
+        variant="light"
+        message="Las estadísticas de goleadores estarán disponibles próximamente."
+      />
+    );
   }
 
   return (
@@ -372,7 +388,7 @@ function TopscorersTab({ data, loading }: { data: TopscorersData; loading: boole
               type="button"
               onClick={() => setMetric(m.id)}
               className={`rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${
-                metric === m.id
+                activeMetric === m.id
                   ? "topscorers-metric-active"
                   : "border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700"
               }`}
@@ -387,7 +403,7 @@ function TopscorersTab({ data, loading }: { data: TopscorersData; loading: boole
         <ol className="space-y-3">
           {entries.slice(0, 10).map((entry, i) => (
             <li
-              key={`${metric}-${entry.playerName}-${i}`}
+              key={`${activeMetric}-${entry.playerName}-${i}`}
               className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3 last:border-b-0 last:pb-0"
             >
               <div className="flex min-w-0 items-center gap-3">

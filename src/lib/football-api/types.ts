@@ -54,6 +54,8 @@ export type FeaturedMatch = {
   awayFlagUrl?: string;
   isPlaceholder?: boolean;
   live?: boolean;
+  /** Partido ya terminado (FT, etc.). */
+  finished?: boolean;
   homeScore?: number;
   awayScore?: number;
   /** Ej. "67'" o "HT" cuando el partido está en curso. */

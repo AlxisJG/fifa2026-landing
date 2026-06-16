@@ -30,6 +30,7 @@ import type {
 } from "./sportmonks-types";
 
 const LIVE_STATE_PREFIXES = ["INPLAY", "HT", "BREAK", "EXTRA", "PEN"];
+const FINISHED_STATE_MARKERS = ["FT", "FINISHED", "AET", "AWARDED", "ABANDONED", "CANCELLED"];
 const PLACEHOLDER_LABEL = "Por definir";
 
 export function isSportmonksFixtureLive(fixture: SportmonksFixture): boolean {
@@ -37,6 +38,13 @@ export function isSportmonksFixtureLive(fixture: SportmonksFixture): boolean {
   if (!developerName) return false;
   const upper = developerName.toUpperCase();
   return LIVE_STATE_PREFIXES.some((p) => upper.includes(p));
+}
+
+export function isSportmonksFixtureFinished(fixture: SportmonksFixture): boolean {
+  const developerName = fixture.state?.developer_name;
+  if (!developerName) return false;
+  const upper = developerName.toUpperCase();
+  return FINISHED_STATE_MARKERS.some((marker) => upper.includes(marker));
 }
 
 function getHomeAwayParticipants(fixture: SportmonksFixture) {
@@ -198,9 +206,11 @@ function formatFeaturedLiveDetail(fixture: SportmonksFixture): string | undefine
 export function mapSportmonksFixtureToFeaturedMatch(fixture: SportmonksFixture): FeaturedMatch {
   const { home, away } = getHomeAwayParticipants(fixture);
   const live = isSportmonksFixtureLive(fixture);
+  const finished = isSportmonksFixtureFinished(fixture);
   const homeScore = getGoalsForParticipant(fixture, home?.id);
   const awayScore = getGoalsForParticipant(fixture, away?.id);
   const hasScore = homeScore != null && awayScore != null;
+  const showScore = hasScore && (live || finished);
 
   return {
     homeCode: teamCode(home, "LOC"),
@@ -217,8 +227,9 @@ export function mapSportmonksFixtureToFeaturedMatch(fixture: SportmonksFixture):
     awayFlagUrl: teamFlagUrl(away),
     isPlaceholder: Boolean(fixture.placeholder || home?.placeholder || away?.placeholder),
     live,
-    homeScore: hasScore ? homeScore : undefined,
-    awayScore: hasScore ? awayScore : undefined,
+    finished,
+    homeScore: showScore ? homeScore : undefined,
+    awayScore: showScore ? awayScore : undefined,
     liveDetail: live ? formatFeaturedLiveDetail(fixture) : undefined
   };
 }

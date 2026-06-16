@@ -21,35 +21,33 @@ type LivePlayerTheaterProps = {
 function LivePlayerTheater({ stream, compact = false }: LivePlayerTheaterProps) {
   return (
     <div
-      className={`theater-dark glass-heavy relative overflow-hidden rounded-3xl border border-slate-700/60 bg-[#090f1f] shadow-[0_25px_80px_rgba(2,6,23,0.55)] ${
+      className={`glass-heavy relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(2,6,23,0.12)] ${
         compact ? "p-3 sm:p-4" : "p-4 sm:p-5"
       }`}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(70,210,255,0.18),transparent_40%)]" />
-
       <div className="relative mb-3 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="mb-1.5 flex items-center gap-2">
-            <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-400" aria-hidden />
-            <span className="rounded-full bg-red-500/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-red-200">
+            <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" aria-hidden />
+            <span className="rounded-full border border-red-200 bg-red-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-red-700">
               En vivo
             </span>
           </div>
-          <p className={`font-semibold text-white ${compact ? "text-sm" : "text-base"}`}>
+          <p className={`font-semibold text-slate-900 ${compact ? "text-sm" : "text-base"}`}>
             {stream.matchTitle}
           </p>
           {stream.matchSubtitle ? (
-            <p className="mt-0.5 text-xs uppercase tracking-[0.16em] text-white/70">
+            <p className="mt-0.5 text-xs uppercase tracking-[0.16em] text-slate-700">
               {stream.matchSubtitle}
             </p>
           ) : null}
         </div>
-        <span className="shrink-0 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white">
+        <span className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-800">
           {stream.label}
         </span>
       </div>
 
-      <div className="live-player-frame relative aspect-video overflow-hidden rounded-2xl border border-white/15 bg-black">
+      <div className="live-player-frame relative aspect-video overflow-hidden rounded-2xl border border-slate-200 bg-black">
         <BrightcoveLivePlayer key={stream.id} stream={stream} />
       </div>
     </div>

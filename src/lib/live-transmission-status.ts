@@ -56,7 +56,7 @@ const getCachedLiveTransmissionStatus = unstable_cache(
   { revalidate: 60 }
 );
 
-/** Cache corto — el cliente ya consulta según ventanas del calendario. */
+/** Cache corto en servidor — el cliente consulta según ventanas pre/post partido. */
 export async function getLiveTransmissionStatus(): Promise<LiveTransmissionStatus> {
   return getCachedLiveTransmissionStatus();
 }

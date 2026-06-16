@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { getLiveFootballBundle, sportmonksProvider } from "./sportmonks-provider";
+import { CACHE_REVALIDATE } from "./sportmonks-client";
 import { getFootballDataMode, isLiveFootballDataEnabled } from "./config";
 import { mockProvider } from "./mock-provider";
 import type { FootballProvider, ProviderResponse } from "./types";
@@ -51,11 +52,29 @@ const getCachedLiveFootballBundle = unstable_cache(
   { revalidate: 300 }
 );
 
+const getCachedStandings = unstable_cache(
+  () => sportmonksProvider.getStandings(),
+  ["football-standings"],
+  { revalidate: CACHE_REVALIDATE.standings }
+);
+
+const getCachedSquads = unstable_cache(
+  () => sportmonksProvider.getSquads(),
+  ["football-squads"],
+  { revalidate: CACHE_REVALIDATE.teams }
+);
+
+const getCachedTopscorers = unstable_cache(
+  () => sportmonksProvider.getTopscorers(),
+  ["football-topscorers"],
+  { revalidate: CACHE_REVALIDATE.topscorers }
+);
+
 export const footballDataProvider = {
   getTicker: () => withFallback((p) => p.getTicker(), (m) => m.getTicker(), []),
   getFixtures: () => withFallback((p) => p.getFixtures(), (m) => m.getFixtures(), []),
   getStandings: () =>
-    withFallback((p) => p.getStandings(), (m) => m.getStandings(), { groups: [] }),
+    withFallback(() => getCachedStandings(), (m) => m.getStandings(), { groups: [] }),
   getFeaturedMatch: () =>
     withFallback((p) => p.getFeaturedMatch(), (m) => m.getFeaturedMatch(), emptyFeaturedMatch),
   getLiveFootball: () =>
@@ -70,9 +89,9 @@ export const footballDataProvider = {
       },
       { ticker: [], match: emptyFeaturedMatch }
     ),
-  getSquads: () => withFallback((p) => p.getSquads(), (m) => m.getSquads(), []),
+  getSquads: () => withFallback(() => getCachedSquads(), (m) => m.getSquads(), []),
   getTopscorers: () =>
-    withFallback((p) => p.getTopscorers(), (m) => m.getTopscorers(), emptyTopscorers)
+    withFallback(() => getCachedTopscorers(), (m) => m.getTopscorers(), emptyTopscorers)
 };
 
 export { getFootballDataMode, isLiveFootballDataEnabled };

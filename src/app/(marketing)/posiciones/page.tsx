@@ -8,7 +8,11 @@ import { buildPageMetadata, PAGE_SEO } from "@/lib/seo/pages";
 export const metadata = buildPageMetadata("posiciones");
 
 export default async function PosicionesPage() {
-  const standingsRes = await footballDataProvider.getStandings();
+  const [standingsRes, squadsRes, topscorersRes] = await Promise.all([
+    footballDataProvider.getStandings(),
+    footballDataProvider.getSquads(),
+    footballDataProvider.getTopscorers()
+  ]);
 
   return (
     <MarketingPageMain>
@@ -23,6 +27,10 @@ export default async function PosicionesPage() {
         <PosicionesSection
           initialStandings={standingsRes.data}
           initialStandingsSource={standingsRes.source}
+          initialSquads={squadsRes.data}
+          initialSquadsSource={squadsRes.source}
+          initialTopscorers={topscorersRes.data}
+          initialTopscorersSource={topscorersRes.source}
         />
       </PageContentAds>
     </MarketingPageMain>

@@ -52,6 +52,7 @@ function FeaturedMatchup({
   homeScore,
   awayScore,
   live,
+  finished,
   liveDetail
 }: Pick<
   FeaturedMatch,
@@ -64,6 +65,7 @@ function FeaturedMatchup({
   | "homeScore"
   | "awayScore"
   | "live"
+  | "finished"
   | "liveDetail"
 >) {
   const hasScore = homeScore != null && awayScore != null;
@@ -87,8 +89,10 @@ function FeaturedMatchup({
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" />
             {liveDetail ?? "En vivo"}
           </span>
-        ) : hasScore ? (
-          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/55">Final</span>
+        ) : finished ? (
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/55">
+            Finalizado
+          </span>
         ) : null}
       </div>
 
@@ -218,6 +222,7 @@ export function FeaturedMatchCenter({ ctaMode = "transmision" }: FeaturedMatchCe
                 homeScore={match.homeScore}
                 awayScore={match.awayScore}
                 live={match.live}
+                finished={match.finished}
                 liveDetail={match.liveDetail}
               />
             )}
