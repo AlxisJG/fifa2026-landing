@@ -78,18 +78,29 @@ function teamFlagUrl(participant?: SportmonksParticipant): string | undefined {
 function getGoalsForParticipant(fixture: SportmonksFixture, participantId?: number): number | undefined {
   if (!participantId || !fixture.scores?.length) return undefined;
 
-  const current = fixture.scores.find(
-    (s: SportmonksScore) =>
-      s.participant_id === participantId &&
-      (s.description?.toUpperCase() === "CURRENT" ||
-        s.description?.toUpperCase().includes("CURRENT") ||
-        s.description === "2ND_HALF" ||
-        s.description === "1ST_HALF")
-  );
+  const forParticipant = fixture.scores.filter((s) => s.participant_id === participantId);
+  if (forParticipant.length === 0) return undefined;
 
-  const scoreEntry = current ?? fixture.scores.find((s) => s.participant_id === participantId);
-  const goals = scoreEntry?.score?.goals;
-  return goals != null ? goals : undefined;
+  const preferredDescriptions = [
+    "CURRENT",
+    "FULLTIME",
+    "FULL_TIME",
+    "FT",
+    "2ND_HALF",
+    "1ST_HALF",
+    "EXTRA_TIME",
+    "PENALTIES"
+  ];
+
+  for (const label of preferredDescriptions) {
+    const entry = forParticipant.find((s) =>
+      s.description?.toUpperCase().includes(label)
+    );
+    if (entry?.score?.goals != null) return entry.score.goals;
+  }
+
+  const fallback = forParticipant.find((s) => s.score?.goals != null);
+  return fallback?.score?.goals;
 }
 
 function getRoundLabel(fixture: SportmonksFixture): string {

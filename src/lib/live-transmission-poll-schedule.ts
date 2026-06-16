@@ -188,3 +188,23 @@ export function getNextFootballPollDelayMs(windows: MatchPollWindow[], now = Dat
 
   return getMsUntilNextFootballPollWindow(windows, now) ?? POLL_INTERVAL_MS.idleRecheck;
 }
+
+/** Durante transmisión en vivo siempre refrescar marcador (con intervalo de cache). */
+export function shouldRefreshFootballLive(
+  windows: MatchPollWindow[],
+  now: number,
+  streamAvailable: boolean
+): boolean {
+  return streamAvailable || shouldPollFootballLive(windows, now);
+}
+
+export function getFootballLiveRefreshDelayMs(
+  windows: MatchPollWindow[],
+  now: number,
+  streamAvailable: boolean
+): number {
+  if (streamAvailable) {
+    return POLL_INTERVAL_MS.footballLive;
+  }
+  return getNextFootballPollDelayMs(windows, now);
+}
