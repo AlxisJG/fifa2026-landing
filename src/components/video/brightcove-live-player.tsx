@@ -19,6 +19,15 @@ function getPlayerElementId(streamId: string): string {
   return `brightcove-${streamId}`;
 }
 
+function getBrightcoveIframeSrc(stream: BrightcoveLiveStreamConfig, playbackToken?: string): string {
+  const params = new URLSearchParams({ videoId: stream.channelId });
+  if (playbackToken) {
+    params.set("livePlaybackToken", playbackToken);
+  }
+
+  return `https://players.brightcove.net/${BRIGHTCOVE_LIVE_ACCOUNT_ID}/${stream.playerId}_default/index.html?${params.toString()}`;
+}
+
 function disposeBrightcovePlayer(elementId: string): void {
   const player = window.videojs?.getPlayer(elementId);
   if (player && typeof player.dispose === "function") {
@@ -28,6 +37,26 @@ function disposeBrightcovePlayer(elementId: string): void {
       // Player may already be disposed during Strict Mode remounts.
     }
   }
+}
+
+function attachPlayerDiagnostics(player: BrightcoveVideoJsPlayer | undefined, streamId: string): void {
+  if (!player?.on) return;
+
+  player.on("error", () => {
+    // Leave this visible in production: it is the fastest way to diagnose Brightcove geo/policy issues.
+    console.warn("[Brightcove live] player error", {
+      streamId,
+      error: player.error?.(),
+      currentSrc: player.currentSrc?.()
+    });
+  });
+
+  player.on("stalled", () => {
+    console.warn("[Brightcove live] playback stalled", {
+      streamId,
+      currentSrc: player.currentSrc?.()
+    });
+  });
 }
 
 export function BrightcoveLivePlayer({
@@ -40,6 +69,8 @@ export function BrightcoveLivePlayer({
 
   const playbackToken = stream.playbackToken?.trim();
   const elementId = getPlayerElementId(stream.id);
+  const useIframeEmbed = stream.id === "live-2";
+  const iframeSrc = useIframeEmbed ? getBrightcoveIframeSrc(stream, playbackToken) : null;
 
   const handleRetry = useCallback(() => {
     setStatus("loading");
@@ -47,6 +78,11 @@ export function BrightcoveLivePlayer({
   }, []);
 
   useEffect(() => {
+    if (useIframeEmbed) {
+      setStatus("ready");
+      return;
+    }
+
     const container = containerRef.current;
     if (!container) return;
 
@@ -75,6 +111,8 @@ export function BrightcoveLivePlayer({
         }
         playerEl.setAttribute("data-application-id", "");
         playerEl.setAttribute("controls", "");
+        playerEl.setAttribute("width", "960");
+        playerEl.setAttribute("height", "540");
         playerEl.className = `h-full w-full ${className}`.trim();
 
         containerRef.current.appendChild(playerEl);
@@ -82,6 +120,9 @@ export function BrightcoveLivePlayer({
         if (typeof window.bc === "function") {
           window.bc(playerEl);
         }
+
+        const player = window.videojs?.getPlayer(elementId);
+        attachPlayerDiagnostics(player, stream.id);
 
         if (!cancelled) {
           setStatus("ready");
@@ -100,7 +141,32 @@ export function BrightcoveLivePlayer({
       disposeBrightcovePlayer(elementId);
       container.replaceChildren();
     };
-  }, [className, elementId, playbackToken, retryKey, stream.channelId, stream.id, stream.playerId]);
+  }, [
+    className,
+    elementId,
+    playbackToken,
+    retryKey,
+    stream.channelId,
+    stream.id,
+    stream.playerId,
+    useIframeEmbed
+  ]);
+
+  if (iframeSrc) {
+    return (
+      <div className="absolute inset-0">
+        <iframe
+          src={iframeSrc}
+          title={stream.matchTitle}
+          allow="encrypted-media"
+          allowFullScreen
+          width="960"
+          height="540"
+          className={`h-full w-full border-0 ${className}`.trim()}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="absolute inset-0">

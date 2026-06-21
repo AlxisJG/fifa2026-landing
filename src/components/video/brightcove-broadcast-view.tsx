@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { BrightcoveLivePlayer } from "@/components/video/brightcove-live-player";
 import {
@@ -8,9 +8,11 @@ import {
   isBrightcoveSimultaneousPlayersEnabled,
   type BrightcoveLiveStreamConfig
 } from "@/lib/brightcove-live-config";
+import type { LiveTransmissionStatus } from "@/lib/live-transmission-status";
 
 type BrightcoveBroadcastViewProps = {
   className?: string;
+  initialLiveStatus: LiveTransmissionStatus;
 };
 
 type LivePlayerTheaterProps = {
@@ -156,9 +158,41 @@ function BroadcastSwitcherLayout({
   );
 }
 
-export function BrightcoveBroadcastView({ className = "" }: BrightcoveBroadcastViewProps) {
-  const streams = ACTIVE_BRIGHTCOVE_LIVE_STREAMS;
+async function fetchLiveTransmissionStatus(): Promise<LiveTransmissionStatus | null> {
+  const res = await fetch("/api/stream/status", { cache: "no-store" });
+  if (!res.ok) return null;
+  return res.json() as Promise<LiveTransmissionStatus>;
+}
+
+export function BrightcoveBroadcastView({
+  className = "",
+  initialLiveStatus
+}: BrightcoveBroadcastViewProps) {
+  const [liveStatus, setLiveStatus] = useState(initialLiveStatus);
+  const streams = useMemo(() => {
+    const activeStreamIds = new Set(
+      liveStatus.streams.filter((stream) => stream.active).map((stream) => stream.id)
+    );
+    return ACTIVE_BRIGHTCOVE_LIVE_STREAMS.filter((stream) => activeStreamIds.has(stream.id));
+  }, [liveStatus.streams]);
   const primaryStream = streams[0];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshStatus() {
+      const nextStatus = await fetchLiveTransmissionStatus();
+      if (!cancelled && nextStatus) {
+        setLiveStatus(nextStatus);
+      }
+    }
+
+    const intervalId = window.setInterval(() => void refreshStatus(), 15_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   if (!primaryStream) {
     return null;

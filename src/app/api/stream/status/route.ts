@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
-import { getLiveTransmissionStatus } from "@/lib/live-transmission-status";
+import { getLiveTransmissionStatusFresh } from "@/lib/live-transmission-status";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET() {
-  const status = await getLiveTransmissionStatus();
+  const status = await getLiveTransmissionStatusFresh();
 
   return NextResponse.json(status, {
     headers: {
-      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120"
+      "Cache-Control": "no-store, max-age=0"
     }
   });
 }

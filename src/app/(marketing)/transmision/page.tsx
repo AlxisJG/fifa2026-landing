@@ -24,6 +24,7 @@ export default async function TransmisionRoute() {
 
   return (
     <TransmisionPage
+      initialLiveStatus={status}
       initialMatch={liveFootballRes?.data.match}
       initialTicker={liveFootballRes?.data.ticker}
       initialSource={liveFootballRes?.source}

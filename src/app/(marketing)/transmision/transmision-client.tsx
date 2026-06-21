@@ -9,24 +9,32 @@ import { BrightcoveBroadcastView } from "@/components/video/brightcove-broadcast
 import { ACTIVE_BRIGHTCOVE_LIVE_STREAMS } from "@/lib/brightcove-live-config";
 import { prefetchBrightcovePlayerScript } from "@/lib/brightcove-player-loader";
 import type { FeaturedMatch, TickerItem } from "@/lib/football-api/types";
+import type { LiveTransmissionStatus } from "@/lib/live-transmission-status";
 
 type TransmisionPageProps = {
+  initialLiveStatus: LiveTransmissionStatus;
   initialMatch?: FeaturedMatch;
   initialTicker?: TickerItem[];
   initialSource?: "live" | "demo";
 };
 
 export default function TransmisionPage({
+  initialLiveStatus,
   initialMatch,
   initialTicker,
   initialSource
 }: TransmisionPageProps) {
   useEffect(() => {
-    const playerIds = [
-      ...new Set(ACTIVE_BRIGHTCOVE_LIVE_STREAMS.map((stream) => stream.playerId))
-    ];
-    playerIds.forEach((playerId) => prefetchBrightcovePlayerScript(playerId));
-  }, []);
+    const activeStreamIds = new Set(
+      initialLiveStatus.streams.filter((stream) => stream.active).map((stream) => stream.id)
+    );
+    const primaryStream =
+      ACTIVE_BRIGHTCOVE_LIVE_STREAMS.find((stream) => activeStreamIds.has(stream.id)) ??
+      ACTIVE_BRIGHTCOVE_LIVE_STREAMS[0];
+    if (primaryStream) {
+      prefetchBrightcovePlayerScript(primaryStream.playerId);
+    }
+  }, [initialLiveStatus.streams]);
 
   return (
     <MarketingPageMain>
@@ -39,7 +47,7 @@ export default function TransmisionPage({
             initialTicker={initialTicker}
             initialSource={initialSource}
           />
-          <BrightcoveBroadcastView className="mt-5" />
+          <BrightcoveBroadcastView className="mt-5" initialLiveStatus={initialLiveStatus} />
           <TransmisionRotatingBottomAd className="mt-2 sm:mt-3" />
         </section>
       </PageContentAds>

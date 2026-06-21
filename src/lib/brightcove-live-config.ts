@@ -17,11 +17,11 @@ export type BrightcoveLiveStreamConfig = {
 const ALL_BRIGHTCOVE_LIVE_STREAMS: BrightcoveLiveStreamConfig[] = [
   {
     id: "live-1",
-    label: "Transmisión Live #1",
+    label: "Partido #1",
     matchTitle:
       process.env.BRIGHTCOVE_LIVE_MATCH_TITLE ??
       process.env.NEXT_PUBLIC_BRIGHTCOVE_LIVE_MATCH_TITLE ??
-      "Canal principal",
+      "Partido #1",
     matchSubtitle:
       process.env.BRIGHTCOVE_LIVE_MATCH_SUBTITLE ??
       process.env.NEXT_PUBLIC_BRIGHTCOVE_LIVE_MATCH_SUBTITLE ??
@@ -41,11 +41,11 @@ const ALL_BRIGHTCOVE_LIVE_STREAMS: BrightcoveLiveStreamConfig[] = [
   },
   {
     id: "live-2",
-    label: "Transmisión Live #2",
+    label: "Partido #2",
     matchTitle:
       process.env.BRIGHTCOVE_LIVE_2_MATCH_TITLE ??
       process.env.NEXT_PUBLIC_BRIGHTCOVE_LIVE_2_MATCH_TITLE ??
-      "Canal alterno",
+      "Partido #2",
     matchSubtitle:
       process.env.BRIGHTCOVE_LIVE_2_MATCH_SUBTITLE ??
       process.env.NEXT_PUBLIC_BRIGHTCOVE_LIVE_2_MATCH_SUBTITLE ??
@@ -69,12 +69,18 @@ const ALL_BRIGHTCOVE_LIVE_STREAMS: BrightcoveLiveStreamConfig[] = [
 export const BRIGHTCOVE_LIVE_STREAMS = ALL_BRIGHTCOVE_LIVE_STREAMS;
 
 export function isBrightcoveLiveStream2Enabled(): boolean {
-  return process.env.BRIGHTCOVE_LIVE_2_ENABLED === "true";
+  return (
+    process.env.BRIGHTCOVE_LIVE_2_ENABLED === "true" ||
+    process.env.NEXT_PUBLIC_BRIGHTCOVE_LIVE_2_ENABLED === "true"
+  );
 }
 
 /** Dos reproductores visibles a la vez (desktop: lado a lado; móvil: apilados). */
 export function isBrightcoveSimultaneousPlayersEnabled(): boolean {
-  return process.env.BRIGHTCOVE_LIVE_SIMULTANEOUS_PLAYERS === "true";
+  return (
+    process.env.BRIGHTCOVE_LIVE_SIMULTANEOUS_PLAYERS === "true" ||
+    process.env.NEXT_PUBLIC_BRIGHTCOVE_LIVE_SIMULTANEOUS_PLAYERS === "true"
+  );
 }
 
 export function getActiveBrightcoveLiveStreams(): BrightcoveLiveStreamConfig[] {
