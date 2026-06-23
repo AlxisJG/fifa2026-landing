@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FootballDataEmpty } from "@/components/football/football-data-empty";
 import { FootballSourceBadge } from "@/components/football/football-source-badge";
 import { BrowserTabShell } from "@/components/ui/browser-tab-shell";
 import { useSquads, useStandings, useTopscorers } from "@/hooks/useFootballData";
+import { normalizeTopscorersData } from "@/lib/football-api/topscorers";
 import { useTeamSquad } from "@/hooks/useTeamSquad";
 import { getSquadsSeed, getStandingsSeed, getTopscorersSeed } from "@/lib/football-widget-seeds";
 import type {
@@ -24,6 +25,48 @@ const MAIN_TABS = [
 ] as const;
 
 type MainTab = (typeof MAIN_TABS)[number]["id"];
+
+const TOPSCORER_METRICS = [
+  {
+    id: "goals",
+    label: "Goles",
+    totalLabel: "Goles",
+    valueLabel: "goles",
+    description: "Jugadores con más goles anotados."
+  },
+  {
+    id: "assists",
+    label: "Asistencias",
+    totalLabel: "Asist.",
+    valueLabel: "asistencias",
+    description: "Jugadores con más asistencias registradas."
+  },
+  {
+    id: "yellowCards",
+    label: "Amarillas",
+    totalLabel: "TA",
+    valueLabel: "amarillas",
+    description: "Jugadores con más tarjetas amarillas."
+  },
+  {
+    id: "redCards",
+    label: "Rojas",
+    totalLabel: "TR",
+    valueLabel: "rojas",
+    description: "Jugadores con más tarjetas rojas."
+  },
+  {
+    id: "cards",
+    label: "Tarjetas",
+    totalLabel: "Tarj.",
+    valueLabel: "tarjetas",
+    description: "Tarjetas agregadas cuando SportMonks no separa el tipo."
+  }
+] as const;
+
+type TopscorerMetricId = (typeof TOPSCORER_METRICS)[number]["id"];
+
+const TOPSCORERS_PAGE_SIZE = 12;
 
 type PosicionesSectionProps = {
   initialStandings?: StandingsData;
@@ -59,8 +102,13 @@ export function PosicionesSection({
 
   const groups = standings.groups ?? [];
   const teams = useMemo(() => squads.filter((t) => !t.placeholder).sort((a, b) => a.name.localeCompare(b.name)), [squads]);
+  const topStats = normalizeTopscorersData(topscorers);
   const hasTopscorers =
-    topscorers.goals.length > 0 || topscorers.assists.length > 0 || topscorers.cards.length > 0;
+    topStats.goals.length > 0 ||
+    topStats.assists.length > 0 ||
+    topStats.yellowCards.length > 0 ||
+    topStats.redCards.length > 0 ||
+    topStats.cards.length > 0;
 
   const visibleTabs = MAIN_TABS;
 
@@ -96,7 +144,7 @@ export function PosicionesSection({
         )}
         {activeTab === "teams" && <TeamsTab teams={teams} loading={squadsLoading} />}
         {activeTab === "topscorers" && (
-          <TopscorersTab data={topscorers} loading={topsLoading} />
+          <TopscorersTab data={topStats} loading={topsLoading} />
         )}
       </BrowserTabShell>
     </section>
@@ -353,17 +401,60 @@ function TeamCard({
 }
 
 function TopscorersTab({ data, loading }: { data: TopscorersData; loading: boolean }) {
-  const metrics = (
-    [
-      { id: "goals" as const, label: "Goles", count: data.goals.length },
-      { id: "assists" as const, label: "Asistencias", count: data.assists.length },
-      { id: "cards" as const, label: "Tarjetas", count: data.cards.length }
-    ] as const
-  ).filter((m) => m.count > 0);
+  const metrics = TOPSCORER_METRICS.map((m) => ({
+    ...m,
+    count: data[m.id].length
+  })).filter((m) => m.count > 0);
 
-  const [metric, setMetric] = useState<"goals" | "assists" | "cards">("goals");
-  const activeMetric = metrics.some((m) => m.id === metric) ? metric : (metrics[0]?.id ?? "goals");
-  const entries = data[activeMetric];
+  const [metric, setMetric] = useState<TopscorerMetricId>("goals");
+  const [selectedTeam, setSelectedTeam] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const activeMetric = metrics.find((m) => m.id === metric) ?? metrics[0] ?? TOPSCORER_METRICS[0];
+  const entries = data[activeMetric.id];
+  const teamOptions = useMemo(() => {
+    const map = new Map<string, { value: string; label: string; count: number }>();
+    for (const entry of entries) {
+      const label = entry.teamName ?? "No disponible";
+      const value = entry.teamId != null ? String(entry.teamId) : label;
+      const current = map.get(value);
+      map.set(value, {
+        value,
+        label,
+        count: (current?.count ?? 0) + 1
+      });
+    }
+    return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+  }, [entries]);
+
+  const filteredEntries = useMemo(() => {
+    if (selectedTeam === "all") return entries;
+    return entries.filter((entry) => {
+      const value = entry.teamId != null ? String(entry.teamId) : (entry.teamName ?? "No disponible");
+      return value === selectedTeam;
+    });
+  }, [entries, selectedTeam]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredEntries.length / TOPSCORERS_PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageEntries = useMemo(() => {
+    const start = (safePage - 1) * TOPSCORERS_PAGE_SIZE;
+    return filteredEntries.slice(start, start + TOPSCORERS_PAGE_SIZE);
+  }, [filteredEntries, safePage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeMetric.id, selectedTeam]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
+  useEffect(() => {
+    if (selectedTeam === "all") return;
+    if (!teamOptions.some((team) => team.value === selectedTeam)) {
+      setSelectedTeam("all");
+    }
+  }, [selectedTeam, teamOptions]);
 
   if (loading) {
     return <div className="h-64 animate-pulse rounded-2xl bg-slate-100" />;
@@ -388,7 +479,7 @@ function TopscorersTab({ data, loading }: { data: TopscorersData; loading: boole
               type="button"
               onClick={() => setMetric(m.id)}
               className={`rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${
-                activeMetric === m.id
+                activeMetric.id === m.id
                   ? "topscorers-metric-active"
                   : "border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700"
               }`}
@@ -400,29 +491,176 @@ function TopscorersTab({ data, loading }: { data: TopscorersData; loading: boole
       )}
 
       <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6">
-        <ol className="space-y-3">
-          {entries.slice(0, 10).map((entry, i) => (
-            <li
-              key={`${activeMetric}-${entry.playerName}-${i}`}
-              className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3 last:border-b-0 last:pb-0"
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-200/80 text-xs font-semibold text-slate-600">
-                  {i + 1}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-slate-900">{entry.playerName}</p>
-                  {entry.teamName && (
-                    <p className="truncate text-xs text-slate-400">{entry.teamName}</p>
-                  )}
-                </div>
-              </div>
-              <span className="shrink-0 text-lg font-semibold tabular-nums text-gold">{entry.value}</span>
-            </li>
-          ))}
-        </ol>
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3 border-b border-slate-200/80 pb-4">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              Ranking por {activeMetric.label.toLowerCase()}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">{activeMetric.description}</p>
+          </div>
+          <span className="rounded-full bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            {filteredEntries.length} resultados
+          </span>
+        </div>
+
+        <div className="mb-4 flex flex-col gap-2 sm:max-w-xs">
+          <label htmlFor="topscorers-team-filter" className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+            Filtrar por selección
+          </label>
+          <select
+            id="topscorers-team-filter"
+            value={selectedTeam}
+            onChange={(event) => setSelectedTeam(event.target.value)}
+            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-electric/50 focus:outline-none focus:ring-2 focus:ring-electric/20"
+          >
+            <option value="all">Todas las selecciones</option>
+            {teamOptions.map((team) => (
+              <option key={team.value} value={team.value}>
+                {team.label} ({team.count})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {pageEntries.length === 0 ? (
+          <FootballDataEmpty
+            variant="light"
+            message="No hay jugadores de esa selección para esta estadística."
+          />
+        ) : (
+          <>
+            <ol className="space-y-3">
+              {pageEntries.map((entry, i) => {
+                const rank = (safePage - 1) * TOPSCORERS_PAGE_SIZE + i + 1;
+                return (
+                  <li
+                    key={`${activeMetric.id}-${entry.playerName}-${entry.teamId ?? entry.teamName ?? "team"}-${rank}`}
+                    className="grid gap-3 border-b border-slate-100 pb-3 last:border-b-0 last:pb-0 sm:grid-cols-[1fr_auto]"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-200/80 text-xs font-semibold text-slate-600">
+                        {rank}
+                      </span>
+                      <TeamFlag flagUrl={entry.teamFlagUrl} code={entry.teamCode ?? entry.teamName} />
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-slate-900">{entry.playerName}</p>
+                        <p className="truncate text-xs text-slate-500">
+                          Selección: {entry.teamName ?? "No disponible"}
+                        </p>
+                        {activeMetric.id === "cards" && entry.typeLabel && (
+                          <p className="truncate text-[11px] text-slate-400">Tipo: {entry.typeLabel}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-2 sm:block sm:text-right">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                        {activeMetric.totalLabel}
+                      </span>
+                      <p className="text-lg font-semibold tabular-nums text-gold">
+                        {entry.value}
+                        <span className="ml-1 text-xs font-medium text-slate-400">
+                          {activeMetric.valueLabel}
+                        </span>
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+            <TopscorersPagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </>
+        )}
       </div>
     </Reveal>
+  );
+}
+
+function getVisibleTopscorerPages(currentPage: number, totalPages: number) {
+  const start = Math.max(1, currentPage - 2);
+  const end = Math.min(totalPages, start + 4);
+  const normalizedStart = Math.max(1, end - 4);
+  return Array.from({ length: end - normalizedStart + 1 }, (_, index) => normalizedStart + index);
+}
+
+function TopscorersPagination({
+  currentPage,
+  totalPages,
+  onPageChange
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+
+  const pages = getVisibleTopscorerPages(currentPage, totalPages);
+  const buttonBase =
+    "inline-flex min-w-10 items-center justify-center rounded-full px-3 py-2 text-sm font-semibold transition";
+
+  return (
+    <nav className="mt-6 flex flex-wrap items-center justify-center gap-2" aria-label="Paginación de goleadores">
+      <button
+        type="button"
+        onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+        disabled={currentPage <= 1}
+        className={`${buttonBase} border border-slate-300 text-slate-700 hover:bg-white disabled:pointer-events-none disabled:opacity-40`}
+      >
+        Anterior
+      </button>
+      {pages[0] > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={() => onPageChange(1)}
+            className={`${buttonBase} border border-slate-300 text-slate-700 hover:bg-white`}
+          >
+            1
+          </button>
+          {pages[0] > 2 && <span className="px-1 text-sm text-slate-400">...</span>}
+        </>
+      )}
+      {pages.map((page) => (
+        <button
+          key={page}
+          type="button"
+          onClick={() => onPageChange(page)}
+          className={`${buttonBase} ${
+            page === currentPage
+              ? "bg-electric text-midnight"
+              : "border border-slate-300 text-slate-700 hover:bg-white"
+          }`}
+          aria-current={page === currentPage ? "page" : undefined}
+        >
+          {page}
+        </button>
+      ))}
+      {pages[pages.length - 1] < totalPages && (
+        <>
+          {pages[pages.length - 1] < totalPages - 1 && (
+            <span className="px-1 text-sm text-slate-400">...</span>
+          )}
+          <button
+            type="button"
+            onClick={() => onPageChange(totalPages)}
+            className={`${buttonBase} border border-slate-300 text-slate-700 hover:bg-white`}
+          >
+            {totalPages}
+          </button>
+        </>
+      )}
+      <button
+        type="button"
+        onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+        disabled={currentPage >= totalPages}
+        className={`${buttonBase} border border-slate-300 text-slate-700 hover:bg-white disabled:pointer-events-none disabled:opacity-40`}
+      >
+        Siguiente
+      </button>
+    </nav>
   );
 }
 

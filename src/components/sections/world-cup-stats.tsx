@@ -6,8 +6,9 @@ import { FootballSourceBadge } from "@/components/football/football-source-badge
 import { SectionTitle } from "@/components/ui/section-title";
 import { Reveal } from "@/components/ui/motion";
 import { useSquads, useTopscorers } from "@/hooks/useFootballData";
+import { normalizeTopscorersData } from "@/lib/football-api/topscorers";
 import { getSquadsSeed, getTopscorersSeed } from "@/lib/football-widget-seeds";
-import type { TopscorersData } from "@/lib/football-api/types";
+import type { TopscorerEntry, TopscorersData } from "@/lib/football-api/types";
 
 export function WorldCupStatsSection({ showHeader = true }: { showHeader?: boolean }) {
   const { data: squads, loading: squadsLoading, source } = useSquads(getSquadsSeed());
@@ -15,10 +16,15 @@ export function WorldCupStatsSection({ showHeader = true }: { showHeader?: boole
     getTopscorersSeed()
   );
   const [expandedTeam, setExpandedTeam] = useState<number | null>(null);
+  const topStats = normalizeTopscorersData(topscorers);
 
   const hasSquads = squads.length > 0;
   const hasTopscorers =
-    topscorers.goals.length > 0 || topscorers.assists.length > 0 || topscorers.cards.length > 0;
+    topStats.goals.length > 0 ||
+    topStats.assists.length > 0 ||
+    topStats.yellowCards.length > 0 ||
+    topStats.redCards.length > 0 ||
+    topStats.cards.length > 0;
   const hasAnyData = hasSquads || hasTopscorers;
   const isLoading = squadsLoading || topsLoading;
   const showSourceBadge = hasAnyData && !isLoading;
@@ -89,7 +95,7 @@ export function WorldCupStatsSection({ showHeader = true }: { showHeader?: boole
         <Reveal delay={0.05}>
           <div className="glass-heavy rounded-3xl border border-white/10 p-6">
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
-              Goleadores
+              Goleadores y tarjetas
             </h3>
             {topsLoading ? (
               <div className="space-y-2">
@@ -99,27 +105,15 @@ export function WorldCupStatsSection({ showHeader = true }: { showHeader?: boole
               </div>
             ) : hasTopscorers ? (
               <>
-                {topscorers.goals.length > 0 && (
-                  <TopscorerList title="Goles" entries={topscorers.goals} />
-                )}
-                {topscorers.assists.length > 0 && (
+                {topscorerGroups(topStats).map((group, index) => (
                   <TopscorerList
-                    title="Asistencias"
-                    entries={topscorers.assists}
-                    className={topscorers.goals.length > 0 ? "mt-6" : undefined}
+                    key={group.title}
+                    title={group.title}
+                    valueLabel={group.valueLabel}
+                    entries={group.entries}
+                    className={index > 0 ? "mt-6" : undefined}
                   />
-                )}
-                {topscorers.cards.length > 0 && (
-                  <TopscorerList
-                    title="Tarjetas"
-                    entries={topscorers.cards}
-                    className={
-                      topscorers.goals.length > 0 || topscorers.assists.length > 0
-                        ? "mt-6"
-                        : undefined
-                    }
-                  />
-                )}
+                ))}
               </>
             ) : (
               <FootballDataEmpty message="Las estadísticas de goleadores estarán disponibles próximamente." />
@@ -131,13 +125,25 @@ export function WorldCupStatsSection({ showHeader = true }: { showHeader?: boole
   );
 }
 
+function topscorerGroups(data: TopscorersData) {
+  return [
+    { title: "Goles", valueLabel: "goles", entries: data.goals },
+    { title: "Asistencias", valueLabel: "asist.", entries: data.assists },
+    { title: "Tarjetas amarillas", valueLabel: "TA", entries: data.yellowCards },
+    { title: "Tarjetas rojas", valueLabel: "TR", entries: data.redCards },
+    { title: "Tarjetas", valueLabel: "tarj.", entries: data.cards }
+  ].filter((group) => group.entries.length > 0);
+}
+
 function TopscorerList({
   title,
+  valueLabel,
   entries,
   className
 }: {
   title: string;
-  entries: TopscorersData["goals"];
+  valueLabel: string;
+  entries: TopscorerEntry[];
   className?: string;
 }) {
   return (
@@ -147,16 +153,40 @@ function TopscorerList({
         {entries.slice(0, 5).map((e, i) => (
           <li
             key={`${title}-${e.playerName}-${i}`}
-            className="flex justify-between text-sm text-white/80"
+            className="flex items-center justify-between gap-3 text-sm text-white/80"
           >
-            <span>
-              {i + 1}. {e.playerName}
-              {e.teamName && <span className="text-white/40"> ({e.teamName})</span>}
+            <span className="flex min-w-0 items-center gap-2">
+              <StatTeamFlag flagUrl={e.teamFlagUrl} code={e.teamCode ?? e.teamName} />
+              <span className="min-w-0 truncate">
+                {i + 1}. {e.playerName}
+                <span className="text-white/40"> | Selección: {e.teamName ?? "No disponible"}</span>
+              </span>
             </span>
-            <span className="font-semibold text-electric">{e.value}</span>
+            <span className="font-semibold text-electric">
+              {e.value} <span className="text-[10px] uppercase text-white/35">{valueLabel}</span>
+            </span>
           </li>
         ))}
       </ol>
     </div>
+  );
+}
+
+function StatTeamFlag({ flagUrl, code }: { flagUrl?: string; code?: string }) {
+  if (flagUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={flagUrl}
+        alt={code ? `Bandera de ${code}` : "Bandera del equipo"}
+        className="h-5 w-5 shrink-0 rounded-full object-cover"
+      />
+    );
+  }
+
+  return (
+    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/10 text-[9px] font-semibold uppercase text-white/45">
+      {code?.slice(0, 3) ?? "?"}
+    </span>
   );
 }

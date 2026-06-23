@@ -2,7 +2,7 @@ import type { SquadTeam, StandingsData, TopscorersData } from "@/lib/football-ap
 
 export type FootballStatsCacheKey = "standings" | "squads" | "topscorers";
 
-const STORAGE_PREFIX = "pio-football-stats-v1";
+const STORAGE_PREFIX = "pio-football-stats-v2";
 
 /** Mantener datos visibles entre navegaciones — alineado con cache CDN (5–10 min). */
 export const FOOTBALL_STATS_CLIENT_CACHE_MS = 30 * 60 * 1000;
@@ -32,7 +32,13 @@ export function hasDisplayableStats(
     return (data as SquadTeam[]).length > 0;
   }
   const tops = data as TopscorersData;
-  return tops.goals.length > 0 || tops.assists.length > 0 || tops.cards.length > 0;
+  return (
+    (tops.goals?.length ?? 0) > 0 ||
+    (tops.assists?.length ?? 0) > 0 ||
+    (tops.yellowCards?.length ?? 0) > 0 ||
+    (tops.redCards?.length ?? 0) > 0 ||
+    (tops.cards?.length ?? 0) > 0
+  );
 }
 
 export function readFootballStatsCache<K extends FootballStatsCacheKey>(

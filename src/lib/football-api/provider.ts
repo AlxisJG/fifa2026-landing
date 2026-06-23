@@ -35,7 +35,7 @@ async function withFallback<T>(
   }
 }
 
-const emptyTopscorers = { goals: [], assists: [], cards: [] };
+const emptyTopscorers = { goals: [], assists: [], yellowCards: [], redCards: [], cards: [] };
 
 const emptyFeaturedMatch = {
   homeCode: "",
@@ -66,7 +66,7 @@ const getCachedSquads = unstable_cache(
 
 const getCachedTopscorers = unstable_cache(
   () => sportmonksProvider.getTopscorers(),
-  ["football-topscorers"],
+  ["football-topscorers-v2"],
   { revalidate: CACHE_REVALIDATE.topscorers }
 );
 

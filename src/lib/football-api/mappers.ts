@@ -298,25 +298,47 @@ export function mapSportmonksStandings(standings: SportmonksStanding[]): Standin
   return { groups };
 }
 
-function topscorerTypeBucket(type?: SportmonksTopscorer["type"]): keyof TopscorersData | null {
+function topscorerTypeBucket(row: SportmonksTopscorer): keyof TopscorersData | null {
+  if (row.type_id === 208) return "goals";
+  if (row.type_id === 209) return "assists";
+
+  const type = row.type;
   const dev = type?.developer_name?.toUpperCase() ?? "";
   const code = type?.code?.toUpperCase() ?? "";
   const name = type?.name?.toLowerCase() ?? "";
-  if (dev.includes("GOAL") || code.includes("GOAL") || name.includes("goal")) return "goals";
+  if (dev.includes("GOAL") || code.includes("GOAL") || name.includes("goal") || name.includes("gol")) return "goals";
   if (dev.includes("ASSIST") || code.includes("ASSIST") || name.includes("assist")) return "assists";
-  if (dev.includes("CARD") || code.includes("CARD") || name.includes("card")) return "cards";
+  if (
+    dev.includes("YELLOW") ||
+    code.includes("YELLOW") ||
+    name.includes("yellow") ||
+    name.includes("amarilla")
+  ) return "yellowCards";
+  if (dev.includes("RED") || code.includes("RED") || name.includes("red") || name.includes("roja")) return "redCards";
+  if (dev.includes("CARD") || code.includes("CARD") || name.includes("card") || name.includes("tarjeta")) return "cards";
+  if (row.type_id === 84) return "yellowCards";
+  if (row.type_id === 83) return "redCards";
   return null;
 }
 
 export function mapSportmonksTopscorers(rows: SportmonksTopscorer[]): TopscorersData {
-  const result: TopscorersData = { goals: [], assists: [], cards: [] };
+  const result: TopscorersData = {
+    goals: [],
+    assists: [],
+    yellowCards: [],
+    redCards: [],
+    cards: []
+  };
 
   for (const row of rows) {
-    const bucket = topscorerTypeBucket(row.type);
+    const bucket = topscorerTypeBucket(row);
     if (!bucket) continue;
     const entry: TopscorerEntry = {
       playerName: row.player?.display_name ?? row.player?.name ?? "Jugador",
       teamName: row.participant?.name,
+      teamCode: row.participant?.short_code,
+      teamFlagUrl: teamImageUrl(row.participant?.image_path),
+      teamId: row.participant_id ?? row.participant?.id,
       value: row.total ?? 0,
       typeLabel: row.type?.name ?? bucket
     };
@@ -326,12 +348,16 @@ export function mapSportmonksTopscorers(rows: SportmonksTopscorer[]): Topscorers
   const sortDesc = (a: TopscorerEntry, b: TopscorerEntry) => b.value - a.value;
   result.goals.sort(sortDesc);
   result.assists.sort(sortDesc);
+  result.yellowCards.sort(sortDesc);
+  result.redCards.sort(sortDesc);
   result.cards.sort(sortDesc);
 
   return {
-    goals: result.goals.slice(0, 10),
-    assists: result.assists.slice(0, 10),
-    cards: result.cards.slice(0, 10)
+    goals: result.goals,
+    assists: result.assists,
+    yellowCards: result.yellowCards,
+    redCards: result.redCards,
+    cards: result.cards
   };
 }
 

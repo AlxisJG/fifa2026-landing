@@ -107,6 +107,9 @@ export type SquadTeam = {
 export type TopscorerEntry = {
   playerName: string;
   teamName?: string;
+  teamCode?: string;
+  teamFlagUrl?: string;
+  teamId?: number;
   value: number;
   typeLabel: string;
 };
@@ -114,6 +117,8 @@ export type TopscorerEntry = {
 export type TopscorersData = {
   goals: TopscorerEntry[];
   assists: TopscorerEntry[];
+  yellowCards: TopscorerEntry[];
+  redCards: TopscorerEntry[];
   cards: TopscorerEntry[];
 };
 
