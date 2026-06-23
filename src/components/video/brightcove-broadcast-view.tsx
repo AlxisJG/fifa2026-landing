@@ -94,66 +94,82 @@ function BroadcastSimultaneousLayout({
 
 function BroadcastSwitcherLayout({
   streams,
-  className
+  className,
+  selectedId,
+  onSelect,
+  switchNotice
 }: {
   streams: BrightcoveLiveStreamConfig[];
   className: string;
+  selectedId: string;
+  onSelect: (streamId: string) => void;
+  switchNotice?: string;
 }) {
-  const [selectedId, setSelectedId] = useState(streams[0]?.id ?? "live-1");
   const selectedStream = streams.find((stream) => stream.id === selectedId) ?? streams[0];
+  const showSelector = streams.length > 1;
 
   if (!selectedStream) {
     return null;
   }
 
   return (
-    <div className={`grid gap-5 xl:grid-cols-12 ${className}`.trim()}>
-      <div className="space-y-4 xl:col-span-8">
+    <div className={`${showSelector ? "grid gap-5 xl:grid-cols-12" : ""} ${className}`.trim()}>
+      <div className={`space-y-4 ${showSelector ? "xl:col-span-8" : ""}`.trim()}>
+        {switchNotice ? (
+          <div
+            className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900"
+            role="status"
+          >
+            {switchNotice}
+          </div>
+        ) : null}
         <LivePlayerTheater stream={selectedStream} />
       </div>
 
-      <aside className="glass-heavy flex min-h-[280px] flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(2,6,23,0.12)] sm:min-h-[420px] sm:p-6 xl:col-span-4 xl:min-h-0">
-        <h3 className="text-xl font-semibold tracking-[-0.02em] text-slate-900">
-          Centro de transmisión
-        </h3>
-        <p className="mt-2 text-sm leading-relaxed text-slate-700">
-          Selecciona el partido o canal que deseas ver en este momento.
-        </p>
+      {showSelector ? (
+        <aside className="glass-heavy flex min-h-[280px] flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(2,6,23,0.12)] sm:min-h-[420px] sm:p-6 xl:col-span-4 xl:min-h-0">
+          <h3 className="text-xl font-semibold tracking-[-0.02em] text-slate-900">
+            Centro de transmisión
+          </h3>
+          <p className="mt-2 text-sm leading-relaxed text-slate-700">
+            Selecciona el partido o canal que deseas ver en este momento.
+          </p>
 
-        <div className="mt-5 flex-1 space-y-3">
-          {streams.map((stream) => {
-            const isSelected = stream.id === selectedStream.id;
+          <div className="mt-5 flex-1 space-y-3">
+            {streams.map((stream) => {
+              const isSelected = stream.id === selectedStream.id;
 
-            return (
-              <motion.button
-                key={stream.id}
-                type="button"
-                onClick={() => setSelectedId(stream.id)}
-                whileHover={{ x: 4 }}
-                className={`w-full rounded-2xl border p-3.5 text-left transition ${
-                  isSelected
-                    ? "border-blue-600 bg-blue-50 shadow-[0_8px_24px_rgba(37,99,235,0.12)]"
-                    : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{stream.matchTitle}</p>
-                    {stream.matchSubtitle ? (
-                      <p className="mt-1 text-xs text-slate-700">{stream.matchSubtitle}</p>
+              return (
+                <motion.button
+                  key={stream.id}
+                  type="button"
+                  onClick={() => onSelect(stream.id)}
+                  whileHover={{ x: 4 }}
+                  className={`w-full rounded-2xl border p-3.5 text-left transition ${
+                    isSelected
+                      ? "border-blue-600 bg-blue-50 shadow-[0_8px_24px_rgba(37,99,235,0.12)]"
+                      : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{stream.matchTitle}</p>
+                      {stream.matchSubtitle ? (
+                        <p className="mt-1 text-xs text-slate-700">{stream.matchSubtitle}</p>
+                      ) : null}
+                    </div>
+                    {isSelected ? (
+                      <span className="shrink-0 rounded-full bg-red-600/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-red-700">
+                        En vivo
+                      </span>
                     ) : null}
                   </div>
-                  {isSelected ? (
-                    <span className="shrink-0 rounded-full bg-red-600/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-red-700">
-                      En vivo
-                    </span>
-                  ) : null}
-                </div>
-              </motion.button>
-            );
-          })}
-        </div>
-      </aside>
+                </motion.button>
+              );
+            })}
+          </div>
+        </aside>
+      ) : null}
     </div>
   );
 }
@@ -169,6 +185,9 @@ export function BrightcoveBroadcastView({
   initialLiveStatus
 }: BrightcoveBroadcastViewProps) {
   const [liveStatus, setLiveStatus] = useState(initialLiveStatus);
+  const initialActiveStreamId = initialLiveStatus.streams.find((stream) => stream.active)?.id;
+  const [selectedId, setSelectedId] = useState(initialActiveStreamId ?? "live-1");
+  const [switchNotice, setSwitchNotice] = useState<string | undefined>();
   const streams = useMemo(() => {
     const activeStreamIds = new Set(
       liveStatus.streams.filter((stream) => stream.active).map((stream) => stream.id)
@@ -176,6 +195,14 @@ export function BrightcoveBroadcastView({
     return ACTIVE_BRIGHTCOVE_LIVE_STREAMS.filter((stream) => activeStreamIds.has(stream.id));
   }, [liveStatus.streams]);
   const primaryStream = streams[0];
+  const selectedStream = streams.find((stream) => stream.id === selectedId);
+  const selectedConfiguredStream = ACTIVE_BRIGHTCOVE_LIVE_STREAMS.find(
+    (stream) => stream.id === selectedId
+  );
+  const visibleStreams =
+    selectedConfiguredStream && !selectedStream
+      ? [selectedConfiguredStream, ...streams]
+      : streams;
 
   useEffect(() => {
     let cancelled = false;
@@ -194,21 +221,44 @@ export function BrightcoveBroadcastView({
     };
   }, []);
 
+  useEffect(() => {
+    if (streams.length === 0) {
+      return;
+    }
+
+    if (selectedStream) {
+      setSwitchNotice(undefined);
+      return;
+    }
+
+    const fallbackStream = streams[0];
+    setSwitchNotice(
+      `La señal seleccionada ya no está disponible. Cambiando a ${fallbackStream.matchTitle}...`
+    );
+
+    const timeoutId = window.setTimeout(() => {
+      setSelectedId(fallbackStream.id);
+      setSwitchNotice(undefined);
+    }, 2500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [selectedStream, selectedId, streams]);
+
   if (!primaryStream) {
     return null;
-  }
-
-  if (streams.length <= 1) {
-    return (
-      <div className={className}>
-        <LivePlayerTheater stream={primaryStream} />
-      </div>
-    );
   }
 
   if (isBrightcoveSimultaneousPlayersEnabled()) {
     return <BroadcastSimultaneousLayout streams={streams} className={className} />;
   }
 
-  return <BroadcastSwitcherLayout streams={streams} className={className} />;
+  return (
+    <BroadcastSwitcherLayout
+      streams={visibleStreams}
+      className={className}
+      selectedId={selectedStream?.id ?? selectedId}
+      onSelect={setSelectedId}
+      switchNotice={switchNotice}
+    />
+  );
 }
