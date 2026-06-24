@@ -25,7 +25,7 @@ function hasFeaturedMatch(match: FeaturedMatch) {
 }
 
 function FeaturedFlag({ code, flagUrl }: { code: string; flagUrl?: string }) {
-  const src = getFlagCdnUrl(code, 160) ?? flagUrl;
+  const src = flagUrl ?? getFlagCdnUrl(code, 160);
 
   return (
     <div

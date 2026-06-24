@@ -21,7 +21,7 @@ import { Reveal } from "@/components/ui/motion";
 const MAIN_TABS = [
   { id: "standings", label: "Tablas" },
   { id: "teams", label: "Selecciones" },
-  { id: "topscorers", label: "Goleadores" }
+  { id: "topscorers", label: "Estadísticas" }
 ] as const;
 
 type MainTab = (typeof MAIN_TABS)[number]["id"];

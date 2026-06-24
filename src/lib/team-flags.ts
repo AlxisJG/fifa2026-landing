@@ -7,7 +7,7 @@ const FIFA_TO_ISO2: Record<string, string> = {
   ESP: "es",
   FRA: "fr",
   GER: "de",
-  ENG: "gb",
+  ENG: "gb-eng",
   POR: "pt",
   NED: "nl",
   BEL: "be",
