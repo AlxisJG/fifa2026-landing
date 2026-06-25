@@ -175,7 +175,7 @@ function BroadcastSwitcherLayout({
 }
 
 async function fetchLiveTransmissionStatus(): Promise<LiveTransmissionStatus | null> {
-  const res = await fetch("/api/stream/status", { cache: "no-store" });
+  const res = await fetch("/api/stream/status");
   if (!res.ok) return null;
   return res.json() as Promise<LiveTransmissionStatus>;
 }
@@ -214,7 +214,7 @@ export function BrightcoveBroadcastView({
       }
     }
 
-    const intervalId = window.setInterval(() => void refreshStatus(), 15_000);
+    const intervalId = window.setInterval(() => void refreshStatus(), 60_000);
     return () => {
       cancelled = true;
       window.clearInterval(intervalId);
