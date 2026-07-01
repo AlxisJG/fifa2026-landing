@@ -5,7 +5,13 @@ import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { MetaPixel } from "@/components/analytics/meta-pixel";
 import { JsonLd } from "@/components/seo/json-ld";
 import { ROOT_OG_IMAGE } from "@/lib/seo/metadata-shared";
-import { HOME_SEO, GOOGLE_SITE_VERIFICATION, SITE_NAME, SITE_URL } from "@/lib/seo/site";
+import {
+  FACEBOOK_DOMAIN_VERIFICATION,
+  GOOGLE_SITE_VERIFICATION,
+  HOME_SEO,
+  SITE_NAME,
+  SITE_URL
+} from "@/lib/seo/site";
 import { buildSiteGraphSchema } from "@/lib/seo/json-ld";
 import { fwc26 } from "@/lib/fonts/fwc26";
 
@@ -17,7 +23,10 @@ export const metadata: Metadata = {
   },
   description: HOME_SEO.description,
   verification: {
-    google: GOOGLE_SITE_VERIFICATION
+    google: GOOGLE_SITE_VERIFICATION,
+    other: {
+      "facebook-domain-verification": FACEBOOK_DOMAIN_VERIFICATION
+    }
   },
   openGraph: {
     type: "website",
