@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { GallerySection } from "@/components/sections/gallery";
+import { GalleryVideoSection } from "@/components/sections/gallery-video-section";
 import { MarketingPageMain, PageIntro } from "@/components/layout/page-intro";
 import { PageContentAds } from "@/components/layout/page-content-ads";
 import { buildPageMetadata, PAGE_SEO } from "@/lib/seo/pages";
@@ -18,6 +19,7 @@ export default function GaleriaPage() {
     <MarketingPageMain>
       <PageIntro config={PAGE_SEO.galeria} kicker="Multimedia" />
       <PageContentAds page="galeria">
+        <GalleryVideoSection />
         <Suspense fallback={<GalleryFallback />}>
           <GallerySection />
         </Suspense>

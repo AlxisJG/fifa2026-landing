@@ -1,7 +1,7 @@
 import type { Fixture } from "@/lib/football-api/types";
 
-/** Empieza a consultar Brightcove 30 min antes del pitido. */
-export const PRE_MATCH_LEAD_MS = 30 * 60 * 1000;
+/** Empieza a consultar Brightcove 1 h antes del pitido. */
+export const PRE_MATCH_LEAD_MS = 60 * 60 * 1000;
 
 /** Duración estimada del partido + descanso (minutos extra incluidos en margen). */
 export const MATCH_DURATION_MS = 120 * 60 * 1000;
@@ -9,11 +9,12 @@ export const MATCH_DURATION_MS = 120 * 60 * 1000;
 /** Últimos 30 min del partido estimado — polling más frecuente. */
 export const NEAR_END_LEAD_MS = 30 * 60 * 1000;
 
-/** Tras el fin estimado, seguir comprobando si la señal sigue activa. */
-export const POST_MATCH_BUFFER_MS = 20 * 60 * 1000;
+/** Tras el fin estimado, seguir comprobando si la señal sigue activa (1 h). */
+export const POST_MATCH_BUFFER_MS = 60 * 60 * 1000;
 
 export const POLL_INTERVAL_MS = {
   preMatch: 3 * 60 * 1000,
+  postMatch: 3 * 60 * 1000,
   liveMid: 60 * 60 * 1000,
   nearEnd: 5 * 60 * 1000,
   idleRecheck: 60 * 60 * 1000,
@@ -29,7 +30,7 @@ export type MatchPollWindow = {
   pollUntilMs: number;
 };
 
-export type PollPhase = "idle" | "pre_match" | "live_mid" | "near_end";
+export type PollPhase = "idle" | "pre_match" | "live_mid" | "near_end" | "post_match";
 
 export type SerializedMatchPollWindow = {
   kickoffAt: string;
@@ -96,6 +97,7 @@ export function resolvePollPhase(
 ): PollPhase {
   if (!window) return "idle";
   if (now < window.kickoffMs) return "pre_match";
+  if (now >= window.estimatedEndMs) return "post_match";
   if (now < window.nearEndFromMs) {
     return streamAvailable ? "live_mid" : "pre_match";
   }
@@ -108,6 +110,8 @@ export function getPollIntervalMs(phase: PollPhase): number | null {
       return null;
     case "pre_match":
       return POLL_INTERVAL_MS.preMatch;
+    case "post_match":
+      return POLL_INTERVAL_MS.postMatch;
     case "live_mid":
       return POLL_INTERVAL_MS.liveMid;
     case "near_end":
@@ -122,9 +126,12 @@ export function getMsUntilNextPollWindow(windows: MatchPollWindow[], now = Date.
 }
 
 export function getMsUntilPhaseChange(window: MatchPollWindow, now = Date.now()): number | null {
-  const boundaries = [window.kickoffMs, window.nearEndFromMs, window.pollUntilMs].filter(
-    (timestamp) => timestamp > now
-  );
+  const boundaries = [
+    window.kickoffMs,
+    window.nearEndFromMs,
+    window.estimatedEndMs,
+    window.pollUntilMs
+  ].filter((timestamp) => timestamp > now);
   if (boundaries.length === 0) return null;
   return Math.min(...boundaries.map((timestamp) => timestamp - now));
 }
@@ -187,4 +194,24 @@ export function getNextFootballPollDelayMs(windows: MatchPollWindow[], now = Dat
   }
 
   return getMsUntilNextFootballPollWindow(windows, now) ?? POLL_INTERVAL_MS.idleRecheck;
+}
+
+/** Durante transmisión en vivo siempre refrescar marcador (con intervalo de cache). */
+export function shouldRefreshFootballLive(
+  windows: MatchPollWindow[],
+  now: number,
+  streamAvailable: boolean
+): boolean {
+  return streamAvailable || shouldPollFootballLive(windows, now);
+}
+
+export function getFootballLiveRefreshDelayMs(
+  windows: MatchPollWindow[],
+  now: number,
+  streamAvailable: boolean
+): number {
+  if (streamAvailable) {
+    return POLL_INTERVAL_MS.footballLive;
+  }
+  return getNextFootballPollDelayMs(windows, now);
 }

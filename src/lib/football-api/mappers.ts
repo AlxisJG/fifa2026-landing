@@ -30,6 +30,7 @@ import type {
 } from "./sportmonks-types";
 
 const LIVE_STATE_PREFIXES = ["INPLAY", "HT", "BREAK", "EXTRA", "PEN"];
+const FINISHED_STATE_MARKERS = ["FT", "FINISHED", "AET", "AWARDED", "ABANDONED", "CANCELLED"];
 const PLACEHOLDER_LABEL = "Por definir";
 
 export function isSportmonksFixtureLive(fixture: SportmonksFixture): boolean {
@@ -37,6 +38,13 @@ export function isSportmonksFixtureLive(fixture: SportmonksFixture): boolean {
   if (!developerName) return false;
   const upper = developerName.toUpperCase();
   return LIVE_STATE_PREFIXES.some((p) => upper.includes(p));
+}
+
+export function isSportmonksFixtureFinished(fixture: SportmonksFixture): boolean {
+  const developerName = fixture.state?.developer_name;
+  if (!developerName) return false;
+  const upper = developerName.toUpperCase();
+  return FINISHED_STATE_MARKERS.some((marker) => upper.includes(marker));
 }
 
 function getHomeAwayParticipants(fixture: SportmonksFixture) {
@@ -78,18 +86,29 @@ function teamFlagUrl(participant?: SportmonksParticipant): string | undefined {
 function getGoalsForParticipant(fixture: SportmonksFixture, participantId?: number): number | undefined {
   if (!participantId || !fixture.scores?.length) return undefined;
 
-  const current = fixture.scores.find(
-    (s: SportmonksScore) =>
-      s.participant_id === participantId &&
-      (s.description?.toUpperCase() === "CURRENT" ||
-        s.description?.toUpperCase().includes("CURRENT") ||
-        s.description === "2ND_HALF" ||
-        s.description === "1ST_HALF")
-  );
+  const forParticipant = fixture.scores.filter((s) => s.participant_id === participantId);
+  if (forParticipant.length === 0) return undefined;
 
-  const scoreEntry = current ?? fixture.scores.find((s) => s.participant_id === participantId);
-  const goals = scoreEntry?.score?.goals;
-  return goals != null ? goals : undefined;
+  const preferredDescriptions = [
+    "CURRENT",
+    "FULLTIME",
+    "FULL_TIME",
+    "FT",
+    "2ND_HALF",
+    "1ST_HALF",
+    "EXTRA_TIME",
+    "PENALTIES"
+  ];
+
+  for (const label of preferredDescriptions) {
+    const entry = forParticipant.find((s) =>
+      s.description?.toUpperCase().includes(label)
+    );
+    if (entry?.score?.goals != null) return entry.score.goals;
+  }
+
+  const fallback = forParticipant.find((s) => s.score?.goals != null);
+  return fallback?.score?.goals;
 }
 
 function getRoundLabel(fixture: SportmonksFixture): string {
@@ -187,9 +206,11 @@ function formatFeaturedLiveDetail(fixture: SportmonksFixture): string | undefine
 export function mapSportmonksFixtureToFeaturedMatch(fixture: SportmonksFixture): FeaturedMatch {
   const { home, away } = getHomeAwayParticipants(fixture);
   const live = isSportmonksFixtureLive(fixture);
+  const finished = isSportmonksFixtureFinished(fixture);
   const homeScore = getGoalsForParticipant(fixture, home?.id);
   const awayScore = getGoalsForParticipant(fixture, away?.id);
   const hasScore = homeScore != null && awayScore != null;
+  const showScore = hasScore && (live || finished);
 
   return {
     homeCode: teamCode(home, "LOC"),
@@ -206,8 +227,9 @@ export function mapSportmonksFixtureToFeaturedMatch(fixture: SportmonksFixture):
     awayFlagUrl: teamFlagUrl(away),
     isPlaceholder: Boolean(fixture.placeholder || home?.placeholder || away?.placeholder),
     live,
-    homeScore: hasScore ? homeScore : undefined,
-    awayScore: hasScore ? awayScore : undefined,
+    finished,
+    homeScore: showScore ? homeScore : undefined,
+    awayScore: showScore ? awayScore : undefined,
     liveDetail: live ? formatFeaturedLiveDetail(fixture) : undefined
   };
 }
@@ -276,25 +298,47 @@ export function mapSportmonksStandings(standings: SportmonksStanding[]): Standin
   return { groups };
 }
 
-function topscorerTypeBucket(type?: SportmonksTopscorer["type"]): keyof TopscorersData | null {
+function topscorerTypeBucket(row: SportmonksTopscorer): keyof TopscorersData | null {
+  if (row.type_id === 208) return "goals";
+  if (row.type_id === 209) return "assists";
+
+  const type = row.type;
   const dev = type?.developer_name?.toUpperCase() ?? "";
   const code = type?.code?.toUpperCase() ?? "";
   const name = type?.name?.toLowerCase() ?? "";
-  if (dev.includes("GOAL") || code.includes("GOAL") || name.includes("goal")) return "goals";
+  if (dev.includes("GOAL") || code.includes("GOAL") || name.includes("goal") || name.includes("gol")) return "goals";
   if (dev.includes("ASSIST") || code.includes("ASSIST") || name.includes("assist")) return "assists";
-  if (dev.includes("CARD") || code.includes("CARD") || name.includes("card")) return "cards";
+  if (
+    dev.includes("YELLOW") ||
+    code.includes("YELLOW") ||
+    name.includes("yellow") ||
+    name.includes("amarilla")
+  ) return "yellowCards";
+  if (dev.includes("RED") || code.includes("RED") || name.includes("red") || name.includes("roja")) return "redCards";
+  if (dev.includes("CARD") || code.includes("CARD") || name.includes("card") || name.includes("tarjeta")) return "cards";
+  if (row.type_id === 84) return "yellowCards";
+  if (row.type_id === 83) return "redCards";
   return null;
 }
 
 export function mapSportmonksTopscorers(rows: SportmonksTopscorer[]): TopscorersData {
-  const result: TopscorersData = { goals: [], assists: [], cards: [] };
+  const result: TopscorersData = {
+    goals: [],
+    assists: [],
+    yellowCards: [],
+    redCards: [],
+    cards: []
+  };
 
   for (const row of rows) {
-    const bucket = topscorerTypeBucket(row.type);
+    const bucket = topscorerTypeBucket(row);
     if (!bucket) continue;
     const entry: TopscorerEntry = {
       playerName: row.player?.display_name ?? row.player?.name ?? "Jugador",
       teamName: row.participant?.name,
+      teamCode: row.participant?.short_code,
+      teamFlagUrl: teamImageUrl(row.participant?.image_path),
+      teamId: row.participant_id ?? row.participant?.id,
       value: row.total ?? 0,
       typeLabel: row.type?.name ?? bucket
     };
@@ -304,12 +348,16 @@ export function mapSportmonksTopscorers(rows: SportmonksTopscorer[]): Topscorers
   const sortDesc = (a: TopscorerEntry, b: TopscorerEntry) => b.value - a.value;
   result.goals.sort(sortDesc);
   result.assists.sort(sortDesc);
+  result.yellowCards.sort(sortDesc);
+  result.redCards.sort(sortDesc);
   result.cards.sort(sortDesc);
 
   return {
-    goals: result.goals.slice(0, 10),
-    assists: result.assists.slice(0, 10),
-    cards: result.cards.slice(0, 10)
+    goals: result.goals,
+    assists: result.assists,
+    yellowCards: result.yellowCards,
+    redCards: result.redCards,
+    cards: result.cards
   };
 }
 

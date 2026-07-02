@@ -7,6 +7,7 @@ import {
   fetchTeamsBySeason,
   fetchTopscorersBySeason
 } from "./sportmonks-client";
+import { mergeSportmonksFixtures } from "./merge-fixtures";
 import {
   isSportmonksFixtureLive,
   mapSportmonksFixtureToFeaturedMatch,
@@ -106,8 +107,15 @@ export const sportmonksProvider: FootballProvider = {
   },
 
   async getFixtures(): Promise<ProviderResponse<Fixture[]>> {
+    const now = new Date();
+    const [schedule, livescores, recent] = await Promise.all([
+      fetchScheduleFixtures(FIXTURES_LIMIT, { includeAllDates: true }),
+      fetchLivescores().catch(() => [] as SportmonksFixture[]),
+      fetchFixturesBetween(addDays(now, -7), addDays(now, 1), 80).catch(() => [] as SportmonksFixture[])
+    ]);
+
     const fixtures = filterProductionFixtures(
-      await fetchScheduleFixtures(FIXTURES_LIMIT, { includeAllDates: true })
+      mergeSportmonksFixtures(schedule, [...livescores, ...recent])
     );
     let data = fixtures.map(mapSportmonksFixtureToFixture);
     if (process.env.SPORTMONKS_PRIORITIZE_PLACEHOLDERS === "true") {

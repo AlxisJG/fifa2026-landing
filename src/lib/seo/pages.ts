@@ -48,7 +48,7 @@ export const PAGE_SEO: Record<PageSeoKey, PageSeoConfig> = {
   posiciones: {
     path: "/posiciones",
     showInNav: true,
-    navLabel: "Posiciones",
+    navLabel: "Estadísticas",
     title: "Tabla de Posiciones Mundial FIFA 2026 | Pio Deportes",
     description:
       "Tablas de posiciones, estadísticas de equipos y jugadores destacados del Mundial FIFA 2026.",

@@ -54,6 +54,8 @@ export type FeaturedMatch = {
   awayFlagUrl?: string;
   isPlaceholder?: boolean;
   live?: boolean;
+  /** Partido ya terminado (FT, etc.). */
+  finished?: boolean;
   homeScore?: number;
   awayScore?: number;
   /** Ej. "67'" o "HT" cuando el partido está en curso. */
@@ -105,6 +107,9 @@ export type SquadTeam = {
 export type TopscorerEntry = {
   playerName: string;
   teamName?: string;
+  teamCode?: string;
+  teamFlagUrl?: string;
+  teamId?: number;
   value: number;
   typeLabel: string;
 };
@@ -112,6 +117,8 @@ export type TopscorerEntry = {
 export type TopscorersData = {
   goals: TopscorerEntry[];
   assists: TopscorerEntry[];
+  yellowCards: TopscorerEntry[];
+  redCards: TopscorerEntry[];
   cards: TopscorerEntry[];
 };
 

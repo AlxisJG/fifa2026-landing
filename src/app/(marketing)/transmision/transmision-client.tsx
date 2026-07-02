@@ -8,21 +8,46 @@ import { TransmisionLiveBlock } from "@/components/sections/live-blocks";
 import { BrightcoveBroadcastView } from "@/components/video/brightcove-broadcast-view";
 import { ACTIVE_BRIGHTCOVE_LIVE_STREAMS } from "@/lib/brightcove-live-config";
 import { prefetchBrightcovePlayerScript } from "@/lib/brightcove-player-loader";
+import type { FeaturedMatch, TickerItem } from "@/lib/football-api/types";
+import type { LiveTransmissionStatus } from "@/lib/live-transmission-status";
 
-export default function TransmisionPage() {
+type TransmisionPageProps = {
+  initialLiveStatus: LiveTransmissionStatus;
+  initialMatch?: FeaturedMatch;
+  initialTicker?: TickerItem[];
+  initialSource?: "live" | "demo";
+};
+
+export default function TransmisionPage({
+  initialLiveStatus,
+  initialMatch,
+  initialTicker,
+  initialSource
+}: TransmisionPageProps) {
   useEffect(() => {
-    const primaryStream = ACTIVE_BRIGHTCOVE_LIVE_STREAMS[0];
+    const activeStreamIds = new Set(
+      initialLiveStatus.streams.filter((stream) => stream.active).map((stream) => stream.id)
+    );
+    const primaryStream =
+      ACTIVE_BRIGHTCOVE_LIVE_STREAMS.find((stream) => activeStreamIds.has(stream.id)) ??
+      ACTIVE_BRIGHTCOVE_LIVE_STREAMS[0];
     if (primaryStream) {
       prefetchBrightcovePlayerScript(primaryStream.playerId);
     }
-  }, []);
+  }, [initialLiveStatus.streams]);
 
   return (
     <MarketingPageMain>
       <PageContentAds page="transmision">
         <section className="section-shell pb-4">
-          <TransmisionLiveBlock embedded embeddedTopClassName="mt-0" />
-          <BrightcoveBroadcastView className="mt-5" />
+          <TransmisionLiveBlock
+            embedded
+            embeddedTopClassName="mt-0"
+            initialMatch={initialMatch}
+            initialTicker={initialTicker}
+            initialSource={initialSource}
+          />
+          <BrightcoveBroadcastView className="mt-5" initialLiveStatus={initialLiveStatus} />
           <TransmisionRotatingBottomAd className="mt-2 sm:mt-3" />
         </section>
       </PageContentAds>

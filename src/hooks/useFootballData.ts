@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  hasDisplayableStats,
+  readFootballStatsCache,
+  writeFootballStatsCache,
+  type FootballStatsCacheKey
+} from "@/lib/football-stats-cache";
 import type {
   FeaturedMatch,
   Fixture,
@@ -24,6 +30,8 @@ type FetchOptions = {
   initialSource?: "live" | "demo";
   /** Refetch interval in ms (e.g. live match center). */
   pollIntervalMs?: number;
+  /** sessionStorage key for instant display on client navigation. */
+  cacheKey?: FootballStatsCacheKey;
 };
 
 /** Alineado con CACHE_REVALIDATE.livescores (20s) y poll de stream status (30s). */
@@ -35,46 +43,125 @@ async function fetchRoute<T>(url: string): Promise<ProviderResponse<T>> {
   return res.json();
 }
 
+function resolveFootballRouteState<T>(
+  initialData: T,
+  options?: FetchOptions
+): { state: HookState<T>; hasDisplayableData: boolean } {
+  const enabled = options?.enabled ?? true;
+  const hasSsrSource = options?.initialSource !== undefined;
+  const cacheKey = options?.cacheKey;
+
+  if (cacheKey) {
+    const cached = readFootballStatsCache(cacheKey);
+    if (cached) {
+      return {
+        state: {
+          data: cached.data as T,
+          loading: false,
+          source: cached.source
+        },
+        hasDisplayableData: true
+      };
+    }
+  }
+
+  if (hasSsrSource) {
+    const hasData = cacheKey
+      ? hasDisplayableStats(cacheKey, initialData as never)
+      : true;
+    return {
+      state: {
+        data: initialData,
+        loading: false,
+        source: options!.initialSource!
+      },
+      hasDisplayableData: hasData
+    };
+  }
+
+  return {
+    state: {
+      data: initialData,
+      loading: enabled,
+      source: "demo"
+    },
+    hasDisplayableData: false
+  };
+}
+
 function useFootballRoute<T>(url: string, initialData: T, options?: FetchOptions): HookState<T> {
   const enabled = options?.enabled ?? true;
   const pollIntervalMs = options?.pollIntervalMs;
   const hasSsrSource = options?.initialSource !== undefined;
-  const [state, setState] = useState<HookState<T>>({
-    data: initialData,
-    loading: enabled && !hasSsrSource,
-    source: options?.initialSource ?? "demo"
-  });
+  const cacheKey = options?.cacheKey;
+
+  const [{ state, hasDisplayableData }, setResolved] = useState(() =>
+    resolveFootballRouteState(initialData, options)
+  );
+
+  useEffect(() => {
+    if (
+      hasSsrSource &&
+      cacheKey &&
+      options?.initialSource &&
+      hasDisplayableStats(cacheKey, initialData as never)
+    ) {
+      writeFootballStatsCache(cacheKey, options.initialSource, initialData as never);
+    }
+  }, [hasSsrSource, cacheKey, options?.initialSource, initialData]);
 
   useEffect(() => {
     if (!enabled) {
-      setState({ data: initialData, loading: false, source: options?.initialSource ?? "demo" });
+      setResolved((prev) => ({
+        ...prev,
+        state: { ...prev.state, loading: false }
+      }));
       return;
     }
 
     let active = true;
     let intervalId: number | undefined;
 
-    const load = (isPoll = false) => {
-      if (!hasSsrSource && !isPoll) {
-        setState((prev) => ({ ...prev, loading: true }));
+    const applyPayload = (payload: ProviderResponse<T>) => {
+      const displayable = cacheKey
+        ? hasDisplayableStats(cacheKey, payload.data as never)
+        : true;
+      if (cacheKey && displayable) {
+        writeFootballStatsCache(cacheKey, payload.source, payload.data as never);
+      }
+      setResolved({
+        hasDisplayableData: displayable,
+        state: {
+          data: payload.data,
+          loading: false,
+          error: payload.error,
+          source: payload.source
+        }
+      });
+    };
+
+    const load = (background = false) => {
+      if (!background) {
+        setResolved((prev) => ({
+          ...prev,
+          state: { ...prev.state, loading: true }
+        }));
       }
 
       fetchRoute<T>(url)
         .then((payload) => {
           if (!active) return;
-          setState({
-            data: payload.data,
-            loading: false,
-            error: payload.error,
-            source: payload.source
-          });
+          applyPayload(payload);
         })
         .catch((err) => {
           if (!active) return;
-          setState((prev) => ({
+          setResolved((prev) => ({
             ...prev,
-            loading: false,
-            error: err instanceof Error ? err.message : "Failed to load"
+            state: {
+              ...prev.state,
+              loading: false,
+              error: err instanceof Error ? err.message : "Failed to load"
+            }
           }));
         });
     };
@@ -89,12 +176,12 @@ function useFootballRoute<T>(url: string, initialData: T, options?: FetchOptions
     function startPolling() {
       stopPolling();
       if (!pollIntervalMs) {
-        load();
+        load(hasDisplayableData);
         return;
       }
 
-      if (!hasSsrSource) {
-        load();
+      if (!hasDisplayableData) {
+        load(false);
       }
 
       intervalId = window.setInterval(() => load(true), pollIntervalMs);
@@ -112,7 +199,7 @@ function useFootballRoute<T>(url: string, initialData: T, options?: FetchOptions
     }
 
     if (!pollIntervalMs) {
-      load();
+      load(hasDisplayableData);
       return () => {
         active = false;
       };
@@ -129,7 +216,7 @@ function useFootballRoute<T>(url: string, initialData: T, options?: FetchOptions
       stopPolling();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [url, enabled, hasSsrSource, options?.initialSource, pollIntervalMs]);
+  }, [url, enabled, hasDisplayableData, options?.initialSource, pollIntervalMs, cacheKey]);
 
   return state;
 }
@@ -139,7 +226,10 @@ export function useFixtures(initialData: Fixture[], options?: FetchOptions) {
 }
 
 export function useStandings(initialData: StandingsData, options?: FetchOptions) {
-  return useFootballRoute<StandingsData>("/api/football/standings", initialData, options);
+  return useFootballRoute<StandingsData>("/api/football/standings", initialData, {
+    cacheKey: "standings",
+    ...options
+  });
 }
 
 export function useMatchCenter(initialData: FeaturedMatch, options?: FetchOptions) {
@@ -157,9 +247,15 @@ export function useTicker(initialData: TickerItem[], options?: FetchOptions) {
 }
 
 export function useSquads(initialData: SquadTeam[] = [], options?: FetchOptions) {
-  return useFootballRoute<SquadTeam[]>("/api/football/squads", initialData, options);
+  return useFootballRoute<SquadTeam[]>("/api/football/squads", initialData, {
+    cacheKey: "squads",
+    ...options
+  });
 }
 
 export function useTopscorers(initialData: TopscorersData, options?: FetchOptions) {
-  return useFootballRoute<TopscorersData>("/api/football/topscorers", initialData, options);
+  return useFootballRoute<TopscorersData>("/api/football/topscorers", initialData, {
+    cacheKey: "topscorers",
+    ...options
+  });
 }

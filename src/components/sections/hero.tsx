@@ -26,7 +26,7 @@ export function Hero({ belowActions }: HeroProps) {
           >
             <Image
               src={HERO_IMAGE}
-              alt="PIO Deportes - Mundial FIFA 2026: Tres países, una pasión"
+              alt="PIO Deportes - Mundial FIFA 2026: El Mundial se vive aquí, exclusivo en PIO Deportes"
               fill
               priority
               sizes="(max-width: 768px) 100vw, 1240px"
@@ -42,13 +42,13 @@ export function Hero({ belowActions }: HeroProps) {
                 className="text-[clamp(1rem,3.5vw,2rem)] font-black uppercase leading-[1.05] tracking-[0.14em] text-white sm:tracking-[0.18em]"
                 style={{ textShadow: heroCopyShadow }}
               >
-                TRES PAISES. UNA PASIÓN
+                EL MUNDIAL SE VIVE AQUÍ
               </p>
               <p
                 className="text-[clamp(1rem,3.4vw,1.85rem)] font-black uppercase leading-none tracking-[0.2em] text-white sm:tracking-[0.26em]"
                 style={{ textShadow: heroCopyShadow }}
               >
-                11 DE JUNIO 2026
+                EXCLUSIVO EN PIO DEPORTES
               </p>
             </div>
           </div>

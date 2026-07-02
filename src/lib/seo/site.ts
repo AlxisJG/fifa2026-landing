@@ -15,6 +15,9 @@ export const SITE_NAME = "PIO Deportes RD";
 export const GOOGLE_SITE_VERIFICATION =
   process.env.GOOGLE_SITE_VERIFICATION ?? "7sAuRPcvupNqrIvNYcL-Bph8S19y7Tm_k_zU8umGkxA";
 
+export const FACEBOOK_DOMAIN_VERIFICATION =
+  process.env.FACEBOOK_DOMAIN_VERIFICATION ?? "tjsx5to7vujhs29ezi71g2gkoqa3yp";
+
 /** Default Open Graph / Twitter preview (1200×630 recommended; logo used as fallback). */
 export const DEFAULT_OG_IMAGE = "/opengraph-image";
 

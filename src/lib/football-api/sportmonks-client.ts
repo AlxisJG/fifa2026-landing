@@ -34,6 +34,7 @@ export const CACHE_REVALIDATE = {
 type FetchOptions = {
   include?: string;
   filters?: string;
+  params?: Record<string, string | number>;
   revalidate?: number;
 };
 
@@ -52,6 +53,9 @@ function buildUrl(path: string, options: FetchOptions = {}) {
   url.searchParams.set("api_token", token);
   if (options.include) url.searchParams.set("include", options.include);
   if (options.filters) url.searchParams.set("filters", options.filters);
+  for (const [key, value] of Object.entries(options.params ?? {})) {
+    url.searchParams.set(key, String(value));
+  }
   return url.toString();
 }
 
@@ -279,9 +283,24 @@ export async function fetchSquadByTeamId(teamId: number): Promise<SportmonksSqua
 
 export async function fetchTopscorersBySeason(): Promise<SportmonksTopscorer[]> {
   const seasonId = getSeasonId();
-  const json = await sportmonksFetch<SportmonksListResponse<SportmonksTopscorer>>(
-    `/topscorers/seasons/${seasonId}`,
-    { include: TOPSCORERS_INCLUDES, revalidate: CACHE_REVALIDATE.topscorers }
-  );
-  return json.data ?? [];
+  const rows: SportmonksTopscorer[] = [];
+  let page = 1;
+
+  while (page <= 10) {
+    const json = await sportmonksFetch<SportmonksListResponse<SportmonksTopscorer>>(
+      `/topscorers/seasons/${seasonId}`,
+      {
+        include: TOPSCORERS_INCLUDES,
+        params: { per_page: 50, page },
+        revalidate: CACHE_REVALIDATE.topscorers
+      }
+    );
+
+    rows.push(...(json.data ?? []));
+
+    if (!json.pagination?.has_more) break;
+    page += 1;
+  }
+
+  return rows;
 }

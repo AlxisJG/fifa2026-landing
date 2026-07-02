@@ -21,7 +21,13 @@ export function isFootballDemoSeedAllowed(): boolean {
 export const EMPTY_FIXTURES: Fixture[] = [];
 export const EMPTY_TICKER: TickerItem[] = [];
 export const EMPTY_STANDINGS: StandingsData = { groups: [] };
-export const EMPTY_TOPSCORERS: TopscorersData = { goals: [], assists: [], cards: [] };
+export const EMPTY_TOPSCORERS: TopscorersData = {
+  goals: [],
+  assists: [],
+  yellowCards: [],
+  redCards: [],
+  cards: []
+};
 export const EMPTY_SQUADS: SquadTeam[] = [];
 export const EMPTY_FEATURED_MATCH: FeaturedMatch = {
   homeCode: "",

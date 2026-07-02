@@ -1,7 +1,7 @@
 import { fixtures, featuredMatch, standings, tickerItems } from "@/data/worldcup-widgets";
 import type { FootballProvider, ProviderResponse } from "./types";
 
-const emptyTopscorers = { goals: [], assists: [], cards: [] };
+const emptyTopscorers = { goals: [], assists: [], yellowCards: [], redCards: [], cards: [] };
 
 export const mockProvider: FootballProvider = {
   async getTicker(): Promise<ProviderResponse<typeof tickerItems>> {
