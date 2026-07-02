@@ -39,7 +39,7 @@ export default function TransmisionPage({
   return (
     <MarketingPageMain>
       <PageContentAds page="transmision">
-        <section className="section-shell pb-4">
+        <section className="section-shell native-transmision-shell pb-4">
           <TransmisionLiveBlock
             embedded
             embeddedTopClassName="mt-0"

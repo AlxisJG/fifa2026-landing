@@ -61,6 +61,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es-DO" className={fwc26.variable}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var c=window.Capacitor;if((c&&c.isNativePlatform&&c.isNativePlatform())||/Capacitor/i.test(navigator.userAgent)){document.documentElement.classList.add("native-app");document.documentElement.setAttribute("data-native-app","true");}}catch(e){}})();`
+          }}
+        />
+      </head>
       <body className={`${fwc26.className} font-sans`}>
         <JsonLd data={buildSiteGraphSchema()} />
         <GoogleAnalytics />

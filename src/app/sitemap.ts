@@ -38,7 +38,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 1
     },
-    ...pagePaths.map((path) => staticEntry(path, path.includes("mundial") ? 0.9 : 0.8))
+    ...pagePaths.map((path) => staticEntry(path, path.includes("mundial") ? 0.9 : 0.8)),
+    staticEntry("/privacidad", 0.3, "yearly")
   ];
 
   try {

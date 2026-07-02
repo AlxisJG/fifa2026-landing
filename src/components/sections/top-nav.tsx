@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { isNativeApp } from "@/lib/native-app";
 import { BrandLogoMark } from "@/components/ui/brand-logo-mark";
 import { LiveNavButton } from "@/components/ui/live-nav-button";
 import { NAV_PAGES, type PageSeoKey } from "@/lib/seo/pages";
@@ -23,6 +24,11 @@ function navPagesByKeys(keys: PageSeoKey[]) {
 
 export function TopNav() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [nativeApp, setNativeApp] = useState(false);
+
+  useEffect(() => {
+    setNativeApp(isNativeApp());
+  }, []);
 
   useEffect(() => {
     document.body.classList.toggle("no-scroll", menuOpen);
@@ -36,10 +42,13 @@ export function TopNav() {
   return (
     <>
       <header
-        className="theater-dark fixed inset-x-0 top-0 z-40 overflow-visible border-b border-white/15 bg-black/90 backdrop-blur-2xl"
+        data-app-top-nav
+        className={`theater-dark inset-x-0 top-0 z-40 overflow-visible border-b border-white/15 bg-black/90 backdrop-blur-2xl ${
+          nativeApp ? "relative" : "fixed"
+        }`}
         style={{ paddingTop: "max(env(safe-area-inset-top), 0px)" }}
       >
-        <div className="absolute inset-x-0 top-0 h-0.5 bg-[#d71920]" />
+        <div data-app-top-accent className="absolute inset-x-0 top-0 h-0.5 bg-[#d71920]" />
         <div className="section-shell h-[4.5rem] sm:h-[4.75rem]">
           <div className="flex h-full items-center justify-between gap-3 md:grid md:grid-cols-[1fr_auto_1fr] md:gap-2">
             <div className="flex min-w-0 shrink-0 items-center md:hidden">
@@ -78,6 +87,7 @@ export function TopNav() {
 
             <button
               onClick={() => setMenuOpen((v) => !v)}
+              data-app-menu-button
               className="glass relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/20 md:hidden"
               aria-label="Abrir menú"
             >

@@ -8,6 +8,7 @@ import type { FeaturedMatch, TickerItem } from "@/lib/football-api/types";
 
 function canAccessTransmision(available: boolean): boolean {
   if (available) return true;
+  // En desarrollo local: permite probar /transmision aunque falle el chequeo Brightcove.
   return process.env.NODE_ENV === "development" && isLiveTransmissionEnabled();
 }
 

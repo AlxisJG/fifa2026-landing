@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { FootballLiveSectionsProvider } from "@/contexts/football-live-sections-context";
 import { LiveTransmissionProvider } from "@/contexts/live-transmission-context";
 import { AppDownloadBanner } from "@/components/layout/app-download-banner";
+import { NativeScrollTopButton } from "@/components/layout/native-scroll-top-button";
 import { FixedSkyscraperAds } from "@/components/ads/fixed-skyscraper-ads";
 import { TopNav } from "@/components/sections/top-nav";
 import { FooterSection } from "@/components/sections/footer";
@@ -32,6 +33,7 @@ export function MarketingShell({
           <TopNav />
           {children}
           <FooterSection />
+          <NativeScrollTopButton />
           <AppDownloadBanner />
         </div>
       </FootballLiveSectionsProvider>

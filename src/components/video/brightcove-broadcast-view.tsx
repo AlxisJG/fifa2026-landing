@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { BrightcoveLivePlayer } from "@/components/video/brightcove-live-player";
+import { isNativeApp } from "@/lib/native-app";
 import {
   ACTIVE_BRIGHTCOVE_LIVE_STREAMS,
   isBrightcoveSimultaneousPlayersEnabled,
@@ -21,6 +22,42 @@ type LivePlayerTheaterProps = {
 };
 
 function LivePlayerTheater({ stream, compact = false }: LivePlayerTheaterProps) {
+  const [nativeApp, setNativeApp] = useState(false);
+
+  useEffect(() => {
+    setNativeApp(isNativeApp());
+  }, []);
+
+  if (nativeApp) {
+    return (
+      <div data-live-broadcast-theater className="live-broadcast-theater-native w-full">
+        <div className="native-transmision-player-meta px-3 pb-3 pt-1">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex items-center gap-2">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" aria-hidden />
+                <span className="rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-red-700">
+                  En vivo
+                </span>
+              </div>
+              <p className="text-sm font-semibold text-slate-900">{stream.matchTitle}</p>
+              {stream.matchSubtitle ? (
+                <p className="mt-0.5 text-[11px] uppercase tracking-[0.14em] text-slate-600">
+                  {stream.matchSubtitle}
+                </p>
+              ) : null}
+            </div>
+            <span className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-700">
+              {stream.label}
+            </span>
+          </div>
+        </div>
+
+        <BrightcoveLivePlayer key={stream.id} stream={stream} variant="stacked" />
+      </div>
+    );
+  }
+
   return (
     <div
       className={`glass-heavy relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(2,6,23,0.12)] ${
@@ -49,7 +86,10 @@ function LivePlayerTheater({ stream, compact = false }: LivePlayerTheaterProps) 
         </span>
       </div>
 
-      <div className="live-player-frame relative aspect-video overflow-hidden rounded-2xl border border-slate-200 bg-black">
+      <div
+        data-live-player-frame
+        className="live-player-frame relative aspect-video overflow-hidden rounded-2xl border border-slate-200 bg-black"
+      >
         <BrightcoveLivePlayer key={stream.id} stream={stream} />
       </div>
     </div>

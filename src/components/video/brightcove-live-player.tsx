@@ -6,11 +6,14 @@ import {
   type BrightcoveLiveStreamConfig,
   ACTIVE_BRIGHTCOVE_LIVE_STREAMS
 } from "@/lib/brightcove-live-config";
+import { isNativeApp } from "@/lib/native-app";
 import { loadBrightcovePlayerScript } from "@/lib/brightcove-player-loader";
 
 type BrightcoveLivePlayerProps = {
   stream?: BrightcoveLiveStreamConfig;
   className?: string;
+  /** En app nativa: botón de fullscreen debajo del video, sin tapar controles. */
+  variant?: "embedded" | "stacked";
 };
 
 type PlayerStatus = "loading" | "ready" | "error";
@@ -19,13 +22,46 @@ function getPlayerElementId(streamId: string): string {
   return `brightcove-${streamId}`;
 }
 
-function getBrightcoveIframeSrc(stream: BrightcoveLiveStreamConfig, playbackToken?: string): string {
-  const params = new URLSearchParams({ videoId: stream.channelId });
-  if (playbackToken) {
-    params.set("livePlaybackToken", playbackToken);
+function isIosDevice(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /iPad|iPhone|iPod/i.test(navigator.userAgent);
+}
+
+function requestNativeVideoFullscreen(container: HTMLElement | null): boolean {
+  const video = container?.querySelector("video");
+  if (!video) return false;
+
+  const webkitVideo = video as HTMLVideoElement & { webkitEnterFullscreen?: () => void };
+  if (typeof webkitVideo.webkitEnterFullscreen === "function") {
+    webkitVideo.webkitEnterFullscreen();
+    return true;
   }
 
-  return `https://players.brightcove.net/${BRIGHTCOVE_LIVE_ACCOUNT_ID}/${stream.playerId}_default/index.html?${params.toString()}`;
+  if (typeof video.requestFullscreen === "function") {
+    void video.requestFullscreen();
+    return true;
+  }
+
+  return false;
+}
+
+function wireIosFullscreenFallback(elementId: string, container: HTMLElement | null): void {
+  if (!isNativeApp() || !isIosDevice()) return;
+
+  const player = window.videojs?.getPlayer(elementId);
+  if (!player?.ready) return;
+
+  player.ready(() => {
+    const fullscreenButton = container?.querySelector(".vjs-fullscreen-control");
+    if (fullscreenButton && !fullscreenButton.getAttribute("data-ios-fullscreen-wired")) {
+      fullscreenButton.setAttribute("data-ios-fullscreen-wired", "true");
+      fullscreenButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        requestNativeVideoFullscreen(container);
+      });
+    }
+  });
 }
 
 function disposeBrightcovePlayer(elementId: string): void {
@@ -61,7 +97,8 @@ function attachPlayerDiagnostics(player: BrightcoveVideoJsPlayer | undefined, st
 
 export function BrightcoveLivePlayer({
   stream = ACTIVE_BRIGHTCOVE_LIVE_STREAMS[0],
-  className = ""
+  className = "",
+  variant = "embedded"
 }: BrightcoveLivePlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<PlayerStatus>("loading");
@@ -69,8 +106,7 @@ export function BrightcoveLivePlayer({
 
   const playbackToken = stream.playbackToken?.trim();
   const elementId = getPlayerElementId(stream.id);
-  const useIframeEmbed = stream.id === "live-2";
-  const iframeSrc = useIframeEmbed ? getBrightcoveIframeSrc(stream, playbackToken) : null;
+  const showNativeFullscreen = isNativeApp() && isIosDevice();
 
   const handleRetry = useCallback(() => {
     setStatus("loading");
@@ -78,11 +114,6 @@ export function BrightcoveLivePlayer({
   }, []);
 
   useEffect(() => {
-    if (useIframeEmbed) {
-      setStatus("ready");
-      return;
-    }
-
     const container = containerRef.current;
     if (!container) return;
 
@@ -111,9 +142,9 @@ export function BrightcoveLivePlayer({
         }
         playerEl.setAttribute("data-application-id", "");
         playerEl.setAttribute("controls", "");
-        playerEl.setAttribute("width", "960");
-        playerEl.setAttribute("height", "540");
-        playerEl.className = `h-full w-full ${className}`.trim();
+        playerEl.setAttribute("playsinline", "");
+        playerEl.setAttribute("webkit-playsinline", "");
+        playerEl.className = `vjs-fluid h-full w-full ${className}`.trim();
 
         containerRef.current.appendChild(playerEl);
 
@@ -123,6 +154,7 @@ export function BrightcoveLivePlayer({
 
         const player = window.videojs?.getPlayer(elementId);
         attachPlayerDiagnostics(player, stream.id);
+        wireIosFullscreenFallback(elementId, containerRef.current);
 
         if (!cancelled) {
           setStatus("ready");
@@ -148,28 +180,13 @@ export function BrightcoveLivePlayer({
     retryKey,
     stream.channelId,
     stream.id,
-    stream.playerId,
-    useIframeEmbed
+    stream.playerId
   ]);
 
-  if (iframeSrc) {
-    return (
-      <div className="absolute inset-0">
-        <iframe
-          src={iframeSrc}
-          title={stream.matchTitle}
-          allow="encrypted-media"
-          allowFullScreen
-          width="960"
-          height="540"
-          className={`h-full w-full border-0 ${className}`.trim()}
-        />
-      </div>
-    );
-  }
+  const stackedLayout = variant === "stacked";
 
-  return (
-    <div className="absolute inset-0">
+  const playerViewport = (
+    <>
       {status === "loading" ? (
         <div
           className="absolute inset-0 z-10 flex items-center justify-center bg-black/80"
@@ -198,8 +215,45 @@ export function BrightcoveLivePlayer({
 
       <div
         ref={containerRef}
-        className={`h-full w-full ${status === "loading" ? "opacity-0" : "opacity-100"}`}
+        className={`absolute inset-0 h-full w-full ${status === "loading" ? "opacity-0" : "opacity-100"}`}
       />
+    </>
+  );
+
+  const fullscreenButton =
+    showNativeFullscreen && status === "ready" ? (
+      <button
+        type="button"
+        onClick={() => requestNativeVideoFullscreen(containerRef.current)}
+        className={
+          stackedLayout
+            ? "live-player-fullscreen-btn mt-3 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-slate-900 shadow-sm"
+            : "absolute bottom-3 right-3 z-20 rounded-full border border-white/30 bg-black/75 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-white backdrop-blur-sm"
+        }
+        aria-label="Pantalla completa"
+      >
+        Pantalla completa
+      </button>
+    ) : null;
+
+  if (stackedLayout) {
+    return (
+      <div className="live-player-stack w-full">
+        <div
+          data-live-player-frame
+          className="live-player-frame-native relative aspect-video w-full overflow-hidden bg-black"
+        >
+          {playerViewport}
+        </div>
+        {fullscreenButton}
+      </div>
+    );
+  }
+
+  return (
+    <div className="absolute inset-0">
+      {playerViewport}
+      {fullscreenButton}
     </div>
   );
 }

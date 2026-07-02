@@ -27,5 +27,9 @@ type MarketingPageShellProps = {
 };
 
 export function MarketingPageMain({ children }: MarketingPageShellProps) {
-  return <div className="relative overflow-x-hidden pt-[calc(env(safe-area-inset-top,0px)+4.5rem)] sm:pt-[calc(env(safe-area-inset-top,0px)+4.75rem)]">{children}</div>;
+  return (
+    <div className="marketing-page-main relative overflow-x-hidden pt-[calc(env(safe-area-inset-top,0px)+4.5rem)] sm:pt-[calc(env(safe-area-inset-top,0px)+4.75rem)]">
+      {children}
+    </div>
+  );
 }
