@@ -1,12 +1,20 @@
 "use client";
 
-"use client";
-
 import { isNativeApp } from "@/lib/native-app";
 import type { PushPlatform } from "@/lib/push/types";
 
+let listenersAttached = false;
+
+type CapacitorWindow = Window & {
+  Capacitor?: {
+    isNativePlatform?: () => boolean;
+    isPluginAvailable?: (name: string) => boolean;
+    getPlatform?: () => string;
+  };
+};
+
 function resolvePlatform(): PushPlatform {
-  const capacitor = (window as Window & { Capacitor?: { getPlatform?: () => string } }).Capacitor;
+  const capacitor = (window as CapacitorWindow).Capacitor;
   const platform = capacitor?.getPlatform?.();
   if (platform === "ios" || platform === "android" || platform === "web") {
     return platform;
@@ -14,7 +22,18 @@ function resolvePlatform(): PushPlatform {
   return "unknown";
 }
 
-async function postToken(token: string, platform: PushPlatform) {
+async function waitForFirebaseMessagingPlugin(maxAttempts = 24, delayMs = 250): Promise<boolean> {
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const capacitor = (window as CapacitorWindow).Capacitor;
+    if (capacitor?.isNativePlatform?.() && capacitor.isPluginAvailable?.("FirebaseMessaging")) {
+      return true;
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, delayMs));
+  }
+  return false;
+}
+
+async function postToken(token: string, platform: PushPlatform): Promise<boolean> {
   const res = await fetch("/api/push/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -22,8 +41,12 @@ async function postToken(token: string, platform: PushPlatform) {
   });
 
   if (!res.ok) {
-    console.warn("[push] register failed", res.status);
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    console.warn("[push] register failed", res.status, body?.error ?? "");
+    return false;
   }
+
+  return true;
 }
 
 async function deleteToken(token: string) {
@@ -50,47 +73,86 @@ function getNotificationUrl(data: unknown): string | undefined {
   return typeof url === "string" ? url : undefined;
 }
 
+async function syncPushToken(): Promise<void> {
+  const ready = await waitForFirebaseMessagingPlugin();
+  if (!ready) {
+    console.warn("[push] FirebaseMessaging plugin unavailable");
+    return;
+  }
+
+  const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
+
+  const permission = await FirebaseMessaging.checkPermissions();
+  if (permission.receive !== "granted") {
+    const requested = await FirebaseMessaging.requestPermissions();
+    if (requested.receive !== "granted") {
+      console.warn("[push] notification permission denied — enable in iOS Settings → PIO Deportes → Notifications");
+      return;
+    }
+  }
+
+  const { token } = await FirebaseMessaging.getToken();
+  if (!token) {
+    console.warn("[push] FCM token unavailable");
+    return;
+  }
+
+  const saved = await postToken(token, resolvePlatform());
+  if (saved) {
+    console.info("[push] token registered");
+  }
+}
+
+async function attachPushListeners(): Promise<void> {
+  if (listenersAttached) return;
+
+  const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
+
+  await FirebaseMessaging.addListener("tokenReceived", async (event) => {
+    if (event.token) {
+      await postToken(event.token, resolvePlatform());
+    }
+  });
+
+  await FirebaseMessaging.addListener("notificationActionPerformed", (event) => {
+    const url = getNotificationUrl(event.notification?.data);
+    if (url) {
+      openNotificationUrl(url);
+    }
+  });
+
+  await FirebaseMessaging.addListener("notificationReceived", (event) => {
+    const url = getNotificationUrl(event.notification?.data);
+    if (url && document.visibilityState === "visible") {
+      openNotificationUrl(url);
+    }
+  });
+
+  listenersAttached = true;
+}
+
 export async function registerNativePushNotifications(): Promise<void> {
   if (!isNativeApp()) return;
 
   try {
-    const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
-
-    const permission = await FirebaseMessaging.checkPermissions();
-    if (permission.receive !== "granted") {
-      const requested = await FirebaseMessaging.requestPermissions();
-      if (requested.receive !== "granted") {
-        return;
-      }
-    }
-
-    const { token } = await FirebaseMessaging.getToken();
-    if (token) {
-      await postToken(token, resolvePlatform());
-    }
-
-    await FirebaseMessaging.addListener("tokenReceived", async (event) => {
-      if (event.token) {
-        await postToken(event.token, resolvePlatform());
-      }
-    });
-
-    await FirebaseMessaging.addListener("notificationActionPerformed", (event) => {
-      const url = getNotificationUrl(event.notification?.data);
-      if (url) {
-        openNotificationUrl(url);
-      }
-    });
-
-    await FirebaseMessaging.addListener("notificationReceived", (event) => {
-      const url = getNotificationUrl(event.notification?.data);
-      if (url && document.visibilityState === "visible") {
-        openNotificationUrl(url);
-      }
-    });
+    await syncPushToken();
+    await attachPushListeners();
   } catch (error) {
     console.warn("[push] native registration unavailable", error);
   }
+}
+
+export function bindNativePushLifecycle(): () => void {
+  if (!isNativeApp()) return () => undefined;
+
+  const onVisible = () => {
+    if (document.visibilityState === "visible") {
+      void registerNativePushNotifications();
+    }
+  };
+
+  document.addEventListener("visibilitychange", onVisible);
+  return () => document.removeEventListener("visibilitychange", onVisible);
 }
 
 export async function unregisterNativePushToken(token: string): Promise<void> {

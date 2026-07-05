@@ -3,6 +3,7 @@ import { isPushNotificationsEnabled } from "@/lib/push/config";
 import { isFirebaseAdminConfigured } from "@/lib/push/firebase-admin";
 import { removePushToken, savePushToken } from "@/lib/push/token-store";
 import type { PushPlatform } from "@/lib/push/types";
+import { isLikelyFcmToken } from "@/lib/push/validate-token";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
   }
 
   const token = body.token?.trim();
-  if (!token || token.length < 20) {
+  if (!token || !isLikelyFcmToken(token)) {
     return NextResponse.json({ ok: false, error: "invalid_token" }, { status: 400 });
   }
 

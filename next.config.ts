@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["firebase-admin"],
+  transpilePackages: ["@capacitor-firebase/messaging"],
   allowedDevOrigins: ["10.0.0.4"],
   async redirects() {
     return [
