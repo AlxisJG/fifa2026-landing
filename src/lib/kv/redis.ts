@@ -3,16 +3,18 @@ import { Redis } from "@upstash/redis";
 let redisClient: Redis | null | undefined;
 
 function resolveRedisCredentials(): { url: string; token: string } | null {
-  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL?.trim();
-  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
-  if (upstashUrl && upstashToken) {
-    return { url: upstashUrl, token: upstashToken };
-  }
+  const candidates: Array<[string | undefined, string | undefined]> = [
+    [process.env.UPSTASH_REDIS_REST_URL, process.env.UPSTASH_REDIS_REST_TOKEN],
+    [process.env.FIFAPIO_KV_REST_API_URL, process.env.FIFAPIO_KV_REST_API_TOKEN],
+    [process.env.KV_REST_API_URL, process.env.KV_REST_API_TOKEN]
+  ];
 
-  const kvUrl = process.env.FIFAPIO_KV_REST_API_URL?.trim();
-  const kvToken = process.env.FIFAPIO_KV_REST_API_TOKEN?.trim();
-  if (kvUrl && kvToken) {
-    return { url: kvUrl, token: kvToken };
+  for (const [url, token] of candidates) {
+    const trimmedUrl = url?.trim();
+    const trimmedToken = token?.trim();
+    if (trimmedUrl && trimmedToken) {
+      return { url: trimmedUrl, token: trimmedToken };
+    }
   }
 
   return null;
