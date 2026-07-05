@@ -45,7 +45,17 @@ Editar en [`capacitor.config.ts`](./capacitor.config.ts) o exportar antes de `ca
 APP_WEB_URL=https://fifa.piodeportes.com npx cap sync
 ```
 
-## Identidad
+## Push notifications (Firebase)
+
+1. Descarga `GoogleService-Info.plist` desde Firebase Console (app iOS `com.piodeportes.app`).
+2. Colócalo en `ios/App/App/GoogleService-Info.plist`.
+3. En Xcode, arrastra el archivo al target **App** y marca **Copy items if needed** + target **App** en *Add to targets*.
+4. Sin este archivo en el bundle, push no funciona; versiones anteriores podían cerrarse al abrir si Firebase se inicializaba sin el plist.
+5. **TestFlight / App Store** usan build **Release** con `AppRelease.entitlements` (`aps-environment: production`). Debug usa `AppDebug.entitlements` (`development`). Tras cambiar entitlements, sube un build nuevo a TestFlight.
+6. Firebase Console → app iOS → **Cloud Messaging** → sube la **APNs Authentication Key** (`.p8`) de Apple Developer.
+7. `AppDelegate.swift` debe incluir los callbacks de APNs (`didRegisterForRemoteNotificationsWithDeviceToken`, etc.) requeridos por `@capacitor-firebase/messaging`.
+
+Los tokens FCM se guardan en Upstash Redis (`push:tokens:index`) cuando la app nativa abre y el usuario acepta notificaciones.
 
 - **App name:** PIO Deportes
 - **Bundle ID:** `com.piodeportes.app`

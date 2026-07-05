@@ -27,6 +27,8 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>Te avisamos cuando empieza un partido o hay transmisión en vivo.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
