@@ -17,9 +17,13 @@ function getFirebaseAdminApp(): App | null {
     return null;
   }
 
-  return initializeApp({
-    credential: cert({ projectId, clientEmail, privateKey })
-  });
+  try {
+    return initializeApp({
+      credential: cert({ projectId, clientEmail, privateKey })
+    });
+  } catch {
+    return null;
+  }
 }
 
 function getMessagingClient(): Messaging | null {
@@ -36,7 +40,11 @@ function getMessagingClient(): Messaging | null {
 }
 
 export function isFirebaseAdminConfigured(): boolean {
-  return getMessagingClient() !== null;
+  try {
+    return getMessagingClient() !== null;
+  } catch {
+    return false;
+  }
 }
 
 export async function sendPushToTokens(

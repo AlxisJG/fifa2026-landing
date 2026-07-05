@@ -17,9 +17,13 @@ export async function savePushToken(token: string, platform: PushPlatform): Prom
     updatedAt: new Date().toISOString()
   };
 
-  await redis.set(tokenKey(token), record);
-  await redis.sadd(TOKEN_INDEX_KEY, token);
-  return true;
+  try {
+    await redis.set(tokenKey(token), record);
+    await redis.sadd(TOKEN_INDEX_KEY, token);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function removePushToken(token: string): Promise<boolean> {

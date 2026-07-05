@@ -13,34 +13,38 @@ function parsePlatform(value: unknown): PushPlatform {
 }
 
 export async function POST(request: Request) {
-  if (!isPushNotificationsEnabled()) {
-    return NextResponse.json({ ok: false, error: "push_disabled" }, { status: 503 });
-  }
-
-  let body: { token?: string; platform?: string };
   try {
-    body = (await request.json()) as { token?: string; platform?: string };
+    if (!isPushNotificationsEnabled()) {
+      return NextResponse.json({ ok: false, error: "push_disabled" }, { status: 503 });
+    }
+
+    let body: { token?: string; platform?: string };
+    try {
+      body = (await request.json()) as { token?: string; platform?: string };
+    } catch {
+      return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });
+    }
+
+    const token = body.token?.trim();
+    if (!token || !isLikelyFcmToken(token)) {
+      return NextResponse.json({ ok: false, error: "invalid_token" }, { status: 400 });
+    }
+
+    const platform = parsePlatform(body.platform);
+    const saved = await savePushToken(token, platform);
+
+    if (!saved) {
+      return NextResponse.json({ ok: false, error: "kv_unavailable" }, { status: 503 });
+    }
+
+    return NextResponse.json({
+      ok: true,
+      platform,
+      firebaseAdmin: isFirebaseAdminConfigured()
+    });
   } catch {
-    return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "internal_error" }, { status: 500 });
   }
-
-  const token = body.token?.trim();
-  if (!token || !isLikelyFcmToken(token)) {
-    return NextResponse.json({ ok: false, error: "invalid_token" }, { status: 400 });
-  }
-
-  const platform = parsePlatform(body.platform);
-  const saved = await savePushToken(token, platform);
-
-  if (!saved) {
-    return NextResponse.json({ ok: false, error: "kv_unavailable" }, { status: 503 });
-  }
-
-  return NextResponse.json({
-    ok: true,
-    platform,
-    firebaseAdmin: isFirebaseAdminConfigured()
-  });
 }
 
 export async function DELETE(request: Request) {

@@ -22,15 +22,15 @@ function resolvePlatform(): PushPlatform {
   return "unknown";
 }
 
-async function waitForFirebaseMessagingPlugin(maxAttempts = 24, delayMs = 250): Promise<boolean> {
+async function waitForNativeBridge(maxAttempts = 40, delayMs = 250): Promise<boolean> {
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const capacitor = (window as CapacitorWindow).Capacitor;
-    if (capacitor?.isNativePlatform?.() && capacitor.isPluginAvailable?.("FirebaseMessaging")) {
+    if (capacitor?.isNativePlatform?.()) {
       return true;
     }
     await new Promise((resolve) => window.setTimeout(resolve, delayMs));
   }
-  return false;
+  return isNativeApp();
 }
 
 async function postToken(token: string, platform: PushPlatform): Promise<boolean> {
@@ -73,10 +73,22 @@ function getNotificationUrl(data: unknown): string | undefined {
   return typeof url === "string" ? url : undefined;
 }
 
+async function readFcmToken(): Promise<string | null> {
+  const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
+
+  try {
+    const { token } = await FirebaseMessaging.getToken();
+    return token ?? null;
+  } catch (error) {
+    console.warn("[push] getToken failed, waiting for tokenReceived", error);
+    return null;
+  }
+}
+
 async function syncPushToken(): Promise<void> {
-  const ready = await waitForFirebaseMessagingPlugin();
+  const ready = await waitForNativeBridge();
   if (!ready) {
-    console.warn("[push] FirebaseMessaging plugin unavailable");
+    console.warn("[push] native bridge unavailable");
     return;
   }
 
@@ -91,16 +103,20 @@ async function syncPushToken(): Promise<void> {
     }
   }
 
-  const { token } = await FirebaseMessaging.getToken();
-  if (!token) {
-    console.warn("[push] FCM token unavailable");
-    return;
+  const platform = resolvePlatform();
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const token = await readFcmToken();
+    if (token) {
+      const saved = await postToken(token, platform);
+      if (saved) {
+        console.info("[push] token registered");
+      }
+      return;
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, 1000));
   }
 
-  const saved = await postToken(token, resolvePlatform());
-  if (saved) {
-    console.info("[push] token registered");
-  }
+  console.warn("[push] FCM token unavailable after retries — will register on tokenReceived");
 }
 
 async function attachPushListeners(): Promise<void> {
@@ -110,7 +126,10 @@ async function attachPushListeners(): Promise<void> {
 
   await FirebaseMessaging.addListener("tokenReceived", async (event) => {
     if (event.token) {
-      await postToken(event.token, resolvePlatform());
+      const saved = await postToken(event.token, resolvePlatform());
+      if (saved) {
+        console.info("[push] token registered from tokenReceived");
+      }
     }
   });
 
@@ -135,8 +154,8 @@ export async function registerNativePushNotifications(): Promise<void> {
   if (!isNativeApp()) return;
 
   try {
-    await syncPushToken();
     await attachPushListeners();
+    await syncPushToken();
   } catch (error) {
     console.warn("[push] native registration unavailable", error);
   }
