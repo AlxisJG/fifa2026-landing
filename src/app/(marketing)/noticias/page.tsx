@@ -6,10 +6,10 @@ import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getPosts } from "@/lib/posts";
 import { buildArticleSchema } from "@/lib/seo/json-ld";
-import { WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS } from "@/lib/cache/wordpress";
 import { buildPageMetadata, PAGE_SEO } from "@/lib/seo/pages";
 
-export const revalidate = WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS;
+/** Next.js requires a static literal for segment config (default 3 h). */
+export const revalidate = 10800;
 
 export const metadata = buildPageMetadata("noticias");
 

@@ -15,10 +15,10 @@ import { getPosts } from "@/lib/posts";
 import { resolveOpeningKickoffMs, shouldShowWorldCupCountdown } from "@/lib/world-cup-kickoff";
 import type { Metadata } from "next";
 import { buildSocialMetadata } from "@/lib/seo/metadata-shared";
-import { WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS } from "@/lib/cache/wordpress";
 import { HOME_SEO, SITE_URL } from "@/lib/seo/site";
 
-export const revalidate = WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS;
+/** Next.js requires a static literal for segment config (default 3 h). */
+export const revalidate = 10800;
 
 export const metadata: Metadata = {
   title: { absolute: HOME_SEO.title },

@@ -5,7 +5,8 @@ import { getSitemapNewsSlugs } from "@/lib/posts";
 import { PAGE_SEO } from "@/lib/seo/pages";
 import { absoluteSiteUrl, SITE_URL } from "@/lib/seo/site";
 
-export const revalidate = WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS;
+/** Next.js requires a static literal for segment config (default 3 h). */
+export const revalidate = 10800;
 
 const getCachedSitemapNewsSlugs = unstable_cache(
   getSitemapNewsSlugs,
