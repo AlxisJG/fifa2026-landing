@@ -1,8 +1,19 @@
-/** WordPress / FIFApp feed — refresh at most every 5 minutes. */
-export const WORDPRESS_CACHE_SECONDS = 300;
+function parsePositiveInt(raw: string | undefined, fallback: number): number {
+  const value = Number(raw?.trim());
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
 
-/** Serve stale CDN responses while revalidating in the background (10 min). */
-export const WORDPRESS_STALE_WHILE_REVALIDATE_SECONDS = 600;
+/** Redis snapshot + CDN cache for noticias/galería — default 3 hours. */
+export const WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS = parsePositiveInt(
+  process.env.WP_SNAPSHOT_REVALIDATE_SECONDS,
+  3 * 60 * 60
+);
+
+/** @deprecated alias — use WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS */
+export const WORDPRESS_CACHE_SECONDS = WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS;
+
+/** Serve stale CDN responses while revalidating in the background. */
+export const WORDPRESS_STALE_WHILE_REVALIDATE_SECONDS = WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS;
 
 export function wordpressFetchCache() {
   return { next: { revalidate: WORDPRESS_CACHE_SECONDS } } as const;

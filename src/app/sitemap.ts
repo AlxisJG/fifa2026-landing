@@ -1,16 +1,16 @@
 import type { MetadataRoute } from "next";
 import { unstable_cache } from "next/cache";
+import { WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS } from "@/lib/cache/wordpress";
 import { getSitemapNewsSlugs } from "@/lib/posts";
 import { PAGE_SEO } from "@/lib/seo/pages";
 import { absoluteSiteUrl, SITE_URL } from "@/lib/seo/site";
 
-/** 5 min — sync with WORDPRESS_CACHE_SECONDS in src/lib/cache/wordpress.ts */
-export const revalidate = 300;
+export const revalidate = WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS;
 
 const getCachedSitemapNewsSlugs = unstable_cache(
   getSitemapNewsSlugs,
   ["sitemap-news-slugs"],
-  { revalidate: 300 }
+  { revalidate: WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS }
 );
 
 type SitemapEntry = MetadataRoute.Sitemap[number];

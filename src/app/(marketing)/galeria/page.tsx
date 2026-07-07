@@ -3,10 +3,10 @@ import { GallerySection } from "@/components/sections/gallery";
 import { GalleryVideoSection } from "@/components/sections/gallery-video-section";
 import { MarketingPageMain, PageIntro } from "@/components/layout/page-intro";
 import { PageContentAds } from "@/components/layout/page-content-ads";
+import { WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS } from "@/lib/cache/wordpress";
 import { buildPageMetadata, PAGE_SEO } from "@/lib/seo/pages";
 
-/** 5 min — sync with WORDPRESS_CACHE_SECONDS in src/lib/cache/wordpress.ts */
-export const revalidate = 300;
+export const revalidate = WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS;
 
 export const metadata = buildPageMetadata("galeria");
 

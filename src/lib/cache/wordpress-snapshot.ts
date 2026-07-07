@@ -1,8 +1,9 @@
 import { Redis } from "@upstash/redis";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS } from "@/lib/cache/wordpress";
 
-type SnapshotEnvelope<T> = {
+export type SnapshotEnvelope<T> = {
   savedAt: string;
   data: T;
 };
@@ -20,7 +21,6 @@ function resolveRedisCredentials(): { url: string; token: string } | null {
     return { url: upstashUrl, token: upstashToken };
   }
 
-  // Vercel Storage integration (database name prefix, e.g. FIFAPIO_KV_*).
   const kvUrl = process.env.FIFAPIO_KV_REST_API_URL?.trim();
   const kvToken = process.env.FIFAPIO_KV_REST_API_TOKEN?.trim();
   if (kvUrl && kvToken) {
@@ -57,12 +57,18 @@ function snapshotKey(namespace: string) {
   return `wp:snapshot:${namespace}`;
 }
 
-async function readFileSnapshot<T>(namespace: string): Promise<T | null> {
+function isSnapshotFresh(savedAt: string): boolean {
+  const ageMs = Date.now() - new Date(savedAt).getTime();
+  return ageMs >= 0 && ageMs < WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS * 1000;
+}
+
+async function readFileSnapshotEnvelope<T>(namespace: string): Promise<SnapshotEnvelope<T> | null> {
   try {
     const filePath = path.join(SNAPSHOT_DIR, `${namespace}.json`);
     const raw = await readFile(filePath, "utf8");
     const envelope = JSON.parse(raw) as SnapshotEnvelope<T>;
-    return envelope?.data ?? null;
+    if (!envelope?.savedAt || envelope.data == null) return null;
+    return envelope;
   } catch {
     return null;
   }
@@ -78,13 +84,14 @@ async function writeFileSnapshot<T>(namespace: string, data: T): Promise<void> {
   }
 }
 
-async function readRedisSnapshot<T>(namespace: string): Promise<T | null> {
+async function readRedisSnapshotEnvelope<T>(namespace: string): Promise<SnapshotEnvelope<T> | null> {
   const redis = getRedis();
   if (!redis) return null;
 
   try {
     const envelope = await redis.get<SnapshotEnvelope<T>>(snapshotKey(namespace));
-    return envelope?.data ?? null;
+    if (!envelope?.savedAt || envelope.data == null) return null;
+    return envelope;
   } catch {
     return null;
   }
@@ -102,11 +109,16 @@ async function writeRedisSnapshot<T>(namespace: string, data: T): Promise<void> 
   }
 }
 
+async function readSnapshotEnvelope<T>(namespace: string): Promise<SnapshotEnvelope<T> | null> {
+  const redis = await readRedisSnapshotEnvelope<T>(namespace);
+  if (redis) return redis;
+  return readFileSnapshotEnvelope<T>(namespace);
+}
+
 /** Read the last successful WordPress payload for a namespace. */
 export async function readWordPressSnapshot<T>(namespace: string): Promise<T | null> {
-  const redis = await readRedisSnapshot<T>(namespace);
-  if (redis) return redis;
-  return readFileSnapshot<T>(namespace);
+  const envelope = await readSnapshotEnvelope<T>(namespace);
+  return envelope?.data ?? null;
 }
 
 /** Persist the last successful WordPress payload for a namespace. */
@@ -114,14 +126,34 @@ export async function writeWordPressSnapshot<T>(namespace: string, data: T): Pro
   await Promise.all([writeRedisSnapshot(namespace, data), writeFileSnapshot(namespace, data)]);
 }
 
+export async function readWordPressSnapshotMeta(namespace: string): Promise<{
+  savedAt: string | null;
+  fresh: boolean;
+  count: number;
+} | null> {
+  const envelope = await readSnapshotEnvelope<unknown[]>(namespace);
+  if (!envelope) return null;
+
+  return {
+    savedAt: envelope.savedAt,
+    fresh: isSnapshotFresh(envelope.savedAt),
+    count: Array.isArray(envelope.data) ? envelope.data.length : 0
+  };
+}
+
 /**
- * Try live fetch first; on success persist snapshot.
- * On failure, return the last snapshot if available.
+ * Serve cached Redis snapshot when fresh; otherwise fetch live and update Redis.
+ * On live failure, fall back to the last snapshot (even if stale).
  */
 export async function withWordPressSnapshot<T>(
   namespace: string,
   fetchLive: () => Promise<T | null>
 ): Promise<T | null> {
+  const envelope = await readSnapshotEnvelope<T>(namespace);
+  if (envelope && isSnapshotFresh(envelope.savedAt)) {
+    return envelope.data;
+  }
+
   try {
     const live = await fetchLive();
     if (live != null) {
@@ -132,5 +164,30 @@ export async function withWordPressSnapshot<T>(
     // Fall through to snapshot.
   }
 
-  return readWordPressSnapshot<T>(namespace);
+  return envelope?.data ?? null;
+}
+
+/** Bypass TTL and try a live fetch; keep the previous snapshot if live fails. */
+export async function forceRefreshWordPressSnapshot<T>(
+  namespace: string,
+  fetchLive: () => Promise<T | null>
+): Promise<{ data: T | null; refreshed: boolean; savedAt: string | null }> {
+  const previous = await readSnapshotEnvelope<T>(namespace);
+
+  try {
+    const live = await fetchLive();
+    if (live != null) {
+      await writeWordPressSnapshot(namespace, live);
+      const envelope = await readSnapshotEnvelope<T>(namespace);
+      return { data: live, refreshed: true, savedAt: envelope?.savedAt ?? new Date().toISOString() };
+    }
+  } catch {
+    // Fall through to previous snapshot.
+  }
+
+  return {
+    data: previous?.data ?? null,
+    refreshed: false,
+    savedAt: previous?.savedAt ?? null
+  };
 }

@@ -7,6 +7,10 @@
     {
       "path": "/api/jobs/push-live-start",
       "schedule": "*/2 * * * *"
+    },
+    {
+      "path": "/api/jobs/wordpress-refresh",
+      "schedule": "0 */3 * * *"
     }
   ]
 }

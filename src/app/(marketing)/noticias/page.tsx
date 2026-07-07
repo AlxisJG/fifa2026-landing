@@ -6,10 +6,10 @@ import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getPosts } from "@/lib/posts";
 import { buildArticleSchema } from "@/lib/seo/json-ld";
+import { WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS } from "@/lib/cache/wordpress";
 import { buildPageMetadata, PAGE_SEO } from "@/lib/seo/pages";
 
-/** 5 min — sync with WORDPRESS_CACHE_SECONDS in src/lib/cache/wordpress.ts */
-export const revalidate = 300;
+export const revalidate = WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS;
 
 export const metadata = buildPageMetadata("noticias");
 

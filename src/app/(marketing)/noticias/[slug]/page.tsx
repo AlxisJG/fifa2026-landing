@@ -10,11 +10,11 @@ import { getPostPath, stripHtml } from "@/lib/posts-slug";
 import { buildArticleSchema } from "@/lib/seo/json-ld";
 import { buildSocialMetadata } from "@/lib/seo/metadata-shared";
 import { PAGE_SEO } from "@/lib/seo/pages";
+import { WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS } from "@/lib/cache/wordpress";
 import { absoluteSiteUrl } from "@/lib/seo/site";
 import type { Metadata } from "next";
 
-/** 5 min — sync with WORDPRESS_CACHE_SECONDS in src/lib/cache/wordpress.ts */
-export const revalidate = 300;
+export const revalidate = WORDPRESS_SNAPSHOT_REVALIDATE_SECONDS;
 
 /** Evita pre-render masivo en build (timeouts a WordPress). ISR bajo demanda. */
 export const dynamicParams = true;
