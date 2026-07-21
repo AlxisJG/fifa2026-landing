@@ -8,8 +8,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/:path*",
-        has: [{ type: "host", value: "www.fifa.piodeportes.com" }],
-        destination: "https://fifa.piodeportes.com/:path*",
+        destination: "https://piodeportes.com/mundial-2026",
         permanent: true
       }
     ];

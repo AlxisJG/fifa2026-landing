@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://piodeportes.com/mundial-2026",
+      "permanent": true
+    }
+  ],
   "crons": [
     {
       "path": "/api/jobs/push-match-reminders",
